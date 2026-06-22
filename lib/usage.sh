@@ -75,6 +75,36 @@ Options:
 EOF
 }
 
+usage_ai_new() {
+    cat >&2 <<'EOF'
+Usage: ai-new <name> [--agent <agent>] [--resume] [--skip-trial-build] [-h|--help]
+
+Bootstrap a new agent-primed container project, or resume an incomplete one.
+
+Arguments:
+  <name>                   Project name (used as directory slug under CODEX_JAILS_DIR/projects/).
+
+Options:
+  --agent <agent>          Select the AI agent runtime (e.g. codex, codex, gemini).
+                           Required when creating a new project.
+  --resume                 Re-enter an existing incomplete project scaffold instead
+                           of starting fresh.
+  --skip-trial-build       Skip the quality-gate trial build (yields generated-unvalidated).
+  -h, --help               Show this help and exit.
+
+Environment:
+  CODEX_JAILS_DIR          Base directory for all projects (default: $HOME/codex-jails).
+
+Notes:
+  --force and --refresh-agent-registry are deferred beyond v1.
+
+Examples:
+  ai-new myproject --agent codex
+  ai-new myproject --resume
+  ai-new myproject --agent codex --skip-trial-build
+EOF
+}
+
 usage_ai_list() {
     cat >&2 <<'EOF'
 Usage: ai-list

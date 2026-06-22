@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+# ai-new — Bootstrap an agent-primed container project.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "${SCRIPT_DIR}/../lib/common.sh"
+# shellcheck source=../lib/usage.sh
+source "${SCRIPT_DIR}/../lib/usage.sh"
+# shellcheck source=../lib/registry.sh
+source "${SCRIPT_DIR}/../lib/registry.sh"
+# shellcheck source=../lib/slug.sh
+source "${SCRIPT_DIR}/../lib/slug.sh"
+# shellcheck source=../lib/session.sh
+source "${SCRIPT_DIR}/../lib/session.sh"
+# shellcheck source=../lib/scaffold.sh
+source "${SCRIPT_DIR}/../lib/scaffold.sh"
+# shellcheck source=../lib/lock.sh
+source "${SCRIPT_DIR}/../lib/lock.sh"
+# shellcheck source=../lib/coordination.sh
+source "${SCRIPT_DIR}/../lib/coordination.sh"
+# shellcheck source=../lib/quality_gate.sh
+source "${SCRIPT_DIR}/../lib/quality_gate.sh"
+# shellcheck source=../lib/reconcile.sh
+source "${SCRIPT_DIR}/../lib/reconcile.sh"
+# shellcheck source=../lib/bootstrap_image.sh
+source "${SCRIPT_DIR}/../lib/bootstrap_image.sh"
+# shellcheck source=../lib/launch.sh
+source "${SCRIPT_DIR}/../lib/launch.sh"
+# shellcheck source=../lib/adapter.sh
+source "${SCRIPT_DIR}/../lib/adapter.sh"
+
+# ── Argument parsing ──────────────────────────────────────────────────────────
+
+NAME=""
+AGENT_FLAG=""
+RESUME=0
+export SKIP_TRIAL_BUILD="${AI_NEW_SKIP_TRIAL_BUILD:-0}"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage_ai_new; exit 0 ;;
+        --agent)
+            [[ $# -ge 2 ]] || _die "--agent requires an argument"
+            AGENT_FLAG="$2"; shift 2 ;;
+        --agent=*)
+            AGENT_FLAG="${1#--agent=}"; shift ;;
+        --resume)
+            RESUME=1; shift ;;
+        --skip-trial-build)
+            SKIP_TRIAL_BUILD=1; shift ;;
+        --force|--refresh-agent-registry)
+            _die "Flag '$1' is deferred beyond v1 and not yet implemented." ;;
+        -*)
+            _die "Unknown flag: $1. Try 'ai-new --help'." ;;
+        *)
+            if [[ -z "$NAME" ]]; then
+                NAME="$1"; shift
+            else
+                _die "Unexpected argument: $1. Try 'ai-new --help'."
+            fi
+            ;;
+    esac
+done
+
+[[ -n "$NAME" ]] || { usage_ai_new; exit 1; }
+
+# ── Environment resolution ────────────────────────────────────────────────────
+
+resolve_jails_dir
+require_cmd podman
+project_paths "$NAME"
+
+# ── Slug sanitisation ─────────────────────────────────────────────────────────
+
+SLUG="$(sanitize_slug "$NAME")"
+export SLUG
+
+# ── Create or resume dispatch ─────────────────────────────────────────────────
+
+SESSION_JSON="${PROJECT_BOOTSTRAP}/session.json"
+
+if [[ "$RESUME" -eq 1 ]]; then
+    # Resume path — project must exist with a readable session.json.
+    [[ -d "$PROJECT_ROOT" ]] \
+        || _die "Project '$NAME' does not exist. Run without --resume to create it."
+    [[ -f "$SESSION_JSON" ]] \
+        || _die "Cannot resume '$NAME': session.json is missing or unreadable (${SESSION_JSON})."
+
+    reconcile_on_resume "$PROJECT_ROOT"
+
+    _status="$(read_status "$PROJECT_ROOT")"
+    case "$_status" in
+        complete|generated-unvalidated)
+            _die "Project '$NAME' is already in terminal status '${_status}'. Create a new project or remove the existing one." ;;
+    esac
+
+    acquire_lock "$PROJECT_ROOT"
+    trap 'release_lock "$PROJECT_ROOT"' EXIT
+
+    ensure_bootstrap_image
+    _heartbeat_loop "$PROJECT_ROOT" &
+    _HEARTBEAT_PID=$!
+
+    launch_bootstrap "$PROJECT_ROOT"
+
+    kill "$_HEARTBEAT_PID" 2>/dev/null || true
+    wait "$_HEARTBEAT_PID" 2>/dev/null || true
+
+else
+    # Create path.
+    if [[ -d "$PROJECT_ROOT" ]]; then
+        if [[ -f "$SESSION_JSON" ]]; then
+            _status="$(read_status "$PROJECT_ROOT")"
+            case "$_status" in
+                complete|generated-unvalidated)
+                    _die "Project '$NAME' exists with terminal status '${_status}'. Choose a different name or remove the project directory." ;;
+                *)
+                    _die "Project '$NAME' already exists (status: ${_status}). Use 'ai-new ${NAME} --resume' to re-enter it." ;;
+            esac
+        else
+            _die "Project '$NAME' directory exists but has no session.json. Remove it manually or choose a different name."
+        fi
+    fi
+
+    [[ -n "$AGENT_FLAG" ]] \
+        || _die "A new project requires --agent <agent>. See 'ai-new --help'."
+
+    # Validate agent and pin registry.
+    validate_agent "$AGENT_FLAG"
+    create_scaffold "$NAME"
+    pin_registry "$AGENT_FLAG" "$PROJECT_ROOT"
+    init_session "$PROJECT_ROOT" "$NAME" "$AGENT_FLAG"
+
+    acquire_lock "$PROJECT_ROOT"
+    trap 'release_lock "$PROJECT_ROOT"' EXIT
+
+    ensure_bootstrap_image
+    _heartbeat_loop "$PROJECT_ROOT" &
+    _HEARTBEAT_PID=$!
+
+    launch_bootstrap "$PROJECT_ROOT"
+
+    kill "$_HEARTBEAT_PID" 2>/dev/null || true
+    wait "$_HEARTBEAT_PID" 2>/dev/null || true
+fi
