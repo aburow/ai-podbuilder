@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container — Backend Plan'
 type: plan-backend
-status: in-development
+status: done
 lineage: ai-new
 parent: lifecycle/requirements/ai-new-9.md
 created: "2026-06-22T00:00:00+10:00"
