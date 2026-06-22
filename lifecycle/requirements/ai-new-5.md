@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Interactive Agent-Primed Project Bootstrap Container'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -284,6 +284,10 @@ mandatory requirements.
   bootstrap agent so it can inspect the log and repair the generated files.
 - R8.5 The bootstrap phase is not complete until the generated files are reviewed and the
   quality-gate result (pass / skipped / timeout / fail) is reported.
+- R8.6 Static checking is advisory but reported. If no static-check tool is available,
+  `ai-new` records the check as skipped and proceeds to the trial build. A static-check
+  failure alone does not determine final quality-gate failure unless the trial build also
+  fails or cannot start.
 
 ### R9. Resumable sessions
 
@@ -309,6 +313,11 @@ mandatory requirements.
   mounted by default.
 - R10.4 If credentials are missing or invalid, `start-here.sh` reports the failure clearly
   and gives the required setup command or file path, exiting non-zero.
+- R10.5 Bootstrap-time API-key credentials live in `bootstrap/agent.env.local`, which is
+  gitignored, host-persisted, and loaded only for the bootstrap agent runtime. It is
+  distinct from `bootstrap/agent.env`, which contains pinned non-secret registry metadata,
+  and from the generated durable project's `.env.example`, which contains only placeholder
+  variables.
 
 ### R11. Session state files
 
@@ -320,10 +329,11 @@ mandatory requirements.
 - R11.3 `session.json` records at minimum: project name; selected agent; bootstrap status;
   timestamp of last update; generated file list; Containerfile path; quality-gate status;
   last error, if any; resume command; build log path, if any; trial-image tag, if any
-  (R20.x via R-tagging); and a reference to the pinned `agent.env`.
+  (R20); static-check status, if any; and a reference to the pinned `agent.env` including
+  its computed source hash.
 - R11.4 The `status` field uses the controlled vocabulary: `started`, `interviewing`,
   `generated`, `quality-gate-running`, `quality-gate-failed`, `quality-gate-timeout`,
-  `generated-unvalidated`, `complete`.
+  `generated-unvalidated`, `interrupted`, `complete`.
 - R11.5 `ai-new` uses `session.json` to determine collision/resume behaviour (R2.4); the
   agent and user use `session.md` for continuity.
 - R11.6 A scaffold is **complete** only when: the real `image/Containerfile` exists; the
@@ -376,6 +386,12 @@ mandatory requirements.
   and contains no per-agent install/auth logic beyond the generic adapter contract (R4.2).
 - R13.9 The framework may ship defaults for `codex`, `codex`, and `gemini`; users may add
   new runtimes by adding registry files rather than editing framework scripts.
+- R13.10 `ai-new` computes a SHA-256 hash over the normalized selected registry file when
+  pinning it to `bootstrap/agent.env`. An optional `AGENT_REGISTRY_VERSION` may be present
+  for human-readable versioning, but the computed hash is the authoritative drift detector.
+- R13.11 v1 install adapters are limited to `npm-global`, `pipx`, `dnf-package`,
+  `preinstalled`, and `manual`. v1 auth checks use the `argv` adapter. Unknown adapter
+  names fail validation.
 
 ### R14. Bootstrap safety posture
 
@@ -443,6 +459,15 @@ mandatory requirements.
   reports the lock details and offers a safe clear path rather than silently overriding.
 - R19.5 Status values such as `interviewing` and `quality-gate-running` are informative
   only; concurrency control is based on the lock directory, not on `session.json` status.
+- R19.6 The host-side `ai-new` supervisor owns the lock heartbeat. The bootstrap container
+  and agent do not own the lock and are not trusted to clear it. They may read lock/session
+  state for diagnostics only.
+- R19.7 The default stale-lock threshold is `10m`, overridable with
+  `AI_NEW_LOCK_STALE_AFTER=<duration>` using the same GNU `timeout(1)` duration syntax as
+  `AI_NEW_BUILD_TIMEOUT`.
+- R19.8 On `--resume`, if `session.json` contains a running status but the lock is stale or
+  absent, `ai-new` reconciles the session to a recoverable status before entering the
+  bootstrap container. The reconciliation is written to `session.md`.
 
 ### R20. Trial-image naming & runtime-at-resume (promotes OQ5, OQ7)
 
@@ -548,31 +573,246 @@ mandatory requirements.
   pinned agent exists but its runtime is uninstallable/unauthenticated, `start-here.sh`
   reports the runtime/auth problem with setup instructions.
 
-## Open Questions
+## Resolved Implementation Questions
 
-- OQ1. **Stale-lock heartbeat threshold & writer.** R19.4 references a "configured
-  threshold" and a `last_heartbeat`. What is the v1 default threshold, and what writes the
-  heartbeat given the trial build runs host-side (R17) while the interview runs in the
-  container? Is the heartbeat updated by the host `ai-new` supervisor, by an in-container
-  agent hook, or both?
-- OQ2. **Registry version/hash semantics.** R13.6 records a "registry version/hash if
-  available." Is the hash computed over the file contents by `ai-new`, or is it an explicit
-  `AGENT_REGISTRY_VERSION` field authors maintain? How does a future
-  `--refresh-agent-registry` detect drift between the pinned copy and the global file?
-- OQ3. **Adapter catalog for v1.** R13.4 fixes adapters as a framework-defined set and names
-  `npm-global`. What is the complete v1 adapter list (e.g. `npm-global`, `pip`, `curl-sh`,
-  `dnf`, `prebuilt-binary`), and what is the contract/signature each adapter must satisfy so
-  the three shipped runtimes (`codex`, `codex`, `gemini`) install cleanly?
-- OQ4. **Static-check tool selection.** R8.1 requires a Containerfile "syntax/static check
-  where available." Which tool is preferred (e.g. `hadolint`, `podman build --no-cache
-  --dry-run`-style parse, buildah)? Is it mandatory when present, advisory, or skipped
-  silently when absent, and does a static-check failure alone change session status?
-- OQ5. **Concurrent-status reconciliation on crash.** If `ai-new` dies host-side while
-  status is `quality-gate-running`, the lock may be cleared as stale (R19.4) but the status
-  field still reads `quality-gate-running`. What reconciles a "running" status with no live
-  process on the next `--resume` — does resume rewrite the status, and to what?
-- OQ6. **`profile.env` vs `.env.example` boundary for agent credentials.** R10.2 allows
-  API-key credentials via profile/bootstrap env-file values (`AGENT_ENV_VARS`), while R6.5
-  keeps populated secrets out of VCS and the image. Where exactly do bootstrap-time agent
-  API keys live (a gitignored `bootstrap/.env`?), and how is that kept distinct from the
-  generated durable project's `.env.example`?
+The following implementation-level questions were resolved during planning and are now
+reflected in the requirements above. They remain here as rationale for implementers.
+
+### OQ1. Stale-lock heartbeat threshold & writer
+
+R19.4 references a "configured threshold" and a `last_heartbeat`. What is the v1 default
+threshold, and what writes the heartbeat given the trial build runs host-side (R17) while
+the interview runs in the container? Is the heartbeat updated by the host `ai-new`
+supervisor, by an in-container agent hook, or both?
+
+Resolved: v1 uses a host-owned heartbeat.
+
+`ai-new` creates `bootstrap/session.lock/` atomically before entering a bootstrap session
+or running the host-side quality gate. The host-side `ai-new` supervisor writes and
+refreshes `last_heartbeat`.
+
+Default stale threshold: `10m`.
+
+The heartbeat is updated:
+
+- while the bootstrap container is running;
+- while the host-side quality gate is running;
+- while `ai-new` is supervising a repair/resume loop.
+
+The bootstrap container and agent do not own the lock and are not trusted to clear it.
+They may read lock/session state for diagnostics only.
+
+A lock is stale when:
+
+- the recorded bootstrap container no longer exists or is not running; and
+- the recorded host-side supervisor process is no longer alive, or `last_heartbeat` is
+  older than the configured stale threshold.
+
+The stale threshold may be overridden with:
+
+`AI_NEW_LOCK_STALE_AFTER=<duration>`
+
+using the same GNU `timeout(1)` duration syntax as `AI_NEW_BUILD_TIMEOUT`.
+
+On stale-lock detection, `ai-new` reports the lock contents and offers a safe clear path,
+but does not silently overwrite the lock.
+
+### OQ2. Registry version/hash semantics
+
+R13.6 records a "registry version/hash if available." Is the hash computed over the file
+contents by `ai-new`, or is it an explicit `AGENT_REGISTRY_VERSION` field authors
+maintain? How does a future `--refresh-agent-registry` detect drift between the pinned
+copy and the global file?
+
+Resolved: v1 records both an optional registry version and a mandatory content hash.
+
+Registry authors may include:
+
+`AGENT_REGISTRY_VERSION=<version>`
+
+but `ai-new` always computes its own SHA-256 hash over the normalized registry file
+contents when copying the selected registry entry to `bootstrap/agent.env`.
+
+The pinned `bootstrap/agent.env` records:
+
+- original registry path;
+- selected agent name;
+- optional `AGENT_REGISTRY_VERSION`;
+- computed source hash;
+- copied-at timestamp.
+
+The computed hash is the authoritative drift detector. The optional version is display
+metadata only.
+
+A future `--refresh-agent-registry` compares the pinned source hash with the current
+global registry file's computed hash. If they differ, the command shows a diff or summary
+and asks for confirmation before replacing the pinned copy.
+
+### OQ3. Adapter catalog for v1
+
+R13.4 fixes adapters as a framework-defined set and names `npm-global`. What is the
+complete v1 adapter list, and what is the contract/signature each adapter must satisfy so
+the three shipped runtimes (`codex`, `codex`, `gemini`) install cleanly?
+
+Resolved: v1 ships a small fixed adapter catalog.
+
+Supported install adapters:
+
+- `npm-global`
+- `pipx`
+- `dnf-package`
+- `preinstalled`
+- `manual`
+
+Supported auth-check adapter:
+
+- `argv`
+
+No v1 adapter executes registry content through `eval`, `source`, or `sh -c`. Adapters
+receive validated string fields and construct argv arrays internally.
+
+Adapter contracts:
+
+`npm-global`
+
+- Required field: `AGENT_INSTALL_PACKAGE`
+- Runs: `npm install -g <package>`
+- Optional field: `AGENT_INSTALL_VERSION`
+
+`pipx`
+
+- Required field: `AGENT_INSTALL_PACKAGE`
+- Runs: `pipx install <package>`
+- Optional field: `AGENT_INSTALL_VERSION`
+
+`dnf-package`
+
+- Required field: `AGENT_INSTALL_PACKAGE`
+- Runs: `dnf install -y <package>`
+- Intended only for packages from configured Fedora repos.
+
+`preinstalled`
+
+- No install action.
+- Used when the bootstrap image already includes the runtime or the runtime is supplied
+  by some framework-controlled mechanism.
+
+`manual`
+
+- No install action.
+- Fails with user-facing setup instructions if the command is missing.
+- Used for runtimes that cannot be installed safely by v1.
+
+`argv` auth check
+
+- Required field: `AGENT_AUTH_CHECK_ARGV`
+- Encoded as a pipe-delimited argv string, for example:
+  `AGENT_AUTH_CHECK_ARGV="codex|--version"`
+- The framework splits the value into argv elements and executes directly without shell.
+
+Initial runtime mappings:
+
+- `codex`: likely `npm-global`, package `@openai/codex`
+- `codex`: likely `npm-global`, package `@openai/codex`
+- `gemini`: use whichever official CLI install path is selected for v1; if not safely
+  installable through `npm-global`, `pipx`, or `dnf-package`, mark as `manual` until an
+  adapter is deliberately added.
+
+### OQ4. Static-check tool selection
+
+R8.1 requires a Containerfile "syntax/static check where available." Which tool is
+preferred? Is it mandatory when present, advisory, or skipped silently when absent, and
+does a static-check failure alone change session status?
+
+Resolved: v1 treats static checking as advisory and build validation as authoritative.
+
+Static-check preference order:
+
+1. Podman-native parse/check mode, if available and reliable;
+2. Buildah parse/check equivalent, if available and reliable;
+3. `hadolint`, if installed;
+4. no static check.
+
+If no static-check tool is available, `ai-new` records `static_check=skipped` in
+`session.json` and continues to the trial build. It does not fail silently; it reports
+that the static check was skipped.
+
+If static checking fails, `ai-new` records `static_check=failed`, writes details to
+`bootstrap/static-check.log` or `bootstrap/build.log`, and still may proceed to the trial
+build unless the failure indicates the Containerfile cannot be parsed at all.
+
+A static-check failure alone does not produce final `quality-gate-failed` status unless
+the trial build also fails or cannot start.
+
+### OQ5. Concurrent-status reconciliation on crash
+
+If `ai-new` dies host-side while status is `quality-gate-running`, the lock may be cleared
+as stale (R19.4) but the status field still reads `quality-gate-running`. What reconciles a
+"running" status with no live process on the next `--resume` — does resume rewrite the
+status, and to what?
+
+Resolved: `ai-new --resume` performs status reconciliation before entering the bootstrap
+container.
+
+If `session.json` has a running status such as:
+
+- `interviewing`
+- `quality-gate-running`
+
+but no active lock exists, or the lock is stale and cleared, `ai-new` rewrites the status
+to a recoverable interrupted state before continuing.
+
+v1 adds one status:
+
+`interrupted`
+
+Reconciliation rules:
+
+- stale `interviewing` → `interrupted`
+- stale `quality-gate-running` with no complete build log → `quality-gate-timeout` or
+  `interrupted`, depending on whether the configured timeout was exceeded
+- stale `quality-gate-running` with a captured failure log → `quality-gate-failed`
+- stale `quality-gate-running` with a captured success marker → `complete`
+
+Every reconciliation writes a note to `session.md` explaining the previous status, why it
+was considered stale, and what status replaced it.
+
+### OQ6. `profile.env` vs `.env.example` boundary for agent credentials
+
+R10.2 allows API-key credentials via profile/bootstrap env-file values (`AGENT_ENV_VARS`),
+while R6.5 keeps populated secrets out of VCS and the image. Where exactly do
+bootstrap-time agent API keys live, and how is that kept distinct from the generated
+durable project's `.env.example`?
+
+Resolved: bootstrap-time agent credentials live in:
+
+`bootstrap/agent.env.local`
+
+This file is:
+
+- host-persisted;
+- mounted/loaded only for the bootstrap agent runtime;
+- ignored by Git;
+- never copied into the durable project image;
+- never used as the generated project's runtime `.env`.
+
+The generated durable project still gets:
+
+`.env.example`
+
+which contains placeholder variables for the final project, not real agent credentials.
+
+The boundary is:
+
+- `bootstrap/agent.env` → pinned non-secret runtime registry metadata;
+- `bootstrap/agent.env.local` → local secret values for the bootstrap agent;
+- `.env.example` → non-secret template for the generated durable project;
+- optional future project `.env` → user-created local runtime secrets for the durable
+  project, also gitignored.
+
+`ai-new` must ensure generated `.gitignore` excludes:
+
+- `bootstrap/agent.env.local`
+- `bootstrap/home/`
+- any project `.env`
+- other runtime-specific secret/cache files
