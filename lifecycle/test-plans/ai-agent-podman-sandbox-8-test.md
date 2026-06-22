@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — Test Plan
 type: plan-test
-status: draft
+status: approved
 lineage: ai-agent-podman-sandbox
 parent: lifecycle/requirements/ai-agent-podman-sandbox-5.md
 created: "2026-06-22T00:00:00+10:00"
