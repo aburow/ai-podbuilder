@@ -240,15 +240,20 @@ After generating all files, request a host-side build via the coordination
 protocol.  **Do not run `podman build` yourself and do not require host socket
 access.**
 
-### Writing a build request
+### Writing a build request (R8.8, R8.9)
 
-1. Determine the next `request_id`: find the highest id in existing
-   `bootstrap/build.request.*.json` and `bootstrap/build.result.*.json` files,
-   then add 1.  Start at 1 if none exist.
+1. **Allocate the next `request_id`** (R8.8): scan all existing files matching
+   `bootstrap/build.request.*.json` and `bootstrap/build.result.*.json`, extract
+   the numeric id from each filename, take the maximum, and add 1.  Start at 1
+   if none exist.
 
-2. Write `bootstrap/build.request.<id>.json` **atomically** (write to
-   `.tmp`, then rename):
-   ```json
+2. **Write the request file atomically** (R8.9) — write to a `.tmp` file first,
+   then rename to the final path to avoid the host supervisor reading a partially
+   written file:
+
+   ```
+   # Write to tmp
+   cat > /project/bootstrap/build.request.<id>.json.tmp << 'EOF'
    {
      "request_id": <id>,
      "containerfile": "image/Containerfile",
@@ -257,40 +262,84 @@ access.**
      "reason": "initial build",
      "repair_iteration": 0
    }
+   EOF
+   # Atomic rename
+   mv /project/bootstrap/build.request.<id>.json.tmp \
+      /project/bootstrap/build.request.<id>.json
    ```
 
-3. Update `session.json` status to `quality-gate-running`.
+3. **Update `session.json` status** to `quality-gate-running` and note the
+   request id and timestamp in `session.md`.
 
-### Waiting for the result
+4. **Tell the user** what is happening:
+   > "I have written a build request to `bootstrap/build.request.<id>.json`.
+   > The host-side supervisor (outside this container) is now running
+   > `podman build` on your behalf.  I will monitor for the result."
 
-While waiting for `bootstrap/build.result.<id>.json` to appear, periodically
-report progress to the user:
+### Waiting for the result (R8.14, R17.3)
 
-- Current status from `bootstrap/session.json`
-- Build log location: `bootstrap/build.log`
-- Elapsed time since request was written
-- Timeout setting (default: 10 minutes)
+Poll for `bootstrap/build.result.<id>.json` to appear.  While waiting,
+periodically (every ~30 seconds) report to the user:
 
-Do **not** run `podman build` or attempt to access `/run/user/*/podman.sock`.
+```
+[waiting] Quality gate running…
+  Status:   quality-gate-running  (from bootstrap/session.json)
+  Log:      bootstrap/build.log   (check with: cat /project/bootstrap/build.log)
+  Elapsed:  <elapsed>
+  Timeout:  10 min (default; AI_NEW_BUILD_TIMEOUT overrides)
+```
+
+**Hard constraints while waiting:**
+- Do NOT run `podman build` yourself.
+- Do NOT attempt to access `/run/user/*/podman.sock` or any host socket.
+- Do NOT block indefinitely — after the timeout period (default 10 min), report
+  the timeout and leave the session resumable.
 
 ### Interpreting results
 
-The result file will contain:
-- `status`: `passed`, `failed`, or `timeout`
-- `exit_code`: integer
-- `build_log_path`: path to the build log
-- `error_summary`: brief error description on failure
+Read `bootstrap/build.result.<id>.json`.  The result file contains:
+- `"status"`: `"passed"` | `"failed"` | `"timeout"`
+- `"exit_code"`: integer (0 = success)
+- `"static_check_status"`: `"passed"` | `"failed"` | `"skipped"`
+- `"build_log_path"`: path to the full build log (relative to project root)
+- `"error_summary"`: brief human-readable error description on failure
 
-**On `passed`:** Report success and proceed to Phase 5 (completion).
+#### On `"passed"`
 
-**On `failed`:** Read `bootstrap/build.log`, identify the root cause, repair the
-affected files (especially `image/Containerfile`), and write a new build request
-with `repair_iteration` incremented.  Note each repair in `session.md` under
-Reconciliation Notes.  Maximum 3 repair iterations before reporting a manual
-intervention message.
+Report the result clearly:
+> "Quality gate passed!  The Containerfile built successfully."
 
-**On `timeout`:** Report the timeout, tell the user the session is resumable
-(`ai-new <name> --resume`), and write `quality-gate-timeout` to `session.json`.
+Update `session.json` status to `complete`.  Proceed to Phase 5.
+
+#### On `"failed"`
+
+1. Report the failure: show `error_summary` and the log path.
+2. Read `bootstrap/build.log` (the full log is at the `build_log_path`).
+3. Identify the root cause from the build output.
+4. Repair the affected files — primarily `image/Containerfile`, but also any
+   files referenced by `COPY` or `ADD` instructions.
+5. Record what you changed in `session.md` under **Reconciliation Notes**.
+6. Increment `repair_iteration` by 1 and write a new build request with:
+   - A new `request_id` (allocated as above)
+   - `"reason": "repair attempt <iteration>"`
+   - `"repair_iteration": <new_iteration>`
+7. Repeat the wait/interpret cycle.
+8. **Maximum 3 repair iterations.**  After 3 failed attempts, report:
+   > "The build has failed after 3 repair attempts.  Please review
+   > `bootstrap/build.log` and `image/Containerfile` manually, fix the issue,
+   > and rerun `ai-new <name> --resume`."
+   Update `session.json` status to `quality-gate-failed`.
+
+#### On `"timeout"`
+
+Report the timeout clearly:
+> "The quality-gate build timed out after the allowed period."
+> "The session is resumable: run `ai-new <name> --resume`."
+
+Update `session.json` status to `quality-gate-timeout`.
+Record the timeout in `session.md` under Reconciliation Notes.
+Do NOT attempt another build request automatically — leave it for the user to
+resume and retry.
 
 ---
 
