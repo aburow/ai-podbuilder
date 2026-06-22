@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — v1 Requirement
 type: requirement
-status: blocked
+status: draft
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -458,7 +458,7 @@ separately under **Deferred Acceptance** so the v1 release gate is unambiguous.
   `$CODEX_JAILS_DIR/podman-plugin-workspace` and operate from inside that sandbox.
   *(Nested-bootstrap R13.4 is v1; full packaging is D5.)*
 
-## Open Questions
+## Resolved Questions
 
 None. All clarifying questions from the parent lineage are resolved:
 
