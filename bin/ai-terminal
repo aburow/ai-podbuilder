@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "${SCRIPT_DIR}/../lib/common.sh"
+# shellcheck source=../lib/profile.sh
+source "${SCRIPT_DIR}/../lib/profile.sh"
+# shellcheck source=../lib/container.sh
+source "${SCRIPT_DIR}/../lib/container.sh"
+
+usage() {
+    cat >&2 <<'EOF'
+Usage: ai-terminal <profile>
+
+Attach an additional interactive shell to the running container for the
+named profile via 'podman exec -it'. The container must already be running
+(use 'ai-launch <profile>' to start or resume it).
+
+Options:
+  -h, --help    Show this help and exit.
+EOF
+}
+
+[[ $# -eq 0 || "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+
+resolve_base_dir
+require_cmd podman
+
+load_profile "$1"
+
+container_running "$CONTAINER_NAME" \
+    || _die "Container '${CONTAINER_NAME}' is not running. Start it first with: ai-launch ${1}"
+
+podman exec -it "$CONTAINER_NAME" bash

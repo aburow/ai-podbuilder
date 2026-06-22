@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "${SCRIPT_DIR}/../lib/common.sh"
+# shellcheck source=../lib/container.sh
+source "${SCRIPT_DIR}/../lib/container.sh"
+
+usage() {
+    cat >&2 <<'EOF'
+Usage: ai-list
+
+List all profiles in the profiles/ directory, printing name, image name,
+workspace path, and persistent container state (running/stopped/absent).
+
+Options:
+  -h, --help    Show this help and exit.
+EOF
+}
+
+[[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+
+resolve_base_dir
+require_cmd podman
+
+PDIR="$(profiles_dir)"
+[[ -d "$PDIR" ]] || _die "Profiles directory not found: ${PDIR}"
+
+# Collect .env files (strip .example entries — those are templates, not profiles).
+shopt -s nullglob
+profiles=("${PDIR}"/*.env)
+shopt -u nullglob
+
+if [[ ${#profiles[@]} -eq 0 ]]; then
+    _info "No profiles found in ${PDIR}"
+    exit 0
+fi
+
+# Column header.
+printf '%-20s  %-35s  %-40s  %s\n' "PROFILE" "IMAGE" "WORKSPACE" "STATE"
+printf '%-20s  %-35s  %-40s  %s\n' "-------" "-----" "---------" "-----"
+
+for pfile in "${profiles[@]}"; do
+    # Source each profile in a subshell to avoid polluting the current env.
+    row="$(
+        # shellcheck source=/dev/null
+        source "$pfile"
+        state="absent"
+        if podman container exists "${CONTAINER_NAME}" 2>/dev/null; then
+            status="$(podman inspect --format '{{.State.Status}}' "${CONTAINER_NAME}" 2>/dev/null)"
+            state="${status:-unknown}"
+        fi
+        printf '%-20s  %-35s  %-40s  %s\n' \
+            "${PROFILE_NAME}" "${IMAGE_NAME}" "${WORKSPACE}" "${state}"
+    )"
+    echo "$row"
+done
