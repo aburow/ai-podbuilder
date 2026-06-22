@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container (implementation-ready requirement)'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -619,26 +619,79 @@ build requests, and repair loops can be inspected and reconstructed after crashe
   elapsed time, timeout) and does not run `podman build` itself or require host socket access; on result
   it reports success/failure/timeout per R8.14.
 
-## Open Questions
+## Requirement Closure
 
-The parent (`ai-new-7.md`) declared all inherited planning questions (OQ1–OQ7, OQ-A–OQ-E,
-OQ-7A–OQ-7F) resolved and binding for v1, and no new requirement decision is opened here. The
-following are the only items left genuinely undecided; none blocks planning, and each has a stated
-v1 default to fall back on:
+All requirement decisions needed for v1 are closed in this artifact. Remaining future
+enhancements such as automatic Gemini installation, interactive runtime selection,
+destructive `--force`, and `--refresh-agent-registry` are explicitly out of v1 scope.
 
-- **OQ-8A — `gemini` install path.** R13.13 ships `gemini` as a registered `manual` runtime unless a
-  *safe, official* install path is deliberately selected before implementation. Decision needed during
-  planning: confirm `manual` for v1, or adopt a specific official package/adapter. Default: ship as
-  `manual`.
-- **OQ-8B — Slug collision UX.** R20.1 requires `ai-new` to *fail clearly* when two distinct project
-  names sanitize to the same slug, deferring a rename/disambiguation flow to "a future flow." Decision
-  needed: confirm fail-closed is the only v1 behaviour (no interactive rename). Default: fail closed
-  with the colliding name reported.
-- **OQ-8C — Stale-lock clear ergonomics.** R19.4 requires `ai-new` to *offer a safe clear path* for a
-  stale lock rather than silently overriding, but does not pin whether that path is an explicit flag, a
-  confirmation prompt, or a printed manual command. Decision needed during planning. Default: print the
-  lock details and the exact manual `rm -rf bootstrap/session.lock` (or equivalent) command plus a
-  confirmation prompt; no auto-clear.
-- **OQ-8D — Multi-runtime chooser (deferred).** R4.3 explicitly defers an interactive multi-runtime
-  chooser beyond v1 and fails-with-guidance when multiple runtimes are registered and none is selected.
-  Confirm this remains deferred (no scope creep into v1). Default: deferred.
+## Explicit v1 Defaults
+
+The parent (`ai-new-7.md`) declared all inherited planning questions
+(OQ1–OQ7, OQ-A–OQ-E, OQ-7A–OQ-7F) resolved and binding for v1. No open
+requirement questions remain in this artifact.
+
+The following v1 defaults are binding and MUST be implemented unless a later
+version explicitly changes them.
+
+### D1. Gemini runtime default
+
+`gemini` ships as a registered `manual` runtime in v1.
+
+The default registry entry for `gemini` MUST use:
+
+`AGENT_INSTALL_ADAPTER=manual`
+
+If the `gemini` command is already available and authenticates successfully, it may be
+used. If the command is missing or cannot authenticate, `start-here.sh` MUST report the
+required setup instructions and exit non-zero. v1 MUST NOT attempt automatic Gemini
+installation unless a safe, official install path is promoted into a future requirement.
+
+### D2. Slug collision behavior
+
+If two distinct project names sanitize to the same image slug, v1 MUST fail closed.
+
+`ai-new` MUST report:
+
+- the requested project name;
+- the computed slug;
+- the existing project/name or image tag that already uses that slug;
+- guidance to choose a distinct project name.
+
+v1 MUST NOT silently disambiguate, auto-rename, append random suffixes, or continue with
+an ambiguous slug.
+
+### D3. Stale-lock clear behavior
+
+When `ai-new` detects a stale lock, v1 MUST NOT silently remove it.
+
+`ai-new` MUST print:
+
+- the lock path;
+- recorded `pid`;
+- recorded `hostname`;
+- recorded `container_name`;
+- recorded `started_at`;
+- recorded `last_heartbeat`;
+- why the lock is considered stale;
+- the exact manual clear command.
+
+Default manual clear command:
+
+`rm -rf <project>/bootstrap/session.lock`
+
+In interactive mode, `ai-new` MAY ask for confirmation and then remove the stale lock.
+In non-interactive mode, it MUST fail closed and print the manual clear command.
+
+### D4. Multi-runtime chooser
+
+The interactive multi-runtime chooser is deferred beyond v1.
+
+If no `--agent <agent>` is provided:
+
+- if exactly one registered runtime is available, `ai-new` MAY use it;
+- if zero registered runtimes are available, `ai-new` MUST fail with setup instructions;
+- if multiple registered runtimes are available, `ai-new` MUST fail with guidance to rerun
+  using `--agent <agent>`.
+
+`start-here.sh` MUST NOT implement an interactive multi-runtime chooser in v1.
