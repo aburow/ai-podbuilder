@@ -19,6 +19,8 @@ launch_bootstrap() {
     _info "  Project mount: ${_proj} → /project"
     _info "  HOME inside:   /project/bootstrap/home"
 
+    local _start_here="${CODEX_JAILS_DIR}/start-here.sh"
+
     # Build argv array — no shell interpolation of registry values.
     local _args=(
         run
@@ -32,6 +34,11 @@ launch_bootstrap() {
         --workdir /project
         --network host
     )
+
+    # Mount start-here.sh at container root if it exists in the plugin directory.
+    if [[ -f "$_start_here" ]]; then
+        _args+=(--volume "${_start_here}:/start-here.sh:ro,z")
+    fi
 
     # Explicitly do NOT pass --privileged, --device /dev/fuse,
     # --volume /run/user/.../podman.sock, or any nested-Podman capability.
