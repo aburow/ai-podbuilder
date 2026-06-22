@@ -35,3 +35,56 @@ render_launch_summary() {
         echo "$sep"
     } >&2
 }
+
+# prompt_stale_choice
+# Presents the three-way interactive stale-image prompt and writes the user's
+# choice to stdout: "continue", "recreate", or "cancel".
+# Empty input selects "continue" (the safe default — never recreate silently).
+prompt_stale_choice() {
+    {
+        echo ""
+        _warn "Container '${CONTAINER_NAME}' was built from a different image than the current local image."
+        echo ""
+        printf '  [1] Continue  — use the existing container as-is (default)\n'
+        printf '  [2] Recreate  — remove the container and recreate from the new image\n'
+        printf '               (the container is rebuilt; your workspace is preserved)\n'
+        printf '  [3] Cancel    — exit now and inspect manually\n'
+        echo ""
+    } >&2
+    local choice
+    while true; do
+        printf 'Choice [1/2/3, Enter=1]: ' >&2
+        read -r choice
+        case "${choice:-1}" in
+            1) echo "continue"; return ;;
+            2) echo "recreate"; return ;;
+            3) echo "cancel";   return ;;
+            *) printf '  Please enter 1, 2, or 3.\n' >&2 ;;
+        esac
+    done
+}
+
+# warn_stale_noninteractive
+# Prints a non-interactive staleness warning with no prompt.
+warn_stale_noninteractive() {
+    _warn "Container '${CONTAINER_NAME}' was built from a different image than the current local image."
+    _warn "Non-interactive mode: continuing with existing container (use --recreate to update)."
+}
+
+# confirm_reset
+# Interactive confirmation prompt for --reset. Explains what is preserved.
+# Returns 0 if the user confirms, 1 if they decline or press Enter.
+confirm_reset() {
+    {
+        echo ""
+        printf '  --reset will stop and remove container '"'"'%s'"'"', then recreate it.\n' \
+            "${CONTAINER_NAME}"
+        printf '  Preserved: workspace, home directory, profile, image, and secrets.\n'
+        printf '  Only the container itself is removed and rebuilt from the current image.\n'
+        echo ""
+    } >&2
+    local choice
+    printf 'Continue? [y/N]: ' >&2
+    read -r choice
+    [[ "${choice}" == [yY] ]]
+}

@@ -87,7 +87,11 @@ fi
 # ── Reset (B7: --reset) ───────────────────────────────────────────────────────
 if [[ "$FLAG_RESET" -eq 1 ]]; then
     _reset_yes=0
-    [[ "$FLAG_YES" -eq 1 || "$FLAG_NON_INTERACTIVE" -eq 1 ]] && _reset_yes=1
+    if [[ "$FLAG_YES" -eq 1 || "$FLAG_NON_INTERACTIVE" -eq 1 ]]; then
+        _reset_yes=1
+    elif is_interactive && container_running "$CONTAINER_NAME"; then
+        confirm_reset && _reset_yes=1
+    fi
     reset_container "$( [[ "$_reset_yes" -eq 1 ]] && echo "yes" || echo "no" )"
     exit 0
 fi
@@ -120,7 +124,7 @@ if container_exists "$CONTAINER_NAME"; then
                     ;;
             esac
         else
-            _warn "Image has changed; non-interactive — continuing with existing container '${CONTAINER_NAME}'."
+            warn_stale_noninteractive
         fi
     fi
 else
