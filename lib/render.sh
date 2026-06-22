@@ -88,3 +88,43 @@ confirm_reset() {
     read -r choice
     [[ "${choice}" == [yY] ]]
 }
+
+# render_profile_table <"name\timage\tworkspace\tstate"> ...
+# Prints a column-aligned profile table to stdout. Column widths adapt to the
+# longest value in each column. No ANSI escapes are emitted (pure text).
+render_profile_table() {
+    local -a rows=("$@")
+    local -a names images workspaces states
+    local max_name=7    # length of "PROFILE"
+    local max_image=5   # length of "IMAGE"
+    local max_ws=9      # length of "WORKSPACE"
+
+    local row name image ws state
+
+    for row in "${rows[@]}"; do
+        IFS=$'\t' read -r name image ws state <<< "$row"
+        names+=("$name")
+        images+=("$image")
+        workspaces+=("$ws")
+        states+=("$state")
+        [[ ${#name}  -gt $max_name  ]] && max_name=${#name}
+        [[ ${#image} -gt $max_image ]] && max_image=${#image}
+        [[ ${#ws}    -gt $max_ws    ]] && max_ws=${#ws}
+    done
+
+    local dash_name dash_image dash_ws
+    dash_name="$(  printf '%*s' "$max_name"  '' | tr ' ' '-')"
+    dash_image="$( printf '%*s' "$max_image" '' | tr ' ' '-')"
+    dash_ws="$(    printf '%*s' "$max_ws"    '' | tr ' ' '-')"
+
+    printf "%-${max_name}s  %-${max_image}s  %-${max_ws}s  %s\n" \
+        "PROFILE" "IMAGE" "WORKSPACE" "STATE"
+    printf "%-${max_name}s  %-${max_image}s  %-${max_ws}s  %s\n" \
+        "$dash_name" "$dash_image" "$dash_ws" "-----"
+
+    local i
+    for i in "${!names[@]}"; do
+        printf "%-${max_name}s  %-${max_image}s  %-${max_ws}s  %s\n" \
+            "${names[$i]}" "${images[$i]}" "${workspaces[$i]}" "${states[$i]}"
+    done
+}
