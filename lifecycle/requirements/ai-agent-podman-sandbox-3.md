@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — Detailed Requirements
 type: requirement
-status: blocked
+status: clarifying
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -350,30 +350,160 @@ the host.
   repo; and it can itself be launched via Podman from
   `$CODEX_JAILS_DIR/podman-plugin-workspace` and operate from inside that sandbox.
 
-## Open Questions
+## Resolved Questions
 
 - OQ1. **Container teardown UX.** Persistence (R4.2) means containers accumulate. What
   is the canonical removal command/flag — `ai-launch --reset`, a dedicated `ai-rm`, or an
   `ai-doctor`-driven cleanup — and should there be any age/garbage-collection guidance?
+
+Resolved: teardown is `ai-doctor` driven and always user initiated.
+
+The canonical removal flow is `ai-doctor <profile> --cleanup`, which reports the
+persistent container state, workspace state, image state, and git safety state before
+offering removal actions. Routine `ai-launch` never removes containers.
+
+Cleanup MUST be gated by a git protection check for the mounted workspace. At minimum,
+the tool must detect whether the workspace is a git repository, whether it has
+uncommitted changes, and whether those changes are ignored/untracked. If the workspace
+is not git-protected or has uncommitted/untracked work, cleanup must require explicit
+force confirmation.
+
+Age-based garbage collection is advisory only. The tool may report stale stopped
+containers, but it must not auto-remove them.
+
 - OQ2. **Image rebuild vs persistent container.** When `ai-build` produces a new image,
   how is an existing persistent container reconciled (warn, auto-recreate on next launch,
   or require explicit reset)? State lives in the workspace mount, so recreation should be
   safe, but this needs a defined default.
+
+Resolved: `ai-build` never silently mutates or removes an existing persistent
+container.
+
+When `ai-build <profile>` creates a new image, the framework records the newly built
+image ID/digest for that profile. On the next `ai-launch <profile>`, if the existing
+persistent container was created from an older image, `ai-launch` warns the user and
+offers three explicit choices:
+
+1. continue using the existing container;
+2. recreate the container from the new image while preserving the workspace-mounted
+   state; or
+3. cancel and inspect manually.
+
+The default non-interactive behavior is warn-and-continue, never auto-recreate.
+
+Dependency changes should be made durable by editing the profile's image definition
+directly, preferably the project Containerfile or explicit include fragments consumed
+by that Containerfile. Helper scripts inside the persistent workspace are allowed for
+experimentation, but durable requirements should be promoted into the image definition
+before relying on rebuilds.
+  
 - OQ3. **Agent selection/config for R16.** How is the AI agent for the request-driven
   builder configured (env var, profile field, global config), and what is the minimum
   interface contract (prompt in → structured spec out) so different agents are
   interchangeable?
+
+Resolved: agent configuration supports both registered CLI agents and API-key/env-file
+agents.
+
+The builder uses a configurable agent adapter selected by this precedence:
+
+1. per-invocation flag, e.g. `ai-new --agent codex`;
+2. per-profile field, e.g. `REQUEST_BUILDER_AGENT=codex`;
+3. global config, e.g. `$CODEX_JAILS_DIR/config/agents.env`;
+4. auto-detection of registered CLI agents.
+
+Supported adapter types:
+
+- CLI-registered agents, such as Codex or Codex, where auth/config lives inside
+  the sandbox's persistent agent config directory, for example `.codex` or equivalent;
+- env-file/API-key agents, where credentials are provided through profile/global
+  `ENV_FILE` values.
+
+The minimum interface contract is prompt-in, structured-spec-out. The adapter must
+return a machine-readable environment plan containing at least: base image, packages,
+toolchains, generated/modified files, risks/conflicts, hardware requirements, network
+requirements, and whether user approval is required.
+  
 - OQ4. **Builder output trust.** The agent's derived base image/toolchain spec is
   effectively executable input to `podman build`. Should the user always review/approve
   the generated profile and Containerfile before a build runs, and how is that confirmation
   step presented?
+
+Resolved: generated builder output must be reviewed before build.
+
+The builder must show a baseline-vs-proposed diff before running `podman build`.
+Changes to Containerfiles, include fragments, profile fields, package lists,
+environment variables, device declarations, network policy, and secret-file references
+must be highlighted.
+
+In the Podman plugin UI, this should be presented as a review/approval screen or
+dialog. In CLI mode, it must fall back to a terminal diff plus explicit confirmation.
+
+No generated or modified executable build input is applied silently. The user must
+approve the proposed changes before build. High-risk changes, such as privileged mode,
+host mounts, device passthrough, host networking, or socket exposure, must be blocked
+or require a separate elevated confirmation depending on policy.
+  
 - OQ5. **Nested-sandbox privileges (R18.4).** Running the framework from inside
   `podman-plugin-workspace` implies nested rootless Podman. What concretely must that
   inner sandbox be granted (e.g. `--device /dev/fuse`, specific subuid/subgid, network)
   to launch child sandboxes without weakening the host policy?
+
+Resolved: nested child-container launching is not part of default product mode.
+
+Default product mode allows AI-agent containers to edit, build, and test code, and to
+propose dependency changes by editing controlled Containerfile inputs. It does not
+allow those containers to launch child sandboxes.
+
+The preferred dependency-editing model is controlled image input:
+
+- the agent may edit project-owned Containerfile fragments or include files;
+- the framework-owned safety launcher remains outside the agent's write scope;
+- generated changes are shown as a diff and require user approval before build.
+
+True nested rootless Podman may be added later as an explicit `nested-builder` policy,
+not inherited by normal profiles. If added, it must not use the host Podman socket,
+Docker socket, host network, host PID namespace, `--privileged`, or broad host mounts.
+It may require a dedicated profile granting only the minimum tested requirements such
+as `/dev/fuse`, subordinate uid/gid mappings inside the image, rootless container
+storage, and rootless user-mode networking.
+  
 - OQ6. **MVP cut confirmation.** OQ1 resolved the MVP as "build an isolated dev container
   with the requested tools/libraries, usable by any agent." Confirm the v1 command set is
   `ai-build` + `ai-launch` (persistent) + `ai-terminal` + `ai-list` + profiles + safety
   policy + compat wrappers, with network modes, secrets, `ai-doctor`, `ai-new`, policy
   levels, desktop-install, packaging, and the R16 request-driven builder all deferred to
   later increments.
+
+Resolved: v1 scope is limited to the core local sandbox framework.
+
+The v1 command set is:
+
+- `ai-build`
+- `ai-launch`
+- `ai-terminal`
+- `ai-list`
+- profile files
+- normal-mode safety policy
+- persistent named containers
+- compatibility wrappers for existing scripts
+
+Included in v1:
+
+- basic network mode support: default outbound network and `NETWORK_MODE=none`;
+- optional `ENV_FILE` support for per-profile secrets;
+- documented in-sandbox SSH-key strategy;
+- manual desktop/Podman Desktop launcher wrappers.
+
+Deferred beyond v1:
+
+- `ai-doctor`;
+- `ai-new`;
+- named policy levels;
+- automatic desktop entry generation;
+- full packaging/repo installer;
+- request-driven environment builder R16;
+- nested rootless Podman child-container launching.
+
+The v1 acceptance target is a safe, reusable replacement for the current hand-written
+project scripts, not the full product vision.
