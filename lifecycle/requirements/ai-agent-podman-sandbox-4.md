@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — Consolidated Requirement (v1-scoped)
 type: requirement
-status: clarifying
+status: done
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
