@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Interactive Agent-Primed Project Bootstrap Container'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -20,8 +20,11 @@ implementation-level questions raised in the parent's **Questions** section (OQ1
 are resolved there; their resolutions are **promoted into firm functional requirements**
 here — concrete file formats, the runtime registry contract, trial-build controls,
 explicit resume/force surface, and the single-mount layout. Requirements are renumbered
-and expanded so each is independently testable. Remaining uncertainty — now strictly at
-the planning/implementation level — is captured in **Open Questions**.
+and expanded so each is independently testable.
+
+Additional implementation questions are captured and resolved at the end of this
+document. Their resolutions should be promoted into firm requirements in the next
+revision.
 
 ## Problem
 
@@ -44,10 +47,11 @@ from hand-editing.
 jails directory and launches a deliberately minimal, **disposable** bootstrap container.
 Inside it, `/start-here.sh` validates the selected agent runtime can authenticate, then
 primes that agent with a structured bootstrap prompt. The agent — not a hardcoded shell
-questionnaire — interviews the user, designs the container, generates the real durable
-project `Containerfile` plus a complete sandbox scaffold, and runs a build quality gate.
-The bootstrap container is then thrown away; the user reviews, builds, and runs the
-durable image it generated.
+questionnaire — interviews the user, designs the container, and generates the real
+durable project `Containerfile` plus a complete sandbox scaffold. The host-side
+`ai-new` command then runs the build quality gate and writes results back into the
+bootstrap state for agent repair. The bootstrap container is then thrown away; the user
+reviews, builds, and runs the durable image it generated.
 
 ## Goals / Non-goals
 
@@ -61,9 +65,10 @@ durable image it generated.
   not a questionnaire and not a generator. It resolves/validates the agent runtime,
   confirms authentication, launches the agent in the project tree, and hands it a
   structured bootstrap prompt.
-- Make the **agent responsible** for interviewing the user, progressively narrowing
+- Make the agent responsible for interviewing the user, progressively narrowing
   requirements, designing the container, generating the durable project files, and
-  running a build quality gate over the generated `Containerfile`.
+  interpreting quality-gate results. The host-side `ai-new` command runs the actual
+  trial `podman build` and writes logs back into the bootstrap state for agent repair.
 - Keep the bootstrap image **minimal and disposable**: only the tooling needed to run
   `start-here.sh`, install/launch the *selected* agent runtime, validate credentials, and
   write workspace files. Project dependencies belong in the generated image only.
@@ -83,8 +88,9 @@ durable image it generated.
 - `start-here.sh` is **not** a static decision tree and must not generate the project by
   itself, nor contain per-agent install/auth logic beyond the generic adapter contract.
 - Not responsible for *running* the generated project image; its job ends after artifacts
-  are written, the quality gate is reported, and next steps are given. (It *does* attempt
-  a trial build as a quality gate — R8 — but does not stand up the durable project.)
+  are written, the quality gate is reported, and next steps are given. The host-side
+  `ai-new` command attempts a trial build as a quality gate — R8 — but the bootstrap
+  container does not run Podman or stand up the durable project.
 - Not a hosted/CI/remote service; scope is a single user's local desktop with rootless
   Podman, same target as `ai-agent-podman-sandbox`.
 - Does not bundle or vendor every AI agent runtime; only the selected runtime is installed
@@ -182,7 +188,8 @@ durable image it generated.
 - R4.5 It launches the selected agent with CWD at `/project` (R15).
 - R4.6 It hands the agent a structured **project-bootstrap prompt** instructing it to
   interview the user, design the container, generate the final project files, maintain
-  session state (R11), and run the quality gate (R8).
+  session state (R11), request the host-side quality gate, and interpret any
+  quality-gate logs/results for repair (R8).
 - R4.7 It must not exit in a way that strands the user without guidance; final next-step
   instructions are delegated to the agent (R7) but the launcher guarantees the user is not
   left without direction.
@@ -241,11 +248,12 @@ durable image it generated.
 - R7.4 Instructions reference the actual generated file paths/commands, not generic
   placeholders.
 
-### R8. Quality gate on generated `Containerfile`
+### R8. Host-side quality gate on generated `Containerfile`
 
-- R8.1 After generating the scaffold, the agent attempts at least: (1) a Containerfile
-  syntax/static check where available; (2) a trial `podman build` of the generated durable
-  image; (3) inspection of build failures and one or more repair attempts.
+- R8.1 After the agent generates the scaffold, the host-side `ai-new` command attempts at
+  least: (1) a Containerfile syntax/static check where available; (2) a trial
+  `podman build` of the generated durable image; and (3) build-log capture under
+  `bootstrap/build.log`.
 - R8.2 The trial build is **required by default** but may be skipped or time-boxed:
   - `AI_NEW_SKIP_TRIAL_BUILD=1` (or `ai-new <name> --skip-trial-build`) skips it;
   - `AI_NEW_BUILD_TIMEOUT=<duration>` time-boxes it.
@@ -255,9 +263,13 @@ durable image it generated.
     report that no build validation was performed and the user must build manually before
     trusting the scaffold;
   - build times out → `quality-gate-timeout`, and the session remains resumable;
-  - build fails after repair attempts → the agent summarizes what failed, what was
-    attempted, and the user's next decision.
-- R8.4 The bootstrap phase is not complete until the generated files are reviewed and the
+  - build fails after repair attempts → `quality-gate-failed`; the agent summarizes what
+    failed, what was attempted, and the user's next decision.
+- R8.4 If the trial build fails, `ai-new` writes the build log to
+  `bootstrap/build.log`, updates `bootstrap/session.json`, and re-enters or instructs
+  the user to resume the bootstrap agent so it can inspect the log and repair the
+  generated files.
+- R8.5 The bootstrap phase is not complete until the generated files are reviewed and the
   quality-gate result (pass / skipped / timeout / fail) is reported.
 
 ### R9. Resumable sessions
@@ -293,7 +305,7 @@ durable image it generated.
   generated files, quality-gate result, and the next recommended action.
 - R11.3 `session.json` records at minimum: project name; selected agent; bootstrap status;
   timestamp of last update; generated file list; Containerfile path; quality-gate status;
-  last error (if any); resume command.
+  last error, if any; resume command; build log path, if any.
 - R11.4 The `status` field uses the controlled vocabulary: `started`, `interviewing`,
   `generated`, `quality-gate-running`, `quality-gate-failed`, `quality-gate-timeout`,
   `generated-unvalidated`, `complete`.
@@ -303,6 +315,8 @@ durable image it generated.
   required v1 scaffold files (R6.3) exist; the quality gate has passed or been explicitly
   skipped; final next-step instructions have been written; and `session.json` status is
   `complete` or `generated-unvalidated`.
+- R11.7 `bootstrap/build.log` records output from the most recent host-side trial build.
+  It is preserved across resumes and referenced from `session.json` when present.
 
 ### R12. Flag surface (v1)
 
@@ -392,10 +406,11 @@ durable image it generated.
   secret files are baked into the image or committed to Git.
 - AC11. Generated profile/launcher/config artifacts follow `ai-agent-podman-sandbox`
   conventions and derive paths from `$HOME`/`CODEX_JAILS_DIR` (no hardcoded usernames).
-- AC12. The agent runs the quality gate (static check where available, trial `podman
-  build`, repair attempts) and reports the result; the resulting status is `complete` on
-  pass, `generated-unvalidated` when skipped, `quality-gate-timeout` on timeout, and a
-  failure summary with next decision on persistent failure.
+- AC12. The host-side `ai-new` command runs the quality gate: static check where
+  available, trial `podman build`, timeout handling, and build-log capture. The resulting
+  status is `complete` on pass, `generated-unvalidated` when skipped,
+  `quality-gate-timeout` on timeout, and `quality-gate-failed` on persistent failure. The
+  agent reviews build logs and performs repair attempts when the session is resumed.
 - AC13. `AI_NEW_SKIP_TRIAL_BUILD=1` / `--skip-trial-build` skips the build and yields
   `generated-unvalidated` with an explicit "build not validated" warning;
   `AI_NEW_BUILD_TIMEOUT=<duration>` time-boxes the build and yields `quality-gate-timeout`
@@ -418,45 +433,183 @@ durable image it generated.
   build/pull failure, unknown agent runtime, ambiguous resume state) exit non-zero with a
   clear message.
 
-## Open Questions
+## Resolved Implementation Questions
 
 The parent's OQ1–OQ5 are resolved and promoted into R8/R11/R12/R13/R15 above. The
-following implementation-level questions remain for planning:
+following implementation questions are also resolved here and should be promoted into
+requirements in the next revision.
 
-- OQ1. **Registry file format & sourcing.** `config/agents.d/<agent>.env` is described as an
-  env-file of shell variables. Is it `source`d directly by `ai-new`/`start-here.sh` (which
-  implies trusting arbitrary shell in `AGENT_INSTALL_COMMAND`/`AGENT_AUTH_CHECK_COMMAND`),
-  or parsed in a restricted way? What is the validation/escaping contract, and how are
-  multi-value fields (`AGENT_CONFIG_DIRS`, `AGENT_ENV_VARS`) encoded?
+### OQ1. Registry file format & sourcing
 
-- OQ2. **Scaffolded vs global registry copy.** R13.4 says `start-here.sh` reads the selected
-  runtime metadata "from the scaffolded bootstrap config." Is the chosen registry entry
-  copied into `bootstrap/` at `ai-new` time (pinning the runtime definition for the life of
-  the session), or read live from `$CODEX_JAILS_DIR/config/agents.d/`? Pinning aids
-  reproducible resume; live reading picks up fixes — which wins for v1?
+`config/agents.d/<agent>.env` is described as an env-file of shell variables. Is it
+`sourced` directly by `ai-new`/`start-here.sh` (which implies trusting arbitrary shell in
+`AGENT_INSTALL_COMMAND`/`AGENT_AUTH_CHECK_COMMAND`), or parsed in a restricted way? What
+is the validation/escaping contract, and how are multi-value fields (`AGENT_CONFIG_DIRS`,
+`AGENT_ENV_VARS`) encoded?
 
-- OQ3. **Trial build & rootless nested Podman.** R8 runs `podman build` *inside* the
-  bootstrap container. Does the trial build run nested (Podman-in-Podman, which is heavy
-  under rootless + `--userns=keep-id`), or against the host Podman via a mounted
-  socket/`podman --remote` (which conflicts with R10.3/R14.2's "no host sockets")? The
-  resolution must reconcile the quality gate with the no-host-socket safety posture.
+Resolved: registry files use a restricted dotenv-style format and are not sourced
+directly.
 
-- OQ4. **`AI_NEW_BUILD_TIMEOUT` units & enforcement.** What duration grammar does
-  `<duration>` accept (bare seconds? `timeout(1)` suffixes like `30m`?), and is enforcement
-  via `timeout(1)` wrapping the build or via Podman's own controls? What is the default
-  when unset?
+`ai-new` and `start-here.sh` parse only known keys from
+`config/agents.d/<agent>.env`. Unknown keys are ignored or warned on. Values are loaded
+as strings and validated before use.
 
-- OQ5. **Image tag / naming for the trial build.** What tag is the durable image built under
-  during the quality gate, how is it derived from `<name>`, and is the trial-built image
-  pruned afterward or left as a warm cache for the user's first real build?
+Multi-value fields use colon-separated or newline-safe quoted strings:
 
-- OQ6. **Concurrent / stale-lock sessions.** If a bootstrap container is still running (or
-  was killed uncleanly) and the user re-runs `ai-new <name> --resume`, how is a second
-  concurrent session prevented — a lock file in `bootstrap/`, a status of
-  `interviewing`/`quality-gate-running` treated as locked, and how is a stale lock cleared?
+- `AGENT_CONFIG_DIRS=".codex"`
+- `AGENT_ENV_VARS="OPENAI_API_KEY"`
 
-- OQ7. **Multi-runtime availability at resume.** R4.3 prompts when multiple runtimes are
-  available and none was specified, but a resumed session already recorded
-  `selected agent` in `session.json`. Confirm resume always honours the recorded agent and
-  never re-prompts, and define behaviour if that recorded runtime is no longer in the
-  registry.
+Command fields are not arbitrary shell fragments. They are adapter names or argv-style
+commands executed through a controlled wrapper, for example:
+
+- `AGENT_INSTALL_ADAPTER=npm-global`
+- `AGENT_INSTALL_PACKAGE=@openai/codex`
+- `AGENT_AUTH_CHECK_ARGV="codex|--version"`
+
+The framework must not execute untrusted registry content with `eval` or `sh -c`.
+Command fields are parsed as argv arrays by the framework wrapper, not executed through
+the shell.
+
+### OQ2. Scaffolded vs global registry copy
+
+R13.4 says `start-here.sh` reads the selected runtime metadata "from the scaffolded
+bootstrap config." Is the chosen registry entry copied into `bootstrap/` at `ai-new` time
+(pinning the runtime definition for the life of the session), or read live from
+`$CODEX_JAILS_DIR/config/agents.d/`? Pinning aids reproducible resume; live reading picks
+up fixes — which wins for v1?
+
+Resolved: v1 copies the selected agent registry entry into the project bootstrap state at
+`bootstrap/agent.env` during `ai-new`.
+
+The copied file is the authoritative runtime definition for resume, making sessions
+reproducible even if the global registry later changes.
+
+`bootstrap/agent.env` also records:
+
+- original registry path;
+- selected agent name;
+- registry version/hash if available;
+- timestamp copied.
+
+A future `ai-new <name> --refresh-agent-registry` may update the pinned copy from the
+global registry, but normal resume uses the pinned project-local copy.
+
+### OQ3. Trial build & rootless nested Podman
+
+R8 runs a trial `podman build` as part of the quality gate. Does the trial build run
+nested inside the bootstrap container, or against the host Podman via a mounted
+socket/`podman --remote`? The resolution must reconcile the quality gate with the
+no-host-socket safety posture.
+
+Resolved: the trial build does not run inside the bootstrap container and the host
+Podman socket is not mounted into the bootstrap container.
+
+The host-side `ai-new` process runs the trial `podman build` after the agent has
+generated or updated the scaffold. Build logs are written to `bootstrap/build.log` and
+session status is updated in `bootstrap/session.json`.
+
+The bootstrap container remains limited to interviewing, generating files, reading
+quality-gate logs, and repairing the scaffold. It does not receive nested Podman
+privileges or host socket access.
+
+### OQ4. `AI_NEW_BUILD_TIMEOUT` units & enforcement
+
+What duration grammar does `<duration>` accept (bare seconds? `timeout(1)` suffixes like
+`30m`?), and is enforcement via `timeout(1)` wrapping the build or via Podman's own
+controls? What is the default when unset?
+
+Resolved: `AI_NEW_BUILD_TIMEOUT` accepts GNU `timeout(1)` duration syntax.
+
+Examples:
+
+- `300`
+- `10m`
+- `1h`
+
+If unset, v1 default is `30m`.
+
+The host-side quality gate enforces the timeout by wrapping the build command with:
+
+```bash
+timeout --foreground "$AI_NEW_BUILD_TIMEOUT"
+````
+
+If the timeout expires, `session.json` status becomes `quality-gate-timeout`, the
+partial build log is preserved at `bootstrap/build.log`, and the session remains
+resumable.
+
+### OQ5. Image tag / naming for the trial build
+
+What tag is the durable image built under during the quality gate, how is it derived from
+`<name>`, and is the trial-built image pruned afterward or left as a warm cache for the
+user's first real build?
+
+Resolved: trial builds tag the durable image as:
+
+```text
+localhost/ai-new/<name>:trial
+```
+
+The tag is derived from the project name after sanitizing to a lowercase
+container-image-safe slug.
+
+On successful validation, the same image may also be tagged as:
+
+```text
+localhost/ai-project/<name>:latest
+```
+
+The trial-built image is left in local Podman storage as a warm cache for the user's first
+real build. `ai-doctor` or future cleanup tooling may report and remove stale trial
+images later.
+
+### OQ6. Concurrent / stale-lock sessions
+
+If a bootstrap container is still running, or was killed uncleanly, and the user re-runs
+`ai-new <name> --resume`, how is a second concurrent session prevented — a lock file in
+`bootstrap/`, a status of `interviewing`/`quality-gate-running` treated as locked, and how
+is a stale lock cleared?
+
+Resolved: v1 prevents concurrent bootstrap sessions with an atomic lock directory:
+
+```text
+bootstrap/session.lock/
+```
+
+The lock contains:
+
+* `pid`
+* `hostname`
+* `container_name`
+* `started_at`
+* `last_heartbeat`
+
+`ai-new <name> --resume` refuses to start if the lock exists and appears active.
+
+A lock is stale when the referenced container no longer exists/runs or the heartbeat is
+older than the configured threshold. On stale lock detection, `ai-new` reports the lock
+details and offers a safe clear path.
+
+Session statuses such as `interviewing` and `quality-gate-running` are informative, but
+concurrency control is based on the lock directory.
+
+### OQ7. Multi-runtime availability at resume
+
+R4.3 prompts when multiple runtimes are available and none was specified, but a resumed
+session already recorded `selected agent` in `session.json`. Confirm resume always honors
+the recorded agent and never re-prompts, and define behaviour if that recorded runtime is
+no longer in the registry.
+
+Resolved: resume always honors the `selected_agent` recorded in
+`bootstrap/session.json`.
+
+`ai-new <name> --resume` never re-prompts for agent selection unless the user explicitly
+starts a new scaffold in the future.
+
+If the recorded agent is no longer available in the pinned `bootstrap/agent.env`, the
+resume fails clearly.
+
+If the pinned agent exists but the runtime is no longer installable/authenticated,
+`start-here.sh` reports the missing runtime/auth problem and gives setup instructions.
+
+The global registry is not consulted during normal resume except for diagnostics.
