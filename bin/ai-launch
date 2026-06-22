@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "${SCRIPT_DIR}/../lib/common.sh"
+# shellcheck source=../lib/profile.sh
+source "${SCRIPT_DIR}/../lib/profile.sh"
+# shellcheck source=../lib/policy.sh
+source "${SCRIPT_DIR}/../lib/policy.sh"
+# shellcheck source=../lib/container.sh
+source "${SCRIPT_DIR}/../lib/container.sh"
+# shellcheck source=../lib/frontend.sh
+source "${SCRIPT_DIR}/../lib/frontend.sh"
+
+usage() {
+    cat >&2 <<'EOF'
+Usage: ai-launch <profile> [mode] [flags]
+
+Launch a persistent sandbox container for the named profile. If a container
+named by the profile already exists, it is reused; otherwise created.
+
+Modes (default: shell):
+  shell / bash   Interactive bash shell (default)
+  codex          Run the Codex agent
+  codex         Run the Codex agent
+  builder        Privileged ephemeral build container (the only --privileged path)
+  aider          Run the Aider agent
+  opencode       Run the OpenCode agent
+  ollama-shell   Run an Ollama interactive shell
+
+Flags:
+  -h, --help     Show this help and exit.
+EOF
+}
+
+# Mode → in-container command table (extensible without touching safety core).
+declare -A MODE_CMDS
+MODE_CMDS=(
+    [shell]="bash"
+    [bash]="bash"
+    [codex]="codex"
+    [codex]="codex"
+    [aider]="aider"
+    [opencode]="opencode"
+    [ollama-shell]="ollama run"
+)
+
+resolve_base_dir
+require_cmd podman
+
+# ── Argument parsing ─────────────────────────────────────────────────────────
+PROFILE_ARG=""
+_LAUNCH_MODE="shell"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help) usage; exit 0 ;;
+        -*)        _die "Unknown flag: $1. Run 'ai-launch --help' for usage." ;;
+        *)
+            if [[ -z "$PROFILE_ARG" ]]; then
+                PROFILE_ARG="$1"
+            elif [[ "$_LAUNCH_MODE" == "shell" ]]; then
+                _LAUNCH_MODE="$1"
+            else
+                _die "Unexpected argument: $1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+[[ -n "$PROFILE_ARG" ]] || { usage; exit 0; }
+
+load_profile "$PROFILE_ARG"
+
+# Validate mode.
+if [[ "$_LAUNCH_MODE" != "builder" ]]; then
+    [[ -v MODE_CMDS["$_LAUNCH_MODE"] ]] \
+        || _die "Unknown mode: '${_LAUNCH_MODE}'. Valid modes: ${!MODE_CMDS[*]}, builder"
+fi
+
+# ── Path bootstrap (R4.1) ─────────────────────────────────────────────────────
+mkdir -p "$WORKSPACE" "$CONTAINER_HOME"
+[[ -z "${PNPM_HOME:-}" ]] || mkdir -p "$PNPM_HOME"
+HISTFILE="${HISTFILE:-${WORKSPACE}/.bash_history}"
+touch "$HISTFILE"
+
+# ── Builder mode (R4.5, R4.12) — ephemeral privileged container ──────────────
+if [[ "$_LAUNCH_MODE" == "builder" ]]; then
+    render_launch_summary "no"
+    run_builder_ephemeral bash
+    exit 0
+fi
+
+# ── Persistent container: create or reuse (R4.2) ─────────────────────────────
+REUSING="no"
+if container_exists "$CONTAINER_NAME"; then
+    REUSING="yes"
+else
+    create_normal_container
+fi
+
+# ── Pre-launch summary (R4.8) ─────────────────────────────────────────────────
+render_launch_summary "$REUSING"
+
+# ── Attach or exec mode command ───────────────────────────────────────────────
+if [[ "$_LAUNCH_MODE" == "shell" || "$_LAUNCH_MODE" == "bash" ]]; then
+    start_and_attach
+else
+    if ! container_running "$CONTAINER_NAME"; then
+        podman start "$CONTAINER_NAME"
+    fi
+    exec_mode_command "$CONTAINER_NAME" "${MODE_CMDS[$_LAUNCH_MODE]}"
+fi
