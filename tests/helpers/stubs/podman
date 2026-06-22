@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Stub podman for Tier A (dry-run/inspection) tests.
+# Satisfies `require_cmd podman` and any inspection calls tests may make.
+# Real container operations must not reach this stub (DRY_RUN exits before them).
+
+case "${1:-}" in
+    container)
+        case "${2:-}" in
+            exists) exit 1 ;;   # no container exists by default
+            *) exit 0 ;;
+        esac
+        ;;
+    inspect) echo ""; exit 1 ;;
+    info)    printf '{"Host":{"Security":{"Rootless":false}}}\n'; exit 0 ;;
+    image)   echo ""; exit 1 ;;
+    *)
+        # Unknown command: print args to stderr and exit 0 so scripts don't die
+        printf '[stub-podman] %s\n' "$*" >&2
+        exit 0
+        ;;
+esac

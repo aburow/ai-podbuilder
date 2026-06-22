@@ -71,6 +71,21 @@ if [[ "$_LAUNCH_MODE" != "builder" ]]; then
         || _die "Unknown mode: '${_LAUNCH_MODE}'. Valid modes: ${!MODE_CMDS[*]}, builder"
 fi
 
+# ── DRY_RUN testability mode (prints assembled args without executing) ────────
+if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    if [[ "$_LAUNCH_MODE" == "builder" ]]; then
+        build_builder_run_args
+        printf 'DRY_RUN:run\n'
+        printf '%s\n' "${_BUILDER_RUN_ARGS[@]}" "$IMAGE_NAME" bash
+    else
+        build_normal_run_args
+        printf 'DRY_RUN:create\n'
+        printf -- '--name\n%s\n' "$CONTAINER_NAME"
+        printf '%s\n' "${_NORMAL_RUN_ARGS[@]}" "$IMAGE_NAME"
+    fi
+    exit 0
+fi
+
 # ── Path bootstrap (R4.1) ─────────────────────────────────────────────────────
 mkdir -p "$WORKSPACE" "$CONTAINER_HOME"
 [[ -z "${PNPM_HOME:-}" ]] || mkdir -p "$PNPM_HOME"

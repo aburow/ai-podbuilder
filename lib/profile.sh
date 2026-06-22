@@ -18,10 +18,13 @@ load_profile() {
 
     local field
     for field in PROFILE_NAME CONTAINER_NAME IMAGE_NAME IMAGE_DIR \
-                 WORKSPACE CONTAINER_HOME BASHRC WORKDIR BUILD_ARGS; do
+                 WORKSPACE CONTAINER_HOME BASHRC WORKDIR; do
         [[ -n "${!field:-}" ]] \
             || _die "Profile '${name}' (${profile_file}): required field '${field}' is unset or empty"
     done
+    # BUILD_ARGS is required to be defined but may be empty (no extra build flags).
+    [[ -v BUILD_ARGS ]] \
+        || _die "Profile '${name}' (${profile_file}): required field 'BUILD_ARGS' is unset"
 
     # Normalise optional arrays so they are always defined and usable under set -u.
     EXTRA_ENV=("${EXTRA_ENV[@]+"${EXTRA_ENV[@]}"}")
