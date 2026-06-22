@@ -27,3 +27,7 @@ require_cmd() {
     local cmd="$1"
     command -v "$cmd" >/dev/null 2>&1 || _die "Required command not found: ${cmd}"
 }
+
+profiles_dir() {
+    echo "${CODEX_JAILS_DIR}/profiles"
+}
