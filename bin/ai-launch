@@ -30,7 +30,11 @@ Modes (default: shell):
   ollama-shell   Run an Ollama interactive shell
 
 Flags:
-  -h, --help     Show this help and exit.
+  --yes / --non-interactive   Non-interactive: warn and continue on staleness
+  --recreate                  Remove and recreate the persistent container from
+                              the current image (workspace preserved)
+  --no-recreate               Explicitly continue with the existing container
+  -h, --help                  Show this help and exit.
 EOF
 }
 
@@ -52,11 +56,19 @@ require_cmd podman
 # ── Argument parsing ─────────────────────────────────────────────────────────
 PROFILE_ARG=""
 _LAUNCH_MODE="shell"
+FLAG_YES=0
+FLAG_NON_INTERACTIVE=0
+FLAG_RECREATE=0
+FLAG_NO_RECREATE=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -h|--help) usage; exit 0 ;;
-        -*)        _die "Unknown flag: $1. Run 'ai-launch --help' for usage." ;;
+        -h|--help)          usage; exit 0 ;;
+        --yes)              FLAG_YES=1; shift ;;
+        --non-interactive)  FLAG_NON_INTERACTIVE=1; shift ;;
+        --recreate)         FLAG_RECREATE=1; shift ;;
+        --no-recreate)      FLAG_NO_RECREATE=1; shift ;;
+        -*)                 _die "Unknown flag: $1. Run 'ai-launch --help' for usage." ;;
         *)
             if [[ -z "$PROFILE_ARG" ]]; then
                 PROFILE_ARG="$1"
@@ -93,10 +105,37 @@ if [[ "$_LAUNCH_MODE" == "builder" ]]; then
     exit 0
 fi
 
-# ── Persistent container: create or reuse (R4.2) ─────────────────────────────
+# ── Persistent container: create or reuse; staleness check (R4.2, R4.9) ──────
 REUSING="no"
 if container_exists "$CONTAINER_NAME"; then
     REUSING="yes"
+    if image_is_stale; then
+        if [[ "$FLAG_RECREATE" -eq 1 ]]; then
+            recreate_preserving_workspace
+            create_normal_container
+            REUSING="no"
+        elif [[ "$FLAG_NO_RECREATE" -eq 1 || "$FLAG_YES" -eq 1 || "$FLAG_NON_INTERACTIVE" -eq 1 ]]; then
+            _warn "Image has changed; continuing with existing container '${CONTAINER_NAME}' (use --recreate to update)."
+        elif is_interactive; then
+            stale_choice="$(prompt_stale_choice)"
+            case "$stale_choice" in
+                recreate)
+                    recreate_preserving_workspace
+                    create_normal_container
+                    REUSING="no"
+                    ;;
+                cancel)
+                    _info "Cancelled. Use --recreate to update or --no-recreate to keep the existing container."
+                    exit 0
+                    ;;
+                continue|*)
+                    _info "Continuing with existing container '${CONTAINER_NAME}'."
+                    ;;
+            esac
+        else
+            _warn "Image has changed; non-interactive — continuing with existing container '${CONTAINER_NAME}'."
+        fi
+    fi
 else
     create_normal_container
 fi
