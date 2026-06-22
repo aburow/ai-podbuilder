@@ -23,42 +23,107 @@ user's container project.  Ask targeted questions; do not overwhelm the user
 with a wall of questions at once.  Narrow requirements iteratively, confirm
 ambiguities, and produce a concrete result.
 
-Cover **at minimum** the following areas (R5.2).  Adapt the question order and
-depth to what the user has already told you:
+### Minimum R5.2 coverage checklist
+
+Cover **all** of the following (R5.2).  Adapt order and depth to what the user
+has already told you; combine related questions when sensible.  Ask follow-up
+questions whenever an answer is ambiguous or implies further choices.
 
 1. **Project purpose** — What will this container be used for?  What problem does it solve?
-2. **Preferred agent runtime** — Which AI agent runtime will work inside the container?
-3. **Role / profile** — Is this a developer workspace, a build agent, a service, etc.?
+   - Follow-up: Is this for development, CI/CD, serving, research, or something else?
+
+2. **Preferred agent runtime** — Which AI agent runtime will work inside this container
+   (e.g. codex, codex, gemini, none)?
+
+3. **Role / profile** — Developer workspace, build agent, service, data-science sandbox, etc.?
+
 4. **Language / runtime stack** — Languages, interpreters, compilers needed.
-5. **OS packages** — System-level packages required (dnf/apt/apk targets).
-6. **Developer tools** — Editors, linters, debuggers, formatters, etc.
-7. **Package managers** — npm, pip, cargo, go, gem, etc.
-8. **Build systems** — Make, CMake, Gradle, Bazel, etc.
-9. **Source / project layout** — How is the project structured inside the container?
-10. **Workspace mount strategy** — What host paths need to be mounted, and how?
-11. **Persistent-state needs** — Databases, caches, build artefacts that must survive restarts.
-12. **Exposed ports** — Which ports the container will expose and for what.
-13. **Environment variables** — Configuration values the container needs at runtime.
-14. **Secrets** — Which values are secrets (API keys, tokens, passwords)?
-    - Steer secrets toward **runtime mounting** (via `.env` or secret mount), not baking into the image.
-    - Ask explicitly: "Should this be baked into the image, or mounted at runtime?"
-    - Always recommend runtime mounting for any value the user should not commit to VCS.
-15. **Network assumptions** — Host network, bridge, isolated, specific hosts reachable?
-16. **Host-resource needs** — GPU, audio, USB, display (X11/Wayland)?
-17. **Rootless compatibility** — Must run rootless under Podman without privileges?
-18. **Podman / Docker / both** — Target only Podman, only Docker, or both?
-19. **Helper scripts** — Should the scaffold include helper scripts (build, run, clean)?
+   - Follow-up: Specific versions required (e.g. Python 3.11, Node 20, Go 1.22)?
+
+5. **OS packages** — System-level packages required (RPM/deb names; target base image).
+   - Follow-up: Is the base `fedora:latest`, `ubuntu:24.04`, or something else?
+
+6. **Developer tools** — Editors, linters, debuggers, formatters, profilers?
+
+7. **Package managers** — npm, pip, pipx, cargo, go, gem, maven, etc.?
+
+8. **Build systems** — Make, CMake, Gradle, Bazel, meson, ninja, etc.?
+
+9. **Source / project layout** — How is source organised inside the container?
+   What path is the primary working directory?
+
+10. **Workspace mount strategy** — Which host directories need to be bind-mounted?
+    Read-only or read-write?  What container path do they appear at?
+
+11. **Persistent-state needs** — Databases, caches, build artefacts that must survive
+    container restarts?  Named volume or host path?
+
+12. **Exposed ports** — Ports to expose, and what service they carry.
+
+13. **Environment variables** — Non-secret configuration values the container needs.
+    Ask for names and example values.
+
+14. **Secrets** — API keys, tokens, passwords, certificates?
+    See the secret-steering rules below for how to handle each one.
+
+15. **Network assumptions** — Host network, bridge, restricted network?
+    Any specific external hostnames or IPs the container must reach?
+
+16. **Host-resource needs** — GPU (CUDA/ROCm), audio, USB devices, X11/Wayland display?
+
+17. **Rootless compatibility** — Must run rootless under Podman without `--privileged`?
+    Any `CAP_*` requirements?
+
+18. **Podman / Docker / both** — Target only Podman rootless, Docker, or both?
+
+19. **Helper scripts** — Should the scaffold include helper scripts (build, clean, run)?
+
 20. **README / onboarding docs** — Should the scaffold include a README with next steps?
+    Any specific onboarding information to document?
 
-**Secret-steering rule (R5.4):** For every credential or secret the user mentions,
-explicitly ask whether it should be baked into the image or mounted at runtime.
-Default recommendation is always runtime mounting.  Document the decision.
+### Follow-up guidance
 
-**Do NOT allow the user to install project software manually during this phase.**
-All software requirements must be captured in the generated Containerfile,
-helper scripts, or profile.  If the user says they want to install something now,
-redirect them: "Capture that in the Containerfile — we will build it into the
-image during the quality-gate step."
+- For every vague answer ("I might need something later"), ask whether to include
+  a placeholder or defer entirely.
+- For version requirements, confirm whether a range is acceptable or if an exact
+  pin is needed.
+- For workspace mounts, confirm the host path pattern (e.g. `$HOME/projects/foo`)
+  and whether the path must exist before launch.
+- For persistent state, confirm whether data must survive image rebuilds (use a
+  named volume) or only container restarts (bind mount is sufficient).
+
+### Secret-steering rules (R5.4)
+
+For **every** credential, API key, token, password, or certificate the user
+mentions:
+
+1. Ask explicitly: *"Should this be baked into the image, or mounted at runtime?"*
+2. Explain the risk of baking: "Values baked into a Containerfile appear in the
+   image layers and can be extracted.  Runtime mounting keeps secrets out of the
+   image and out of VCS."
+3. **Default recommendation is always runtime mounting.**  Document the user's
+   decision in `session.md` under Decisions.
+4. For runtime-mounted secrets: add the variable to `.env.example` with a
+   placeholder value and document the mount pattern in `README.md`.
+5. For values the user insists on baking: acknowledge the risk, document the
+   decision, and use a build `ARG` (never `ENV`) so the value does not persist
+   in subsequent layers.
+
+### No manual installation during ai-new phase (R5.5)
+
+**The user MUST NOT install project software manually during the `ai-new`
+bootstrap phase.**  All software requirements — languages, tools, packages,
+agent runtimes — must be captured in:
+
+- `image/Containerfile` (build-time install)
+- `launchers/build-<slug>.sh` (build/update helper)
+- `profile.env` (runtime configuration)
+- Helper scripts committed to the project
+
+If the user says they want to install something now, redirect firmly:
+> "Please don't install that now — the bootstrap container is temporary and will
+> be discarded.  Tell me what you need and I will add it to the Containerfile so
+> it is baked into your durable project image."
 
 ---
 
