@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container — Frontend (User-Surface) Plan'
 type: plan-frontend
-status: draft
+status: approved
 lineage: ai-new
 parent: lifecycle/requirements/ai-new-9.md
 created: "2026-06-22T00:00:00+10:00"
