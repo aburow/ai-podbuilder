@@ -241,3 +241,80 @@ _validate_runtime() {
 }
 
 _validate_runtime
+
+# ── Agent launch with bootstrap prompt (R4.5, R4.6, R15.2) ───────────────────
+
+PROMPT_FILE="${BOOTSTRAP_DIR}/bootstrap-prompt.md"
+
+_prepare_prompt() {
+    # If the prompt hasn't been placed in bootstrap/ yet, nothing to do — the
+    # launch.sh bind-mounts prompts/ as /start-here-prompts inside the container.
+    local _src="/start-here-prompts/bootstrap-prompt.md"
+    if [[ ! -f "$PROMPT_FILE" && -f "$_src" ]]; then
+        cp "$_src" "$PROMPT_FILE"
+    fi
+}
+
+_build_launch_argv() {
+    # Populate _LAUNCH_ARGV for exec.  Uses RESOLVED_COMMAND and PROMPT_FILE.
+    _LAUNCH_ARGV=()
+    local _prompt_text=""
+    if [[ -f "$PROMPT_FILE" ]]; then
+        _prompt_text="$(cat "$PROMPT_FILE")"
+    fi
+
+    case "$RESOLVED_AGENT" in
+        codex)
+            # codex --print "<prompt>" --output-format text
+            if [[ -n "$_prompt_text" ]]; then
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --print "$_prompt_text" --output-format text)
+            else
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            fi
+            ;;
+        codex)
+            if [[ -n "$_prompt_text" ]]; then
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --full-auto -q "$_prompt_text")
+            else
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            fi
+            ;;
+        *)
+            # Generic: pass prompt as first positional arg if it accepts one.
+            if [[ -n "$_prompt_text" ]]; then
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")
+            else
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            fi
+            ;;
+    esac
+}
+
+_launch_agent() {
+    if ! command -v "$RESOLVED_COMMAND" >/dev/null 2>&1; then
+        echo "[ERROR] Agent command '${RESOLVED_COMMAND}' not found on PATH." >&2
+        echo "        Ensure the runtime '${RESOLVED_AGENT}' is installed." >&2
+        exit 1
+    fi
+
+    _prepare_prompt
+
+    echo "[INFO]  Launching ${RESOLVED_AGENT} in /project …"
+    [[ -f "$PROMPT_FILE" ]] && echo "[INFO]  Bootstrap prompt: ${PROMPT_FILE}"
+    echo ""
+    echo "────────────────────────────────────────────────────────────────────────────"
+    echo "  The agent will interview you, design your container, and generate files."
+    echo "  Follow the agent's next-step instructions when it finishes."
+    echo "  If interrupted, re-enter with: ai-new <name> --resume"
+    echo "────────────────────────────────────────────────────────────────────────────"
+    echo ""
+
+    _build_launch_argv
+    exec "${_LAUNCH_ARGV[@]}"
+}
+
+_launch_agent
+
+# exec replaces the shell; if we reach here exec failed — give the user direction.
+echo ""
+echo "[INFO]  The agent session ended.  Rerun 'ai-new <name> --resume' to re-enter."

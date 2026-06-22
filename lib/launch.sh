@@ -20,6 +20,7 @@ launch_bootstrap() {
     _info "  HOME inside:   /project/bootstrap/home"
 
     local _start_here="${CODEX_JAILS_DIR}/start-here.sh"
+    local _prompts_dir="${CODEX_JAILS_DIR}/prompts"
 
     # Build argv array — no shell interpolation of registry values.
     local _args=(
@@ -38,6 +39,11 @@ launch_bootstrap() {
     # Mount start-here.sh at container root if it exists in the plugin directory.
     if [[ -f "$_start_here" ]]; then
         _args+=(--volume "${_start_here}:/start-here.sh:ro,z")
+    fi
+
+    # Mount prompts/ read-only so start-here.sh can copy the bootstrap prompt.
+    if [[ -d "$_prompts_dir" ]]; then
+        _args+=(--volume "${_prompts_dir}:/start-here-prompts:ro,z")
     fi
 
     # Explicitly do NOT pass --privileged, --device /dev/fuse,
