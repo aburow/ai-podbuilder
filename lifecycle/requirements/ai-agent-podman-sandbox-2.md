@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework
 type: requirement
-status: blocked
+status: draft
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -308,7 +308,7 @@ way to package the whole approach so it can be cloned onto another machine.
   and, after adding profiles, run `ai-build`/`ai-launch` successfully, with no
   secrets present in the repository.
 
-## Open Questions
+## Resolved Questions
 
 - OQ1. **Scope of first release.** Which capabilities are in the initial release
   versus deferred? The product doc marks network modes, secrets, `ai-doctor`,
