@@ -315,29 +315,58 @@ way to package the whole approach so it can be cloned onto another machine.
   `ai-new`, policy levels, desktop-install, and packaging as "future." Confirm the
   MVP cut (suggest: `ai-build`/`ai-launch`/`ai-terminal`/`ai-list` + profiles +
   safety policy + compat wrappers).
+
+**Response** The MVP is the abilty to build an isolated dev container and place the requested tools, libraries, etc in there for the user to make use of no matter the agent they have chosen.
+  
 - OQ2. **Request-driven builder (R16) ownership.** This is qualitatively larger
   than the launcher scripts (it implies a knowledge base of base images,
   toolchains, and cost/conflict heuristics, and likely an AI agent itself). Should
   it be split into its own lineage/epic rather than bundled here? What is the
   interface — a new `ai-` command, or an agent prompt?
+
+**Response** The tool will need to make use of an AI agent such as codex/codex/gemini/chatgpt/google in order to obtain a minimum set of requirements including the base container - ie fedora/latest
+  
 - OQ3. **Conflict/cost detection (R16.3).** What defines "non-optimal" or "highly
   costly"? Is there a concrete rubric (e.g. native vs cross-compile vs QEMU
   emulation, image size, build time) the framework should encode?
+
+**Response** Difficult - if the tool is, for instance, python then difficulty is relatively low for portability. The more platforms and low lever the language the higher the complexity gets. We will have to hand this assessment off to an agent to evaluate.
+  
 - OQ4. **Missing `ENV_FILE` behaviour (R7.2).** Warn-and-continue, or hard-fail?
+
+**Response** Warn
+
 - OQ5. **`label=disable` trade-off.** Is disabling SELinux labelling acceptable as
   the standing default, or should a stricter `:Z`-only profile variant be offered
   for users who want labelling enforced?
+
+**Response** yes but make the offer
+  
 - OQ6. **Hardened/no-network as default for review.** Should an explicit
   `review`/`hardware` policy level (R15) ship in v1, or remain env-var driven?
+
+**Response** network is required - user will need to be asked about hardware, such as USB access
+  
 - OQ7. **Multi-target images (R16.4).** For a request spanning two OS/arch
   targets, is the expectation one multi-arch image, two separate profiles, or a
   user choice surfaced at request time?
+
+**Response** user choice surfaced at erquest time.
+  
 - OQ8. **Username / `mrnobody` hardcoding.** The product doc's `.desktop` examples
   hardcode `/var/home/mrnobody/...`. Should generated artifacts derive the path
   from `$HOME`/`CODEX_JAILS_DIR` to stay portable?
+
+**Response** yes
+  
 - OQ9. **Container lifecycle.** Normal launches use `--rm`; is any persistent or
   named-but-stopped container workflow needed, or is workspace-persisted state
   sufficient?
+
+**Response** Yes, persistence is required as these are ongoing dev and build environments provide safety from AI breaking out or supplychain compromise breakouts.
+  
 - OQ10. **Testing strategy.** How are these scripts verified in CI given they
   require rootless Podman and hardware devices? Mock Podman, a Podman-in-CI
   runner, or manual acceptance on a Bazzite host?
+
+**Response** Manual acceptance - BUT we will import them and launch them with podman out of /home/mrnobody/codex-jails/podman-plugin-workspace - this gives the ability to move from one contained environment to another without needing to break out of any of the containers.
