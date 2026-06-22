@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container — Build-Ready Requirement'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -16,17 +16,16 @@ assignees:
 # ai-new: Agent-Primed Bootstrap Container — Build-Ready Requirement
 
 This artifact consolidates `ai-new-5.md` into a single build-ready requirement. The seven
-implementation questions resolved in the parent (OQ1–OQ7) are now treated as **settled and
-binding**, not as rationale awaiting confirmation; the requirements below state each as a
-firm, independently testable rule. The Open Questions section is reset to the issues that
-remain *genuinely* unresolved for planning/implementation — chiefly the host↔container
-coordination protocol, name/registry normalization rules, and the still-undecided `gemini`
-install adapter — none of which were closed by the parent.
+implementation questions resolved in the parent (OQ1–OQ7) and the five remaining planning
+questions from the follow-up review are now treated as **settled and binding**, not as
+rationale awaiting confirmation. The requirements below state each as a firm,
+independently testable rule.
 
-Nothing here weakens a parent requirement. Where the parent left a mechanism implied (for
+Nothing here weakens a parent requirement. Where the parent left a mechanism implied — for
 example, how the host learns the agent has finished generating so it can run the trial
-build), this revision either states the rule explicitly or moves it into Open Questions to
-be answered before implementation, rather than leaving it ambiguous in the requirement body.
+build — this revision states the mechanism explicitly: deterministic file-based
+coordination through `bootstrap/`, host-owned locking/heartbeat, stable registry hashing,
+explicit slug normalization, and a conservative v1 runtime adapter policy.
 
 ## Problem
 
@@ -54,15 +53,12 @@ the build quality gate and writes results back into the bootstrap state for agen
 bootstrap container is then thrown away; the user reviews, builds, and runs the durable image
 it generated.
 
-The residual risk this revision must close is twofold. First, a careless implementation
-could ship a registry that `eval`s untrusted shell, a trial build that requires a host Podman
-socket inside the sandbox, or a resume path that silently restarts or re-prompts — all of
-which the parent already forbids and which are restated here as hard constraints. Second, the
-parent left the **host↔container coordination protocol** (how the host knows generation is
-finished, how the agent requests a build, how repair loops terminate) implicit; if left
-unspecified an implementer will invent an ad-hoc mechanism that resume and concurrency
-control cannot reason about. This revision names that gap explicitly so it is resolved before
-build.
+The residual risk this revision closes is twofold. First, a careless implementation could
+ship a registry that `eval`s untrusted shell, a trial build that requires a host Podman socket
+inside the sandbox, or a resume path that silently restarts or re-prompts — all of which are
+forbidden here as hard constraints. Second, the parent left the **host↔container coordination
+protocol** implicit. This revision makes that protocol deterministic and file-based so resume,
+locking, build requests, and repair loops can be inspected and reconstructed after crashes.
 
 ## Goals / Non-goals
 
@@ -299,13 +295,26 @@ build.
   `quality-gate-failed` status unless the trial build also fails or cannot start.
 - R8.7 **Coordination protocol.** The host-side `ai-new` supervisor and the in-container agent
   coordinate the quality gate through files in `bootstrap/` only — never through a host socket
-  or nested Podman. The agent signals "scaffold ready for build" by writing the agreed
-  ready-marker / status transition in `session.json` (e.g. status `generated`); the host
-  supervisor, which remains alive supervising the session (R19.6), detects that transition,
-  runs the gate (R17), writes `build.log` and the resulting status, and the agent consumes the
-  result on its next turn. The exact marker mechanism, polling/notify strategy, and
-  repair-loop termination condition are specified in planning (see Open Questions OQ-A) but
-  MUST be deterministic, file-based, and reconstructable on resume.
+  or nested Podman. The agent requests a host-side quality gate by writing
+  `bootstrap/build.request.json`; the host writes `bootstrap/build.result.json` and
+  `bootstrap/build.log`.
+- R8.8 Each build request uses a monotonically increasing integer `request_id`. The minimum
+  `build.request.json` fields are: `request_id`, `requested_at`, `requested_by`,
+  `containerfile`, `context_dir`, `image_tag`, `reason`, and `repair_iteration`. The minimum
+  `build.result.json` fields are: `request_id`, `started_at`, `finished_at`, `exit_code`,
+  `status`, `static_check_status`, `build_log_path`, `image_tag`, and `error_summary`.
+- R8.9 The host supervisor detects a new build request, validates that no build is already
+  running for the same project, changes `session.json` status to `quality-gate-running`, runs
+  the host-side quality gate (R17), then writes the result files and updates `session.json`.
+  Duplicate requests with a `request_id` that already has a matching result are ignored.
+- R8.10 Repair attempts are capped at `3` by default and may be overridden with
+  `AI_NEW_MAX_REPAIR_ATTEMPTS=<n>`. After the final failed repair/build cycle, status becomes
+  `quality-gate-failed`; the user may later resume explicitly and request another repair/build
+  cycle.
+- R8.11 Crash/restart reconstruction is file-based: if `build.request.json` exists without a
+  corresponding `build.result.json` and no active lock/build process exists, `ai-new --resume`
+  treats the request as interrupted and reconciles state per R19.8. All reconciliation notes
+  are appended to `bootstrap/session.md`.
 
 ### R9. Resumable sessions
 
@@ -406,8 +415,11 @@ build.
   runtimes by adding registry files rather than editing framework scripts.
 - R13.10 `ai-new` computes a SHA-256 hash over the **normalized** selected registry file when
   pinning it to `bootstrap/agent.env`. The optional `AGENT_REGISTRY_VERSION` is display
-  metadata only; the computed hash is the authoritative drift detector. The normalization
-  algorithm is specified in planning (Open Questions OQ-B) and MUST be stable across platforms.
+  metadata only; the computed hash is the authoritative drift detector. Registry normalization
+  is: read as UTF-8 text; convert CRLF/CR line endings to LF; remove trailing whitespace from
+  each line; preserve comments, key order, and interior blank lines; remove trailing blank
+  lines at EOF; and ensure exactly one trailing newline. The resulting normalized text is
+  hashed with SHA-256.
 - R13.11 v1 install adapters are limited to `npm-global`, `pipx`, `dnf-package`, `preinstalled`,
   and `manual`. v1 auth checks use the `argv` adapter. Unknown adapter names fail validation.
 - R13.12 **Adapter contracts (v1, fixed set):**
@@ -426,8 +438,10 @@ build.
   - No adapter executes registry content through `eval`, `source`, or `sh -c`; each receives
     validated string fields and constructs argv arrays internally.
 - R13.13 Initial runtime mappings: `codex` → `npm-global`, package `@openai/codex`;
-  `codex` → `npm-global`, package `@openai/codex`; `gemini` → the official CLI install path
-  selected for v1, or `manual` until a safe adapter is deliberately added (Open Questions OQ-C).
+  `codex` → `npm-global`, package `@openai/codex`; `gemini` → `manual` for v1 unless a safe,
+  official install path is deliberately selected before implementation. A manual runtime is a
+  registered value, but if the command is missing `start-here.sh` reports setup instructions
+  instead of attempting an automatic install.
 
 ### R14. Bootstrap safety posture
 
@@ -499,7 +513,9 @@ build.
   are not trusted to clear it, and may read lock/session state for diagnostics only.
 - R19.7 The default stale-lock threshold is `10m`, overridable with
   `AI_NEW_LOCK_STALE_AFTER=<duration>` using the same GNU `timeout(1)` duration syntax as
-  `AI_NEW_BUILD_TIMEOUT`.
+  `AI_NEW_BUILD_TIMEOUT`. The host supervisor refreshes `last_heartbeat` every `60s` by
+  default. If the stale threshold is overridden, the refresh interval is
+  `min(60s, stale_threshold / 5)` with a lower bound of `10s`.
 - R19.8 On `--resume`, `ai-new` performs status reconciliation before entering the bootstrap
   container. If `session.json` holds a running status (`interviewing`, `quality-gate-running`)
   but no active lock exists (or the lock is stale and cleared), it rewrites the status to a
@@ -513,9 +529,12 @@ build.
 
 ### R20. Trial-image naming & runtime-at-resume
 
-- R20.1 The trial build tags the durable image as `localhost/ai-new/<name>:trial`, where
-  `<name>` is sanitized to a lowercase container-image-safe slug (sanitization rules per Open
-  Questions OQ-B).
+- R20.1 The trial build tags the durable image as `localhost/ai-new/<slug>:trial`, where
+  `<slug>` is derived from `<name>` by a deterministic sanitizer: convert to lowercase ASCII
+  where possible; replace any character outside `[a-z0-9._-]` with `-`; collapse repeated `-`;
+  trim leading/trailing `.`, `_`, and `-`; fail clearly if the slug is empty; cap at 63
+  characters; append `-<8-char-hash>` when truncation occurs; and fail if two distinct project
+  names produce the same slug unless the user chooses a distinct name in a future flow.
 - R20.2 On successful validation, the same image MAY also be tagged
   `localhost/ai-project/<name>:latest`.
 - R20.3 The trial-built image is left in local Podman storage as a warm cache for the user's
@@ -616,51 +635,210 @@ build.
   if the pinned agent is absent from `bootstrap/agent.env`; if the pinned agent exists but its
   runtime is uninstallable/unauthenticated, `start-here.sh` reports the runtime/auth problem
   with setup instructions.
-- AC27. (R8.7 / R13.10 / R20.1) The host↔container coordination is deterministic and file-based:
-  the agent's "ready" signal is reconstructable on resume; the registry hash is stable for an
-  unchanged file across two independent runs and on two machines; the image-slug sanitizer maps
-  the same `<name>` to the same slug deterministically. (Verifiable once OQ-A and OQ-B are
-  resolved in planning.)
+- AC27. (R8.7–R8.11 / R13.10 / R20.1) The host↔container coordination is deterministic and
+  file-based: a build request/result pair is reconstructable on resume; duplicate request ids
+  do not trigger duplicate builds; the registry hash is stable for an unchanged normalized file
+  across two independent runs and on two machines; and the image-slug sanitizer maps the same
+  `<name>` to the same slug deterministically.
 
-## Open Questions
+## Resolved Planning Questions
 
-The parent (`ai-new-5.md`) closed OQ1–OQ7. The following are the issues that remain genuinely
-open and must be resolved during planning/implementation; each is referenced from the
-requirement that depends on it.
+The parent (`ai-new-5.md`) closed OQ1–OQ7. The following planning questions were then
+resolved and are reflected in the requirements above.
 
-- **OQ-A. Host↔container coordination protocol (R8.7, R17.1).** What is the concrete,
-  file-based mechanism by which the in-container agent signals "scaffold ready / please build"
-  and consumes the result, given the host owns the build and there is no host socket? Candidate
-  designs: (a) the host supervisor polls `session.json` for a `generated` status transition;
-  (b) a dedicated request/response marker pair under `bootstrap/` (e.g. `build.request` /
-  `build.result`); (c) a watched FIFO on the shared mount. The chosen design must define the
-  repair-loop termination condition (max repair iterations? user-driven only?), how a build
-  that is already running is not double-triggered, and how the protocol state is reconstructed
-  after a crash/resume. **Recommendation:** option (a)/(b) — a status transition plus a
-  monotonically-numbered request/result marker — because it is trivially inspectable, survives
-  disposal, and aligns with the existing `session.json`-driven resume model.
+### OQ-A. Host↔container coordination protocol
 
-- **OQ-B. Registry normalization and `<name>` slug sanitization (R13.10, R20.1).** What exactly
-  is "normalized" before the SHA-256 hash is computed (line-ending normalization? trailing
-  whitespace? key ordering? comment stripping?) so the hash is stable across editors and
-  platforms? Separately, what are the precise sanitization rules turning `<name>` into a
-  container-image-safe lowercase slug (allowed character set, length cap, collision behaviour
-  when two distinct names sanitize to the same slug)? Both need a single documented algorithm
-  so AC27 is testable.
+**Question:** What is the concrete, file-based mechanism by which the in-container agent
+signals "scaffold ready / please build" and consumes the result, given the host owns the build
+and there is no host socket?
 
-- **OQ-C. `gemini` install adapter (R13.13).** Is the official Gemini CLI safely installable in
-  v1 via `npm-global`, `pipx`, or `dnf-package`, or must `gemini` ship as `manual` until a
-  dedicated adapter is added? This determines whether `gemini` is a fully working shipped
-  default or a documented-but-manual entry at v1.
+**Resolved:** host↔container coordination uses a file-based request/result protocol under
+`bootstrap/`, plus status updates in `bootstrap/session.json`.
 
-- **OQ-D. Heartbeat refresh cadence (R19.6, R19.7).** The stale threshold is `10m`, but at what
-  interval does the host supervisor refresh `last_heartbeat`? The cadence must be comfortably
-  shorter than the threshold (e.g. refresh every 1–2m against a 10m threshold) so a healthy
-  long-running build is never misclassified as stale. Confirm the default cadence and whether it
-  scales with `AI_NEW_LOCK_STALE_AFTER` overrides.
+The agent requests a host-side quality gate by writing:
 
-- **OQ-E. Bootstrap-container UX while the host runs the build (R17, R8.7).** During the
-  host-side trial build, what does the user see inside the bootstrap container — does the agent
-  block waiting on `build.result`, stream `build.log`, or return control with a "build running"
-  message? This is a UX decision that depends on OQ-A but should be settled so the agent prompt
-  (R4.6) can describe the wait behaviour accurately.
+```text
+bootstrap/build.request.json
+```
+
+The host-side `ai-new` supervisor detects this request, validates that no build is already
+running for the same request id, changes `session.json` status to `quality-gate-running`, runs
+the host-side quality gate, and writes:
+
+```text
+bootstrap/build.result.json
+bootstrap/build.log
+```
+
+Each request has a monotonically increasing integer `request_id`.
+
+Minimum `build.request.json` fields:
+
+- `request_id`
+- `requested_at`
+- `requested_by`
+- `containerfile`
+- `context_dir`
+- `image_tag`
+- `reason`
+- `repair_iteration`
+
+Minimum `build.result.json` fields:
+
+- `request_id`
+- `started_at`
+- `finished_at`
+- `exit_code`
+- `status`
+- `static_check_status`
+- `build_log_path`
+- `image_tag`
+- `error_summary`
+
+The host MUST ignore duplicate requests with the same `request_id` if a matching result
+already exists. If a build is already running, the host MUST refuse a second build request
+until the first result is written or reconciled as stale.
+
+Repair loop termination:
+
+- default maximum repair attempts: `3`;
+- override: `AI_NEW_MAX_REPAIR_ATTEMPTS=<n>`;
+- after the final failed attempt, status becomes `quality-gate-failed`;
+- the user may resume later and explicitly request another repair/build cycle.
+
+Crash/restart reconstruction:
+
+- if `build.request.json` exists without a corresponding `build.result.json`, and no active
+  lock/build process exists, `ai-new --resume` treats the request as interrupted;
+- if `session.json` says `quality-gate-running` but no active lock/build exists,
+  reconciliation follows R19.8;
+- all reconciliation notes are appended to `bootstrap/session.md`.
+
+### OQ-B. Registry normalization and `<name>` slug sanitization
+
+**Question:** What exactly is normalized before SHA-256 hashing, and what are the precise
+rules turning `<name>` into a container-image-safe slug?
+
+**Resolved:** registry hashing uses normalized file bytes, not semantic key sorting.
+
+Registry normalization before SHA-256:
+
+1. read the registry file as UTF-8 text;
+2. convert CRLF/CR line endings to LF;
+3. remove trailing whitespace from each line;
+4. ensure exactly one trailing newline at EOF;
+5. preserve comments;
+6. preserve key order;
+7. preserve blank lines except trailing blank lines at EOF.
+
+The resulting normalized text is hashed with SHA-256.
+
+This means comments and ordering are part of the pinned definition. That is intentional: the
+pinned copy should reflect exactly what the user selected, while avoiding unstable hash changes
+from line endings and editor trailing whitespace.
+
+Project names are converted to image slugs with a deterministic sanitizer:
+
+1. convert to lowercase ASCII where possible;
+2. replace any character outside `[a-z0-9._-]` with `-`;
+3. collapse repeated `-` into a single `-`;
+4. trim leading/trailing `.`, `_`, and `-`;
+5. if empty after sanitization, fail with a clear error;
+6. cap at 63 characters;
+7. if truncation occurs, append `-<8-char-hash>` using a hash of the original name;
+8. if two project names produce the same slug, fail and ask the user to choose a distinct
+   project name or explicit slug in a future flow.
+
+The image tags are:
+
+```text
+localhost/ai-new/<slug>:trial
+localhost/ai-project/<slug>:latest
+```
+
+### OQ-C. `gemini` install adapter
+
+**Question:** Is the official Gemini CLI safely installable in v1 via `npm-global`, `pipx`, or
+`dnf-package`, or must `gemini` ship as `manual` until a dedicated adapter is added?
+
+**Resolved:** `gemini` ships as a registered but manual runtime in v1 unless a safe, official
+install path is deliberately selected before implementation.
+
+The v1 default registry entry for `gemini` uses:
+
+```dotenv
+AGENT_INSTALL_ADAPTER=manual
+```
+
+This means:
+
+- `ai-new --agent gemini` is a known/registered value;
+- the framework does not attempt to install Gemini automatically;
+- if the `gemini` command is missing, `start-here.sh` reports setup instructions;
+- Gemini can become a fully auto-installed runtime later by changing its registry entry to a
+  supported adapter after the install path is validated.
+
+`codex` and `codex` remain the initial auto-install candidates through `npm-global`, subject
+to registry validation.
+
+### OQ-D. Heartbeat refresh cadence
+
+**Question:** The stale threshold is `10m`, but at what interval does the host supervisor
+refresh `last_heartbeat`?
+
+**Resolved:** the host supervisor refreshes `last_heartbeat` every 60 seconds by default.
+
+Default values:
+
+- `AI_NEW_LOCK_STALE_AFTER=10m`
+- heartbeat refresh interval: `60s`
+
+If `AI_NEW_LOCK_STALE_AFTER` is overridden, the refresh interval is:
+
+```text
+min(60s, stale_threshold / 5)
+```
+
+with a lower bound of `10s`.
+
+This keeps the heartbeat comfortably fresher than the stale threshold without excessive
+filesystem writes.
+
+The host-side `ai-new` supervisor refreshes the heartbeat while:
+
+- the bootstrap container is running;
+- the host-side quality gate is running;
+- the supervisor is waiting for build request/result transitions.
+
+The bootstrap container and agent do not write the heartbeat.
+
+### OQ-E. Bootstrap-container UX while the host runs the build
+
+**Question:** During the host-side trial build, what does the user see inside the bootstrap
+container — does the agent block waiting on `build.result`, stream `build.log`, or return
+control with a "build running" message?
+
+**Resolved:** during the host-side trial build, the agent enters a waiting state and reports
+progress from the shared build state.
+
+When the agent writes `bootstrap/build.request.json`, it tells the user that the host-side
+`ai-new` supervisor is running the quality gate outside the bootstrap container.
+
+The agent then waits for `bootstrap/build.result.json`.
+
+While waiting, the agent should periodically show concise progress:
+
+- current status from `session.json`;
+- build log path: `bootstrap/build.log`;
+- elapsed time;
+- timeout setting.
+
+If feasible, the agent may tail or summarize `bootstrap/build.log`, but it must not run
+`podman build` itself and must not require host socket access.
+
+When `build.result.json` appears:
+
+- on success, the agent reports the successful quality gate and writes final next steps;
+- on failure, the agent reads `bootstrap/build.log`, repairs generated files where
+  appropriate, and may request another host-side build using the next `request_id`;
+- on timeout, the agent reports the timeout and leaves the session resumable.
