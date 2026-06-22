@@ -6,24 +6,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../lib/common.sh"
 # shellcheck source=../lib/profile.sh
 source "${SCRIPT_DIR}/../lib/profile.sh"
+# shellcheck source=../lib/usage.sh
+source "${SCRIPT_DIR}/../lib/usage.sh"
 
-usage() {
-    cat >&2 <<'EOF'
-Usage: ai-build <profile>
-
-Build (or rebuild) the container image defined by the named profile.
-The image is built from IMAGE_DIR using BUILD_ARGS. If POST_BUILD_CHECK
-is defined in the profile, it is run inside the freshly built image to
-print installed tool/library versions.
-
-ai-build never touches existing containers (R3.5).
-
-Options:
-  -h, --help    Show this help and exit.
-EOF
-}
-
-[[ $# -eq 0 || "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+case "${1:-}" in
+    -h|--help) usage_ai_build; exit 0 ;;
+    -*)        usage_ai_build; exit 1 ;;
+esac
+[[ $# -eq 0 ]] && { usage_ai_build; exit 0; }
 
 resolve_base_dir
 require_cmd podman

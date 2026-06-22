@@ -6,20 +6,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../lib/common.sh"
 # shellcheck source=../lib/container.sh
 source "${SCRIPT_DIR}/../lib/container.sh"
+# shellcheck source=../lib/usage.sh
+source "${SCRIPT_DIR}/../lib/usage.sh"
 
-usage() {
-    cat >&2 <<'EOF'
-Usage: ai-list
-
-List all profiles in the profiles/ directory, printing name, image name,
-workspace path, and persistent container state (running/stopped/absent).
-
-Options:
-  -h, --help    Show this help and exit.
-EOF
-}
-
-[[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+case "${1:-}" in
+    -h|--help) usage_ai_list; exit 0 ;;
+    -*) usage_ai_list; exit 1 ;;
+esac
 
 resolve_base_dir
 require_cmd podman

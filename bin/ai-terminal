@@ -8,21 +8,14 @@ source "${SCRIPT_DIR}/../lib/common.sh"
 source "${SCRIPT_DIR}/../lib/profile.sh"
 # shellcheck source=../lib/container.sh
 source "${SCRIPT_DIR}/../lib/container.sh"
+# shellcheck source=../lib/usage.sh
+source "${SCRIPT_DIR}/../lib/usage.sh"
 
-usage() {
-    cat >&2 <<'EOF'
-Usage: ai-terminal <profile>
-
-Attach an additional interactive shell to the running container for the
-named profile via 'podman exec -it'. The container must already be running
-(use 'ai-launch <profile>' to start or resume it).
-
-Options:
-  -h, --help    Show this help and exit.
-EOF
-}
-
-[[ $# -eq 0 || "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+case "${1:-}" in
+    -h|--help) usage_ai_terminal; exit 0 ;;
+    -*)        usage_ai_terminal; exit 1 ;;
+esac
+[[ $# -eq 0 ]] && { usage_ai_terminal; exit 0; }
 
 resolve_base_dir
 require_cmd podman

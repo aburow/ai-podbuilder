@@ -12,33 +12,8 @@ source "${SCRIPT_DIR}/../lib/policy.sh"
 source "${SCRIPT_DIR}/../lib/container.sh"
 # shellcheck source=../lib/frontend.sh
 source "${SCRIPT_DIR}/../lib/frontend.sh"
-
-usage() {
-    cat >&2 <<'EOF'
-Usage: ai-launch <profile> [mode] [flags]
-
-Launch a persistent sandbox container for the named profile. If a container
-named by the profile already exists, it is reused; otherwise created.
-
-Modes (default: shell):
-  shell / bash   Interactive bash shell (default)
-  codex          Run the Codex agent
-  codex         Run the Codex agent
-  builder        Privileged ephemeral build container (the only --privileged path)
-  aider          Run the Aider agent
-  opencode       Run the OpenCode agent
-  ollama-shell   Run an Ollama interactive shell
-
-Flags:
-  --yes / --non-interactive   Non-interactive: warn and continue on staleness
-  --recreate                  Remove and recreate the persistent container from
-                              the current image (workspace preserved)
-  --no-recreate               Explicitly continue with the existing container
-  --reset                     Teardown: stop (with --yes) and recreate the
-                              persistent container; workspace never deleted
-  -h, --help                  Show this help and exit.
-EOF
-}
+# shellcheck source=../lib/usage.sh
+source "${SCRIPT_DIR}/../lib/usage.sh"
 
 # Mode → in-container command table (extensible without touching safety core).
 declare -A MODE_CMDS
@@ -66,27 +41,27 @@ FLAG_RESET=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -h|--help)          usage; exit 0 ;;
+        -h|--help)          usage_ai_launch; exit 0 ;;
         --yes)              FLAG_YES=1; shift ;;
         --non-interactive)  FLAG_NON_INTERACTIVE=1; shift ;;
         --recreate)         FLAG_RECREATE=1; shift ;;
         --no-recreate)      FLAG_NO_RECREATE=1; shift ;;
         --reset)            FLAG_RESET=1; shift ;;
-        -*)                 _die "Unknown flag: $1. Run 'ai-launch --help' for usage." ;;
+        -*)                 usage_ai_launch; exit 1 ;;
         *)
             if [[ -z "$PROFILE_ARG" ]]; then
                 PROFILE_ARG="$1"
             elif [[ "$_LAUNCH_MODE" == "shell" ]]; then
                 _LAUNCH_MODE="$1"
             else
-                _die "Unexpected argument: $1"
+                usage_ai_launch; exit 1
             fi
             shift
             ;;
     esac
 done
 
-[[ -n "$PROFILE_ARG" ]] || { usage; exit 0; }
+[[ -n "$PROFILE_ARG" ]] || { usage_ai_launch; exit 0; }
 
 load_profile "$PROFILE_ARG"
 
