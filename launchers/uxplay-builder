@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Launcher: uxplay profile → builder mode (non-interactive, for desktop use)
+# Builder is privileged and ephemeral; container is removed on exit.
+# Intended as a desktop / Podman-Desktop entry point.
+exec ai-launch uxplay builder --non-interactive
