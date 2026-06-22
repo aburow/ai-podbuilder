@@ -4,12 +4,23 @@ type: requirement
 status: in-development
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
+documented: "2026-06-22T00:00:00+10:00"
 priority: normal
 parent: lifecycle/requirements/ai-agent-podman-sandbox-4.md
+docs_output:
+    - docs/ai-agent-podman-sandbox.md
+    - docs/profiles.md
+    - docs/security-model.md
+    - docs/selinux.md
+    - docs/secrets-and-ssh.md
+    - docs/teardown.md
+    - docs/desktop-integration.md
 assignees:
     - role: analyst
       who: agent
     - role: product-owner
+      who: agent
+    - role: technical-writer
       who: agent
 ---
 
@@ -475,3 +486,22 @@ None. All clarifying questions from the parent lineage are resolved:
 - OQ-D (v1 teardown ergonomics) → resolved into R4.11: include
   `ai-launch <profile> --reset` (and `--recreate`) as the canonical
   framework-managed teardown, preserving workspace/home/profile/image/secrets.
+
+## Documentation Produced
+
+Documentation was completed on 2026-06-22 by the technical-writer agent. The
+following files were written or verified:
+
+| File | Content |
+|------|---------|
+| `docs/ai-agent-podman-sandbox.md` | **Main reference document.** Overview, installation, quick start, complete command reference for all four commands (`ai-build`, `ai-launch`, `ai-terminal`, `ai-list`) with all flags, launch modes, persistence model, stale-image reconciliation, safety policy, network policy, SELinux configuration, secrets and SSH, desktop integration, compatibility wrappers, framework self-hosting, deferred features roadmap, and acceptance criteria cross-reference table. |
+| `docs/profiles.md` | Profile authoring guide: required/optional fields, annotated examples, PATH setup. |
+| `docs/security-model.md` | Normal-mode safety policy flags, what is not mounted, builder-mode rationale, persistence and containment rationale. |
+| `docs/selinux.md` | `SELINUX_MODE=disable` vs `enforce` trade-offs and selection guidance. |
+| `docs/secrets-and-ssh.md` | `ENV_FILE` usage and permissions, in-sandbox SSH key recipe, rationale for not mounting host `~/.ssh`. |
+| `docs/teardown.md` | `--reset` and `--recreate` canonical teardown paths, stale-image detection workflow, raw Podman escape hatch. |
+| `docs/desktop-integration.md` | Launcher scripts, KDE/GNOME `.desktop` examples, Podman Desktop integration notes. |
+
+The main reference document at `docs/ai-agent-podman-sandbox.md` covers all
+v1 acceptance criteria (AC1–AC15) and cross-references each to the relevant
+documentation section.
