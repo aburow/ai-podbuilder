@@ -29,6 +29,8 @@ source "${SCRIPT_DIR}/../lib/bootstrap_image.sh"
 source "${SCRIPT_DIR}/../lib/launch.sh"
 # shellcheck source=../lib/adapter.sh
 source "${SCRIPT_DIR}/../lib/adapter.sh"
+# shellcheck source=../lib/messages.sh
+source "${SCRIPT_DIR}/../lib/messages.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 
@@ -69,7 +71,9 @@ done
 # ── Environment resolution ────────────────────────────────────────────────────
 
 resolve_jails_dir
-require_cmd podman
+if ! command -v podman >/dev/null 2>&1; then
+    msg_podman_unavailable; exit 1
+fi
 project_paths "$NAME"
 
 # ── Slug sanitisation ─────────────────────────────────────────────────────────

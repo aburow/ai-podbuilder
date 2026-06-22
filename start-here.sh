@@ -13,16 +13,28 @@ _usage() {
     cat >&2 <<'USAGE_EOF'
 Usage: start-here.sh [--agent <agent>] [--resume] [-h|--help]
 
-Start the agent-primed bootstrap session inside the bootstrap container.
-Reads runtime metadata from /project/bootstrap/agent.env.
+Start the agent-primed bootstrap session inside the ai-new bootstrap container.
+Reads runtime metadata from /project/bootstrap/agent.env (never source/eval).
 
 Options:
   --agent <agent>   Override the pinned agent runtime.
-  --resume          Resume an interrupted session; never re-prompts for runtime.
-  -h, --help        Show this help and exit.
+                    Valid if multiple runtimes are installed and the default
+                    is not what you want.
+  --resume          Resume an interrupted bootstrap session.
+                    Never re-prompts for the agent runtime.
+  -h, --help        Show this help and exit (zero).
 
-This script is run inside the ai-new bootstrap container.  Do not execute it
-on the host; it expects /project to be the mounted project directory.
+Environment:
+  /project/bootstrap/agent.env        Pinned agent registry (required).
+  /project/bootstrap/agent.env.local  Bootstrap-time API keys (optional, gitignored).
+  /project/bootstrap/session.json     Session state (status, generated files).
+
+This script is designed to be run inside the bootstrap container created by
+'ai-new'.  It validates the agent runtime, loads API keys, and launches the
+agent with the bootstrap prompt.
+
+If the bootstrap session was interrupted, re-enter the container with:
+  ai-new <name> --resume
 USAGE_EOF
 }
 
