@@ -8,7 +8,7 @@ TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 overall_pass=0; overall_fail=0; overall_skip=0
 runner_fail=0
 
-for f in "${TESTS_DIR}"/[0-9]*.sh; do
+for f in "${TESTS_DIR}"/[0-9]*.sh "${TESTS_DIR}"/test_*.sh; do
     [[ -f "$f" ]] || continue
     printf '\n=== %s ===\n' "$(basename "$f")"
     if bash "$f"; then
