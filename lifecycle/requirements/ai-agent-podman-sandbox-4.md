@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — Consolidated Requirement (v1-scoped)
 type: requirement
-status: blocked
+status: clarifying
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -242,13 +242,18 @@ rootless Podman child-container launching.
   Podman.
 - **R13.2** All commands provide `-h` / `--help` and clear, non-zero-exit error messages.
 - **R13.3** Targets Bazzite/Fedora with rootless Podman and Podman Desktop.
-- **R13.4** **Nested-sandbox bootstrap (resolved parent OQ10).** The framework MUST be
-  importable and runnable from inside its own sandbox — specifically launched via Podman from
-  `$CODEX_JAILS_DIR/podman-plugin-workspace` — so the user can move from one contained
-  environment to another without breaking out of any container. The design MUST NOT assume it
-  only ever runs on the bare host. Note: this is the framework *running* inside a sandbox;
-  it does **not** imply the inner sandbox launching *child* sandboxes (nested rootless Podman
-  child-launching is deferred, Deferred D6).
+- **R13.4** **Framework self-hosting, not nested container execution.**
+The framework repository MUST be usable from inside an ordinary sandbox workspace,
+for example `$CODEX_JAILS_DIR/podman-plugin-workspace`, so the user can develop and
+maintain the framework without exposing the full host environment.
+
+This requirement only means the framework files can be edited, generated, linted,
+and reviewed from inside that sandbox. The framework MUST NOT assume hardcoded host
+paths, hardcoded usernames, or direct bare-host execution.
+
+This requirement does not imply that the sandbox can launch child containers.
+Nested rootless Podman, host Podman socket access, and child-sandbox launching are
+out of scope for v1 and are tracked separately as Deferred D6.
 
 ## Deferred Requirements (post-v1)
 
@@ -364,7 +369,7 @@ v1 acceptance criteria (AC1–AC13). Criteria for deferred features are listed s
   it can itself be launched via Podman from `$CODEX_JAILS_DIR/podman-plugin-workspace` and operate
   from inside that sandbox. *(Nested-bootstrap R13.4 is v1; full packaging is D5.)*
 
-## Open Questions
+## Resolved Questions
 
 The parent's ten clarifying questions (OQ1–OQ10) are all resolved and folded in above. The
 following are the remaining open points surfaced while consolidating for v1:
@@ -376,18 +381,117 @@ following are the remaining open points surfaced while consolidating for v1:
   Comparing live image IDs avoids extra state and is the suggested default unless a written
   record is preferred.
 
+- **OQ-A. Image-staleness tracking mechanism.** Resolved: v1 detects image staleness
+  by comparing the existing container's configured image ID with the current local
+  image ID for `IMAGE_NAME` at launch time.
+
+  `ai-launch` inspects the existing persistent container and the current profile image:
+
+  - existing container image ID:
+    `podman inspect --format '{{.Image}}' "$CONTAINER_NAME"`
+  - current local image ID:
+    `podman image inspect --format '{{.Id}}' "$IMAGE_NAME"`
+
+  If both exist and differ, the container is considered stale. No separate
+  `$CODEX_JAILS_DIR/state/<profile>.image` file is required in v1.
+
+  Future versions may add written state for audit/history, but launch correctness
+  should not depend on framework-maintained image state when Podman already records
+  the container's source image.
+
 - **OQ-B. Interactive vs non-interactive detection.** R4.9 branches on whether `ai-launch` is
   interactive. Confirm the detection rule (e.g. `[ -t 0 ]` / TTY presence) and whether an
   explicit `--yes`/`--non-interactive` flag should force the warn-and-continue path for
   scripted/launcher invocations.
 
-- **OQ-C. Builder-mode persistence.** Persistence (R4.2) is specified for normal mode. Are the
-  privileged `-builder` containers also persistent, or should builder mode remain ephemeral
-  (`--rm`) given its elevated privilege? A recommendation: keep builder containers ephemeral so
-  a privileged container never lingers, but confirm against the build workflow (long
-  cross-compile/QEMU builds may benefit from reuse).
+- **OQ-B. Interactive vs non-interactive detection.** Resolved: v1 uses TTY presence
+  as the default interaction detector, with explicit flags to override.
+
+  Interactive mode is detected when both stdin and stdout are terminals:
+
+  ```bash
+  [[ -t 0 && -t 1 ]]
+ai-launch also supports explicit control:
+
+--yes / --non-interactive: never prompt; warn and continue with the existing
+persistent container when image staleness is detected.
+--recreate: remove and recreate the persistent container from the current image,
+preserving the workspace mount.
+--no-recreate: explicitly continue using the existing container.
+
+For desktop/Podman Desktop launcher wrappers, the recommended default is
+--non-interactive, so launchers do not hang behind a hidden prompt.
+
+
+Important detail: I would not make `--yes` mean “recreate.” In this framework, safer default is **continue**, not mutate/remove.
+
+---
+
+### OQ-C. Builder-mode persistence
+
+Keep builder mode **ephemeral by default**. If you later need caching, persist the cache directories, not the privileged container.
+
+Resolved text:
+
+```markdown
+- **OQ-C. Builder-mode persistence.** Resolved: privileged builder containers are
+  ephemeral in v1.
+
+  Normal-mode containers are persistent. Builder-mode containers use the distinct
+  `-builder` name and are launched with `--rm` by default so an elevated container
+  does not linger after exit.
+
+  Build performance should be preserved through explicit mounted cache/workspace
+  directories, not by keeping the privileged container alive. If a future workflow
+  requires long-running or resumable builder containers, that must be added as a
+  separate explicit mode, for example `builder-persistent`, with visible warnings.
+
 
 - **OQ-D. v1 teardown ergonomics.** With `ai-doctor --cleanup` deferred (D1), v1 teardown relies
   on documented raw `podman rm` commands (R4.10). Is documentation sufficient for v1, or is a
   minimal `ai-launch <profile> --reset` (remove + recreate, preserving the workspace mount)
-  warranted in v1 to avoid users hand-running Podman against safety-managed containers?
+  warranted in v1 to avoid users hand-running Podman against safety-managed contained?
+
+  - **OQ-D. v1 teardown ergonomics.** Resolved: v1 includes a minimal
+  `ai-launch <profile> --reset` path.
+
+  Since `ai-doctor --cleanup` is deferred, v1 should not require users to manually
+  run raw `podman rm` commands for framework-managed containers.
+
+  `ai-launch <profile> --reset` removes the persistent normal-mode container for
+  that profile and recreates it from the current image on the next launch. It does
+  not delete the workspace, container-home directory, profile, image directory, or
+  secret env file.
+
+  If the container is running, `--reset` stops it first after confirmation in
+  interactive mode. In non-interactive mode, reset requires an explicit
+  `--yes --reset` combination.
+
+  Raw Podman teardown commands may still be documented as an escape hatch, but the
+  canonical v1 teardown path is framework-managed.
+
+
+  ai-build <profile>
+  builds or rebuilds the image only
+  does not touch existing persistent containers
+
+ai-launch <profile>
+  if no container exists: create from current image
+  if container exists and image matches: start/attach/reuse
+  if container exists and image is stale:
+    interactive: ask continue/recreate/cancel
+    non-interactive: warn and continue
+
+ai-launch <profile> --recreate
+  recreate persistent container from current image
+  preserve workspace and container-home
+
+ai-launch <profile> --reset
+  remove persistent container
+  preserve workspace and container-home
+  recreate on next launch or immediately, depending on implementation choice
+
+ai-launch <profile> builder
+  privileged builder container
+  ephemeral by default
+  uses --rm
