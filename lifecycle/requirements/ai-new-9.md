@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container'
 type: requirement
-status: blocked
+status: approved
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -675,7 +675,7 @@ changes them.
   elapsed time, timeout) and does not run `podman build` itself or require host socket access; on
   result it reports success/failure/timeout per R8.14.
 
-## Open Questions
+## Requirement Closure
 
 The parent (`ai-new-8.md`) declared all inherited planning questions (OQ1–OQ7, OQ-A–OQ-E,
 OQ-7A–OQ-7F) resolved and binding for v1, and stated that no open requirement questions remain.
