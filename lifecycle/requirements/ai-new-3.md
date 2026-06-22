@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Interactive Agent-Primed Project Bootstrap Container'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -318,7 +318,7 @@ durable image it generated.
 - AC14. `ai-new -h` and `/start-here.sh -h` print usage; failure paths (no Podman,
   build/pull failure, unknown agent runtime) exit non-zero with a clear message.
 
-## Open Questions
+## Questions
 
 The parent's ten clarifying questions are resolved and promoted into the requirements
 above. The following implementation-level questions remain for planning:
@@ -327,18 +327,150 @@ above. The following implementation-level questions remain for planning:
   (R9.1) take — a structured file the agent reads back on resume (e.g.
   `bootstrap/session.md` / `session.json`), and what minimum fields must it carry to
   reliably resume an interview?
+
+  Resolved: bootstrap session state is persisted in two files:
+
+- `bootstrap/session.md` — human-readable notes for the user and agent.
+- `bootstrap/session.json` — machine-readable resume state for `ai-new`.
+
+`session.md` records the interview summary, decisions made, unresolved questions,
+generated files, quality-gate result, and next recommended action.
+
+`session.json` records at minimum:
+
+- project name;
+- selected agent;
+- bootstrap status: `started`, `interviewing`, `generated`, `quality-gate-running`,
+  `quality-gate-failed`, `complete`;
+- timestamp of last update;
+- generated file list;
+- Containerfile path;
+- quality-gate status;
+- last error, if any;
+- resume command.
+
+`ai-new` uses `session.json` to determine resume state, while the agent and user use
+`session.md` for continuity.
+
 - OQ2. **Supported-runtime registry.** Where is the authoritative list of supported
   `--agent` values defined, and how is each runtime's install method, auth-check
   command, and config-dir path declared so new runtimes can be added without editing
   `start-here.sh`?
+
+  Resolved: supported agent runtimes are declared in registry files under:
+
+`$CODEX_JAILS_DIR/config/agents.d/<agent>.env`
+
+Each registry file defines:
+
+- `AGENT_NAME`
+- `AGENT_COMMAND`
+- `AGENT_INSTALL_COMMAND`
+- `AGENT_AUTH_CHECK_COMMAND`
+- `AGENT_CONFIG_DIRS`
+- `AGENT_ENV_VARS`
+- `AGENT_PROMPT_MODE`
+
+`ai-new --agent <agent>` validates the selected name against this registry. 
+`start-here.sh` reads the selected runtime metadata from the scaffolded bootstrap
+config and does not contain per-agent install/auth logic beyond the generic adapter
+contract.
+
+The framework may ship defaults for `codex`, `codex`, and `gemini`; users may add
+new runtimes by adding registry files rather than editing framework scripts.
+
 - OQ3. **Trial-build cost & opt-out.** The quality-gate trial `podman build` (R8.1) can
   be slow or pull large layers. Should there be a documented way to skip or time-box the
   trial build for constrained environments, and does skipping it block "complete" status?
+
+Resolved: the trial build is required by default but may be explicitly skipped or
+time-boxed.
+
+Supported controls:
+
+- `AI_NEW_SKIP_TRIAL_BUILD=1`
+- `AI_NEW_BUILD_TIMEOUT=<duration>`
+- future CLI equivalent: `ai-new <name> --skip-trial-build`
+
+If the trial build is skipped, the bootstrap result status is:
+
+`generated-unvalidated`
+
+not:
+
+`complete`
+
+The agent must clearly report that no build validation was performed and that the
+user must run the build manually before trusting the scaffold.
+
+If the trial build times out, the status is:
+
+`quality-gate-timeout`
+
+and the session remains resumable.
+  
 - OQ4. **`--resume`/`--force` flag surface.** R2.6 defers explicit flags to a future
   cut. Confirm v1 ships only the implicit resume-on-incomplete behaviour, and define how
   "complete vs incomplete" scaffold state is detected (sentinel file? presence of the
   generated `Containerfile`? quality-gate pass marker?).
+
+Resolved: v1 ships explicit `--resume`; `--force` remains deferred.
+
+`ai-new <name>` behavior:
+
+- no project exists: create new scaffold;
+- project exists and `bootstrap/session.json` status is not `complete`: refuse
+  ambiguous action and suggest `ai-new <name> --resume`;
+- project exists and status is `complete`: abort;
+- `ai-new <name> --resume`: resume an incomplete scaffold;
+- `ai-new <name> --force`: deferred beyond v1.
+
+Completeness is determined by `bootstrap/session.json`, not by guessing from file
+presence alone.
+
+A scaffold is complete only when:
+
+- the real project `image/Containerfile` exists;
+- required v1 scaffold files exist;
+- the quality gate has either passed or been explicitly skipped;
+- final next-step instructions have been written;
+- `session.json` status is `complete` or `generated-unvalidated`.
+  
 - OQ5. **Bootstrap workspace vs generated workspace.** R6/R7 write the durable scaffold
   into `projects/<name>/`, while R9 persists a *bootstrap* workspace/home. Confirm these
   are the same mounted tree (agent runs with CWD at the project root) or two distinct
   mounts, and document the mapping.
+
+  Resolved: the bootstrap workspace and generated scaffold live in the same mounted
+project tree.
+
+The host path:
+
+`$CODEX_JAILS_DIR/projects/<name>/`
+
+is mounted into the bootstrap container as:
+
+`/project`
+
+The agent runs with CWD:
+
+`/project`
+
+The durable generated project files are written directly under `/project`:
+
+- `/project/workspace/`
+- `/project/image/Containerfile`
+- `/project/profile.env`
+- `/project/launchers/`
+- `/project/bootstrap/session.md`
+- `/project/bootstrap/session.json`
+
+The bootstrap container's HOME is also inside the same mounted project tree:
+
+`/project/bootstrap/home`
+
+Agent config directories such as `.codex` or `.codex` persist under that bootstrap
+home unless the selected runtime requires a different documented path.
+
+This keeps all project-specific bootstrap state, generated files, session notes, and
+agent config grouped under one project directory.
