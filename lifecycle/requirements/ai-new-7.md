@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -15,7 +15,7 @@ assignees:
 
 This requirement consolidates the build-ready specification carried by the parent
 (`ai-new-6.md`) into a single implementable artifact. Every resolved implementation and
-planning question (the parent's OQ1–OQ7 and OQ-A–OQ-E) is treated as **settled and binding**
+planning question (the parent's OQ1–OQ7, OQ-A–OQ-E, and OQ-7A–OQ-7F) is treated as **settled and binding**
 and is restated below as an independently testable rule. Nothing here weakens a parent
 requirement; where the parent left a mechanism implied, the rule is made explicit:
 deterministic file-based host↔container coordination through `bootstrap/`, host-owned
@@ -184,9 +184,10 @@ inspected and reconstructed after crashes.
   itself, and MUST NOT embed per-agent install/auth logic — it reads runtime metadata from the
   pinned `bootstrap/agent.env` and acts through the generic adapter contract (R13).
 - **R4.3** Determines the agent runtime: uses the runtime selected at `ai-new` time; if exactly
-  one is available and none was specified, it may use it; if zero are available it fails with
-  setup instructions; if multiple are available and none was specified it prompts to choose. On
-  `--resume` it never re-prompts (R20).
+  one registered runtime is available and none was specified, it may use it; if zero are available
+  it fails with setup instructions; if multiple are available and none was specified it fails with
+  guidance to rerun with `--agent <agent>`. An interactive multi-runtime chooser is deferred beyond
+  v1. On `--resume` it never re-prompts (R20).
 - **R4.4** Validates that the selected runtime is present and can **authenticate before starting
   the interview** (R10), via the registry auth-check adapter. On missing/invalid credentials it
   reports the failure clearly, gives the required setup command or file path, and exits non-zero
@@ -278,34 +279,46 @@ inspected and reconstructed after crashes.
   (or `build.log`) and does **not** by itself produce `quality-gate-failed` unless the trial build
   also fails or cannot start.
 - **R8.7 — Coordination protocol.** The host-side supervisor and the in-container agent coordinate
-  through files in `bootstrap/` only — never a host socket or nested Podman. The agent requests a
-  host-side quality gate by writing `bootstrap/build.request.json`; the host writes
-  `bootstrap/build.result.json` and `bootstrap/build.log`.
-- **R8.8** Each request uses a monotonically increasing integer `request_id`. Minimum
-  `build.request.json` fields: `request_id`, `requested_at`, `requested_by`, `containerfile`,
-  `context_dir`, `image_tag`, `reason`, `repair_iteration`. Minimum `build.result.json` fields:
-  `request_id`, `started_at`, `finished_at`, `exit_code`, `status`, `static_check_status`,
-  `build_log_path`, `image_tag`, `error_summary`.
-- **R8.9** The host supervisor detects a new request, validates no build is already running for the
-  same project, sets `session.json` status to `quality-gate-running`, runs the host-side gate
-  (R17), then writes the result files and updates `session.json`. Duplicate requests whose
-  `request_id` already has a matching result are ignored.
-- **R8.10** Repair attempts are capped at `3` by default, overridable with
+  through files in `bootstrap/` only — never a host socket, FIFO, or nested Podman. The agent
+  requests a host-side quality gate by atomically writing a numbered request file:
+  `bootstrap/build.request.<request_id>.json`. The host writes the matching result file
+  `bootstrap/build.result.<request_id>.json` and `bootstrap/build.log`.
+- **R8.8** Each request uses a monotonically increasing integer `request_id`. The agent allocates
+  the next id by reading the highest previous request id from existing request/result files and
+  `session.json`, then adding `1`. Minimum `build.request.<id>.json` fields: `request_id`,
+  `requested_at`, `requested_by`, `containerfile`, `context_dir`, `image_tag`, `reason`,
+  `repair_iteration`. Minimum `build.result.<id>.json` fields: `request_id`, `started_at`,
+  `finished_at`, `exit_code`, `status`, `static_check_status`, `build_log_path`, `image_tag`,
+  `error_summary`.
+- **R8.9** Request writes are atomic. The agent writes `bootstrap/build.request.<id>.json.tmp`,
+  closes it, and renames it to `bootstrap/build.request.<id>.json`. The host processes only final
+  non-`.tmp` files and rejects malformed, partially written, missing-field, non-integer, or stale
+  request ids. A request id less than or equal to the last completed request id is rejected.
+- **R8.10** The host supervisor detects new requests by fixed-interval polling rather than
+  `inotify`. Default poll interval is `2s`, overridable with
+  `AI_NEW_COORDINATION_POLL_INTERVAL=<duration>`. The in-container agent also polls for the
+  matching `build.result.<id>.json` every `2s` by default. Polling is chosen for v1 because it is
+  deterministic across bind mounts, container disposal, and resume/crash recovery.
+- **R8.11** The host supervisor validates that no build is already running for the same project,
+  sets `session.json` status to `quality-gate-running`, runs the host-side gate (R17), then writes
+  result files and updates `session.json`. Duplicate requests whose `request_id` already has a
+  matching result are ignored.
+- **R8.12** Repair attempts are capped at `3` by default, overridable with
   `AI_NEW_MAX_REPAIR_ATTEMPTS=<n>`. After the final failed repair/build cycle, status becomes
   `quality-gate-failed`; the user may later resume explicitly and request another repair/build
   cycle.
-- **R8.11** Crash/restart reconstruction is file-based: if `build.request.json` exists without a
-  corresponding `build.result.json` and no active lock/build process exists, `ai-new --resume`
-  treats the request as interrupted and reconciles per R19.8. All reconciliation notes are
-  appended to `bootstrap/session.md`.
-- **R8.12 — Bootstrap UX during the host build.** When the agent writes `build.request.json`, it
-  tells the user the host-side supervisor is running the gate outside the container, then enters a
-  waiting state. While waiting it periodically shows concise progress (current `session.json`
-  status, `bootstrap/build.log` path, elapsed time, timeout setting) and may tail or summarize
-  `build.log`, but it MUST NOT run `podman build` itself and MUST NOT require host socket access.
-  On result: success → report the pass and write final next steps; failure → read `build.log`,
-  repair files, and optionally request another build with the next `request_id`; timeout → report
-  and leave the session resumable.
+- **R8.13** Crash/restart reconstruction is file-based: if a `build.request.<id>.json` exists
+  without a corresponding `build.result.<id>.json` and no active lock/build process exists,
+  `ai-new --resume` treats the request as interrupted and reconciles per R19.8. All reconciliation
+  notes are appended to `bootstrap/session.md`.
+- **R8.14 — Bootstrap UX during the host build.** When the agent writes
+  `build.request.<id>.json`, it tells the user the host-side supervisor is running the gate outside
+  the container, then enters a waiting state. While waiting it periodically shows concise progress
+  (current `session.json` status, `bootstrap/build.log` path, elapsed time, timeout setting) and may
+  tail or summarize `build.log`, but it MUST NOT run `podman build` itself and MUST NOT require host
+  socket access. On result: success → report the pass and write final next steps; failure → read
+  `build.log`, repair files, and optionally request another build with the next `request_id`;
+  timeout → report and leave the session resumable.
 
 ### R9. Resumable sessions
 
@@ -483,7 +496,10 @@ inspected and reconstructed after crashes.
 ### R19. Concurrency & stale-lock handling
 
 - **R19.1** v1 prevents concurrent bootstrap sessions with an **atomic lock directory** at
-  `bootstrap/session.lock/`, created before entering a session or running the host-side gate.
+  `bootstrap/session.lock/`, created before entering a session or running the host-side gate. The
+  concrete v1 primitive is atomic `mkdir bootstrap/session.lock`: success means the caller owns the
+  lock; failure because the directory exists means the session is locked and must be inspected for
+  active/stale state.
 - **R19.2** The lock records at minimum: `pid`, `hostname`, `container_name`, `started_at`,
   `last_heartbeat`.
 - **R19.3** `ai-new <name> --resume` (and any launch that would enter the bootstrap) refuses to
@@ -624,39 +640,31 @@ inspected and reconstructed after crashes.
   the pinned agent is absent from `bootstrap/agent.env`; if the pinned agent exists but its runtime
   is uninstallable/unauthenticated, `start-here.sh` reports the runtime/auth problem with setup
   instructions.
-- **AC27.** The host↔container coordination is deterministic and file-based: a build request/result
-  pair is reconstructable on resume; duplicate request ids do not trigger duplicate builds; the
-  registry hash is stable for an unchanged normalized file across two independent runs and on two
-  machines; and the image-slug sanitizer maps the same `<name>` to the same slug deterministically.
+- **AC27.** The host↔container coordination is deterministic and file-based: a numbered
+  `build.request.<id>.json` / `build.result.<id>.json` pair is reconstructable on resume; duplicate
+  request ids do not trigger duplicate builds; request files are written atomically via `.tmp` +
+  rename; the registry hash is stable for an unchanged normalized file across two independent runs
+  and on two machines; and the image-slug sanitizer maps the same `<name>` to the same slug
+  deterministically.
 - **AC28.** During a host-side build the agent reports progress from shared state (status, log path,
   elapsed time, timeout) and does not run `podman build` itself or require host socket access; on
-  result it reports success/failure/timeout per R8.12.
+  result it reports success/failure/timeout per R8.14.
 
-## Open Questions
+## Implementation Status
 
-The parent closed OQ1–OQ7 and OQ-A–OQ-E; those resolutions are now binding rules above. The
-following are the remaining genuinely-open questions for the planning/implementation phase:
+All planning questions inherited through `ai-new-6.md`, including OQ1–OQ7, OQ-A–OQ-E, and
+OQ-7A–OQ-7F, are now resolved and represented as binding requirements above. No open questions
+remain in this artifact for v1 implementation.
 
-- **OQ-7A — `session.lock/` atomicity primitive.** R19 requires an *atomic* lock directory, but the
-  concrete primitive is unspecified. Should v1 rely on `mkdir` atomicity, an `O_EXCL` lockfile, or
-  `flock` on a sentinel file, given the lock must work for both the host supervisor and resumed
-  invocations and be safely inspectable from inside the container (read-only)?
-- **OQ-7B — Build-request polling vs. notification.** R8.7/R8.12 define request/result files but not
-  how the host supervisor *detects* a new `build.request.json` (inotify watch vs. fixed-interval
-  poll) nor how the in-container agent detects `build.result.json`. What poll interval / mechanism
-  balances latency against filesystem churn, and is `inotify` reliable across the bind mount?
-- **OQ-7C — `request_id` allocation authority.** R8.8 requires a monotonically increasing
-  `request_id`, but the agent (writer of requests) and host (writer of results) are separate
-  processes. Is the agent the sole allocator (reading the last id from `session.json`/prior
-  request), and how is a torn/partial `build.request.json` write detected and rejected?
-- **OQ-7D — Static-check tool detection on Bazzite/Fedora.** R8.6 lists a preference order, but which
-  of Podman-native parse, Buildah parse, or `hadolint` is actually present and reliable on the target
-  image-build host needs to be validated before fixing the default path.
-- **OQ-7E — Multi-runtime prompt UX in `start-here.sh`.** R4.3 allows prompting when multiple runtimes
-  are available and none was specified, but the parent settles `--agent` as the preferred v1 path.
-  Should v1 actually implement the interactive multi-runtime chooser, or defer it (failing with
-  guidance to pass `--agent`) to keep the launcher minimal?
-- **OQ-7F — Gemini install path decision deadline.** R13.13 leaves `gemini` as `manual` "unless a
-  safe official install path is deliberately selected before implementation." This decision must be
-  made (or explicitly deferred) during planning so the default `config/agents.d/gemini.env` ships in a
-  known state.
+Key final decisions folded into the requirements:
+
+- Locking uses atomic `mkdir bootstrap/session.lock/`.
+- Host↔container coordination uses numbered JSON request/result files under `bootstrap/`.
+- Coordination uses fixed-interval polling by default, not `inotify`.
+- The agent allocates monotonically increasing `request_id` values; the host validates them.
+- Request files are written atomically using `.tmp` plus rename.
+- Static checks are advisory; the host-side trial build is authoritative.
+- v1 does not implement an interactive multi-runtime chooser; users should pass `--agent` when
+  multiple runtimes are registered.
+- `gemini` ships as a registered `manual` runtime in v1 unless a safe official install path is
+  deliberately selected before implementation.
