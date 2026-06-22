@@ -151,8 +151,12 @@ Generate **all** of the following under `/project/`:
 
 ### Profile / launcher conventions (R6.4, AC11)
 
-- Derive all paths from `$HOME` and `$CODEX_JAILS_DIR` — never hardcode usernames or `/var/home/`.
-- `profile.env` shape follows `ai-agent-podman-sandbox` conventions:
+- Derive all paths from `$HOME` and `$CODEX_JAILS_DIR` — **never hardcode usernames
+  or `/var/home/` paths**.
+- `profile.env` shape follows `ai-agent-podman-sandbox` conventions.  Use the
+  template at `/start-here-prompts/../templates/profile.env.tmpl` as a reference
+  (available at `/start-here-prompts/` in the container if the host mounted it).
+  Minimum required fields:
   ```
   PROJECT_NAME=<name>
   PROJECT_SLUG=<slug>
@@ -160,19 +164,45 @@ Generate **all** of the following under `/project/`:
   CONTAINER_HOME=/home/user
   WORKSPACE_HOST=${CODEX_JAILS_DIR}/projects/<name>/workspace
   WORKSPACE_CONTAINER=/workspace
+  CONTAINER_NAME=<slug>
+  NETWORK_MODE=bridge
   ```
-- Launchers in `launchers/` are executable shell wrappers that call `ai-launch <profile>`.
+- `launchers/<slug>` must be an executable shell script (`chmod +x`) that calls
+  `${CODEX_BIN}/ai-launch <profile-name>` where `CODEX_BIN` is derived from
+  `${CODEX_JAILS_DIR:-${HOME}/codex-jails}/bin`.
+- `launchers/build-<slug>.sh` must be executable and call `podman build` with
+  `-f image/Containerfile -t <image-tag> image/`.
+
+### Containerfile authoring guidelines
+
+- Use `FROM <base>` — do not pin digests in the generated file (the user can add
+  pinning after review).
+- Install system packages in a single `RUN` layer and clean the package cache in
+  the same layer.
+- Add a non-root `USER` when the project does not require root.
+- Do not bake secrets into layers.  Use `ARG` (not `ENV`) for any build-time
+  values the user has approved to bake.
+- Use `WORKDIR` to set the default working directory.
+- Use `LABEL ai-agent-podman-sandbox.project=<slug>` for identification.
 
 ### Secret-handling rules (R6.5, AC10)
 
 - `.env.example` contains **placeholder values only** — never real credentials.
+  Use the template at `templates/.env.example.tmpl` as a reference.
 - Real secrets belong in `bootstrap/agent.env.local` (for bootstrap-time use) or
-  in a separate `.env` that is gitignored.
-- `.gitignore` **must** exclude:
+  in a project-root `.env` file that is gitignored.
+- `.gitignore` **must** exclude all of the following:
   - `bootstrap/agent.env.local`
   - `bootstrap/home/`
-  - Any project `.env` (not `.env.example`)
-  - Runtime-specific secret/cache files (e.g. `.codex/`, `.openai/`, `.config/github-copilot/`)
+  - `.env` (the project secrets file — not `.env.example`)
+  - `*.env.local`
+  - Agent runtime caches: `.codex/`, `.openai/`, `.config/github-copilot/`,
+    `.config/gemini/`, `.codex/`
+  - Common build artefacts: `node_modules/`, `target/`, `dist/`, `build/`,
+    `__pycache__/`
+
+  Use the template at `templates/.gitignore.tmpl` as a starting point and add
+  project-specific entries.
 
 ---
 
