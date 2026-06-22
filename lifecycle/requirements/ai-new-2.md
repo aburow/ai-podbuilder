@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Interactive Agent-Primed Project Bootstrap Container'
 type: requirement
-status: draft
+status: clarifying
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
