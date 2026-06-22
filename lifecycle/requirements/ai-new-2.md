@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Interactive Agent-Primed Project Bootstrap Container'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -225,40 +225,177 @@ durable image it generated.
 - AC10. `ai-new -h` and `/start-here.sh -h` print usage; failure paths (no Podman,
   build/pull failure, unknown agent runtime) exit non-zero with a clear message.
 
-## Open Questions
+## Resolved Questions
 
 - OQ1. **Relationship to `ai-agent-podman-sandbox` R14 (`ai-new` generator).** That
   lineage already reserves an `ai-new <name>` command that *scaffolds* a profile,
   workspace, image dir, and launchers non-interactively. Is this agent-led bootstrap
   the same command (superseding R14), a `--interactive` mode of it, or a distinct
   command name? They must not collide.
+
+Resolved: this is the same `ai-new <name>` command, not a separate command.
+
+`ai-new <name> --agent <agent>` creates the project scaffold: workspace,
+image directory, starter profile, launchers, bootstrap Containerfile, and the
+bootstrap `/start-here.sh` entrypoint.
+
+After the scaffold exists, the bootstrap container runs `/start-here.sh`, which
+primes the selected agent to interview the user and complete the real project
+`Containerfile` and supporting project files.
+  
 - OQ2. **Agent runtime availability inside the bootstrap container.** Are agent
   runtimes (Codex, Codex, Gemini, etc.) baked into the bootstrap image, mounted in,
   or connected to from the host? Baking them in tensions with the "minimal/disposable"
   principle (R2); mounting/connecting needs a defined mechanism and auth strategy.
+
+Resolved: the selected agent runtime is installed into the bootstrap image or
+bootstrap scaffold based on the `ai-new --agent <agent>` selection.
+
+The bootstrap image remains minimal by installing only the selected agent runtime,
+not every supported runtime and not the eventual project stack.
+
+Agent configuration directories, such as `.codex` or equivalent runtime config,
+are persisted in the bootstrap workspace/home so authentication and settings
+survive bootstrap image rebuilds and resumed sessions.
+  
 - OQ3. **Agent authentication/credentials.** The agent needs API keys or a login to
   operate inside the bootstrap container, yet the safety posture mounts no host
   secrets by default. What is the sanctioned way to supply agent credentials to the
   bootstrap container (one-off env-file mount, prompt, host agent socket)?
+
+Resolved: `start-here.sh` must verify the selected agent runtime can authenticate
+before starting the project interview.
+
+Credential sources are, in order:
+
+1. persisted agent config inside the bootstrap workspace/home, such as `.codex`;
+2. profile/bootstrap env file values, when the selected agent uses API keys;
+3. an interactive login/setup flow initiated by the agent CLI, if supported.
+
+No host secrets, host `~/.ssh`, host config directories, or host agent sockets are
+mounted by default. If credentials are missing or invalid, `start-here.sh` reports
+the failure clearly and gives the user the required setup command or file path.
+  
 - OQ4. **Default vs prompted agent runtime.** Should `start-here.sh` auto-detect a
   single available runtime and proceed, always prompt, or honour an `AI_AGENT`-style
   env/flag? Behaviour when zero or multiple runtimes are available?
+
+Resolved: the agent runtime is selected at `ai-new` time.
+
+`ai-new <name> --agent <agent>` is the preferred v1 path. The selected runtime is
+installed or made available in the bootstrap environment.
+
+`start-here.sh` then validates that runtime is present and authenticated. If exactly
+one runtime is available and no agent was specified, it may use it. If zero runtimes
+are available, it fails with setup instructions. If multiple runtimes are available
+and no agent was specified, it prompts the user to choose.
+  
 - OQ5. **Bootstrap base image & "minimal" budget.** What concrete base
   (e.g. `fedora:latest` vs a smaller base) and what tooling set count as the
   acceptable minimal bootstrap image?
+
+Resolved: `fedora:latest` is acceptable as the v1 bootstrap base image.
+
+The bootstrap image may include only the tooling required to run `/start-here.sh`,
+install or launch the selected agent runtime, validate credentials, and write files
+into the workspace. Project language stacks, build systems, OS packages, and
+developer tools belong in the generated durable project image, not the bootstrap
+image.
+  
 - OQ6. **Workspace location & collision handling.** Where is the generated-files
   workspace mounted from on the host (e.g. under `~/codex-jails/...`), and what
   happens if the target project directory already exists or is non-empty?
+
+Resolved: generated project scaffolds live under a single project directory inside
+`$CODEX_JAILS_DIR/projects`, defaulting to `~/codex-jails/projects`.
+
+For `ai-new <name>`, the generated project root is:
+
+`$CODEX_JAILS_DIR/projects/<name>/`
+
+The default generated layout is:
+
+- `$CODEX_JAILS_DIR/projects/<name>/workspace/`
+- `$CODEX_JAILS_DIR/projects/<name>/image/`
+- `$CODEX_JAILS_DIR/projects/<name>/profile.env`
+- `$CODEX_JAILS_DIR/projects/<name>/launchers/`
+- `$CODEX_JAILS_DIR/projects/<name>/bootstrap/`
+- `$CODEX_JAILS_DIR/projects/<name>/README.md`
+
+The framework may still maintain global command binaries under
+`$CODEX_JAILS_DIR/bin`, but project-specific artifacts stay grouped under the
+project root.
+
+If `$CODEX_JAILS_DIR/projects/<name>` already exists, `ai-new` aborts by default
+rather than merging into or overwriting the existing project. A future explicit
+`--resume` mode may continue an incomplete bootstrap session, and a future
+`--force` mode may recreate a scaffold after confirmation.
+  
 - OQ7. **Scope of generated artifacts in v1.** Is the MVP just `Containerfile` +
   README + a launch script, with profile/launcher generation and full sandbox
   integration deferred? Confirm the initial cut.
+
+Resolved: v1 generates a complete minimal sandbox scaffold, not only a
+`Containerfile`.
+
+The v1 output includes at least:
+
+- project workspace;
+- image directory;
+- real project `Containerfile`;
+- profile file;
+- launch wrapper or launch path;
+- build/update helper;
+- README with next steps;
+- `.env.example`;
+- `.gitignore`.
+
+Full advanced integration can be improved later, but each generated project must be
+immediately buildable and launchable through the sandbox framework.
+  
 - OQ8. **Quality gate on generated `Containerfile`.** Should `ai-new` (or the agent)
   attempt a trial build/lint of the generated `Containerfile` before handing off, or
   is review-then-build strictly the user's responsibility?
+
+Resolved: a quality gate is required before handoff.
+
+After generating the project scaffold, the agent must attempt at least:
+
+1. a Containerfile syntax/static check where available;
+2. a trial `podman build` of the generated durable image;
+3. inspection of build failures and one or more repair attempts.
+
+If the build still fails, the agent must summarize what failed, what was attempted,
+and what the user should decide next. The bootstrap phase is not considered complete
+until the generated files are reviewed and the quality-gate result is reported.
+  
 - OQ9. **Non-interactive / re-run mode.** Is there a need to re-prime the agent or
   resume a partial session within the same bootstrap container, or is each run a
   fresh disposable session?
+
+Resolved: bootstrap sessions are resumable.
+
+The bootstrap container itself may remain disposable, but the bootstrap workspace,
+agent config directory, generated files, and session notes persist. Re-running
+`ai-new <name>` against an incomplete scaffold resumes the existing bootstrap
+workspace rather than starting from scratch, unless the user explicitly requests a
+reset.
+
+The user must not install project software manually during the `ai-new` phase.
+Additional requirements should be expressed to the agent and captured in the
+generated `Containerfile`, include fragments, profile, or helper scripts.
+  
 - OQ10. **Network requirement.** The agent almost certainly needs network access
   (API calls, package metadata) during the interview/generation. Is the bootstrap
   container always launched with network enabled, and how does that reconcile with
   the sandbox framework's optional `NETWORK_MODE=none`?
+
+Resolved: the bootstrap container uses network access by default.
+
+The bootstrap phase requires network access for agent API calls, authentication,
+package metadata lookup, and optional trial builds. Therefore `ai-new` launches the
+bootstrap container with network enabled by default.
+
+The generated durable project profile may still set its own `NETWORK_MODE`, including
+`NETWORK_MODE=none`, after the bootstrap phase is complete. Bootstrap networking and
+final project sandbox networking are separate decisions.
