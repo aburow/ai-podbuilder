@@ -343,46 +343,125 @@ resume and retry.
 
 ---
 
-## PHASE 5 — Completion reporting & next steps (R7, AC16)
+## PHASE 5 — Completion reporting, next steps & session.md narrative (R7, R11.2, AC9, AC16)
 
-When generation is complete (build passed, skipped, or after exhausting repairs):
+When the session reaches a terminal state (build passed, skipped,
+`generated-unvalidated`, timeout, or failure after max repairs):
 
-1. State that the bootstrap container has finished its job.
-2. Report the quality-gate result: **passed / skipped / timeout / failed**.
-3. If the build was **skipped** (`generated-unvalidated`), include this explicit
-   warning:
-   > **Build not validated — build the image manually before trusting it.**
-   > Run: `podman build -f image/Containerfile -t <image-tag> image/`
-4. Give the four next steps, referencing **actual generated paths and commands**
-   (not placeholders):
+### 5.1 — Completion statement (R7.2)
 
-   **Step 1 — Review the generated files**
-   ```
-   ls /project/image/
-   cat /project/image/Containerfile
-   cat /project/README.md
-   ```
+Open with a clear statement:
+> "The bootstrap container has finished its job."
 
-   **Step 2 — Exit the bootstrap container**
-   ```
-   exit
-   ```
+Then state the quality-gate outcome:
 
-   **Step 3 — Build the real image**
-   ```
-   cd <CODEX_JAILS_DIR>/projects/<name>
-   podman build -f image/Containerfile -t <image-tag> image/
-   ```
-   (or use the generated build helper: `launchers/build-<slug>.sh`)
+| Outcome | Statement |
+|---------|-----------|
+| Build passed | "Quality gate: **PASSED** — the Containerfile built successfully." |
+| Build skipped | "Quality gate: **SKIPPED** — the build was not run (see warning below)." |
+| Build failed after repairs | "Quality gate: **FAILED** — the build failed after repair attempts." |
+| Build timed out | "Quality gate: **TIMEOUT** — the build did not complete within the time limit." |
 
-   **Step 4 — Launch the project container**
-   ```
-   ai-launch <name>
-   ```
-   (or use the generated launcher: `launchers/<slug>`)
+### 5.2 — Skipped-build warning (R8.3, AC13)
 
-5. Update `session.md` with the final quality-gate result and next recommended
-   action.
+If the build was skipped (status `generated-unvalidated`), include this warning
+**prominently and verbatim**:
+
+> ⚠ **Build not validated — build the image manually before trusting it.**
+> The Containerfile has not been tested.  Run:
+> ```
+> podman build -f image/Containerfile -t <actual-image-tag> image/
+> ```
+> from the project directory before using this image.
+
+### 5.3 — Four next steps (R7.3, R7.4, AC16)
+
+Give the four next steps using **actual generated paths and commands** — not
+placeholder text.  Replace `<name>`, `<slug>`, `<image-tag>`, etc. with the
+real values from the project.
+
+---
+
+**Step 1 — Review the generated files**
+
+```bash
+# Inside the bootstrap container:
+ls -la /project/image/
+cat /project/image/Containerfile
+cat /project/README.md
+cat /project/profile.env
+```
+
+**Step 2 — Exit the bootstrap container**
+
+```bash
+exit
+```
+
+After exiting, you will be back on the host.
+
+**Step 3 — Build the durable image** *(skip if quality gate already passed)*
+
+```bash
+# On the host, from the project directory:
+cd ${CODEX_JAILS_DIR:-$HOME/codex-jails}/projects/<name>
+./launchers/build-<slug>.sh
+# or directly:
+podman build -f image/Containerfile -t <image-tag> image/
+```
+
+**Step 4 — Launch the project container**
+
+```bash
+ai-launch <name>
+# or using the generated launcher:
+./launchers/<slug>
+```
+
+---
+
+### 5.4 — session.md final narrative (R11.2, AC9)
+
+Before ending the session, write a complete final update to
+`/project/bootstrap/session.md`.  The file must contain all R11.2 sections:
+
+```markdown
+## Interview Summary
+<2–5 sentence summary of what the user wants and the key requirements gathered>
+
+## Decisions
+- <Decision 1: what was decided and why>
+- <Decision 2: e.g. "Python 3.11 chosen; user requires reproducible venv">
+- <Decision N: include secret-handling decisions>
+
+## Unresolved Questions
+- <Any open question deferred to post-bootstrap>  (or "None.")
+
+## Generated Files
+- `image/Containerfile` — durable container image definition
+- `profile.env` — profile configuration for ai-launch
+- `launchers/<slug>` — container launch wrapper
+- `launchers/build-<slug>.sh` — image build helper
+- `README.md` — project README with next steps
+- `.env.example` — secrets placeholder template
+- `.gitignore` — VCS exclusions
+<add any additional files here>
+
+## Quality-Gate Result
+<State the outcome: passed / skipped / failed (iteration N) / timeout>
+<If failed or timeout: summarise the error and what was attempted>
+
+## Next Recommended Action
+<The single most important thing the user should do next, with the exact command>
+
+## Reconciliation Notes
+<Any Containerfile or other file edits made during repair iterations>
+<If none: "None.">
+```
+
+Also update `session.json` to reflect the final status and set
+`"containerfile_path"` to `"image/Containerfile"` and `"generated_files"` to
+the list of generated file paths.
 
 ---
 
