@@ -1,7 +1,7 @@
 ---
 title: Fix ai-new bootstrap container setup — start-here.sh location & permissions, and agent installation
 type: requirement
-status: blocked
+status: clarifying
 lineage: ai-new-container-setup-failures
 parent: lifecycle/defects/ai-new-container-setup-failures.md
 assignees:
@@ -153,22 +153,51 @@ launch chain confirms all three and locates their root causes:
   install step is reachable and exercised on a normal `ai-new` run.
 - **AC6** (If implemented) the integration test from R4.1 passes in CI.
 
-## Open Questions
+## Resolved Questions
 
 1. **Bind-mount vs. bake-in.** Should `start-here.sh` remain bind-mounted (and
    we relocate the mount target + force `+x` on the host file) or be `COPY`ed
    into the image with `chmod +x`? Baking in decouples the in-container mode
    from the host checkout but loses live-edit convenience during development.
+
+copy the file into the image
+   
 2. **Where should the agent install run** — at image build time (in the
    generated bootstrap `Containerfile`, giving a cached, ready image) or at
    launch time (more flexible per selected agent, but slower every run)?
+
+launch time as it will install the latest version
+
 3. **gemini `manual` adapter** — what is the intended install path for gemini,
    given its adapter is `manual`? Is leaving it as a documented manual step
    acceptable, or must R3 fully automate it?
+
+the "manual" status is a nonsense add it as we would codex or codex at launch time 
+   
 4. **Exact home path.** Is `/project/bootstrap/home/start-here.sh` the desired
    location, or should it sit at a conventional `~/start-here.sh` that the
    defect's examples (`/root/start-here.sh`, `/home/<user>/start-here.sh`)
    imply? This depends on the `--userns=keep-id` UID mapping in effect.
-5. **Should all registry agents be pre-installed**, or only the single pinned
+
+The ai-new container first opens in /project within the container. The same directory contains the following:
+
+```
+bash-5.3$ ls -la
+total 8
+drwxr-xr-x. 1 mrnobody mrnobody 104 Jun 23 04:46 .
+dr-xr-xr-x. 1 root     root      88 Jun 23 04:46 ..
+-rw-r--r--. 1 mrnobody mrnobody 167 Jun 23 04:46 README.md
+drwxr-xr-x. 1 mrnobody mrnobody  94 Jun 23 04:46 bootstrap
+drwxr-xr-x. 1 mrnobody mrnobody   0 Jun 23 04:46 image
+drwxr-xr-x. 1 mrnobody mrnobody   0 Jun 23 04:46 launchers
+-rw-r--r--. 1 mrnobody mrnobody  72 Jun 23 04:46 profile.env
+drwxr-xr-x. 1 mrnobody mrnobody   0 Jun 23 04:46 workspace
+bash-5.3$ pwd
+/project
+```
+   
+8. **Should all registry agents be pre-installed**, or only the single pinned
    agent for the current run? Pre-installing all three increases image size but
    removes per-run install latency.
+
+Just the requested agent. codex, codex, or gemini at this stage
