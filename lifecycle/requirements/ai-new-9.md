@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container'
 type: requirement
-status: planning
+status: in-development
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
