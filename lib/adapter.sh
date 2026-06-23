@@ -41,6 +41,8 @@ build_argv() {
 # run_install_adapter <adapter> <package> <version>
 # Executes the install command for the given adapter via an explicit argv array
 # (never via shell -c or eval). preinstalled/manual are no-ops.
+# dnf-package requires root and fails with an actionable message at launch time
+# (R3.4, B2).
 run_install_adapter() {
     local _adapter="$1"
     local _package="$2"
@@ -50,6 +52,8 @@ run_install_adapter() {
         preinstalled|manual)
             _info "Adapter '${_adapter}': no install action required."
             return 0 ;;
+        dnf-package)
+            _die "Adapter 'dnf-package' requires root and cannot run at launch time under --userns=keep-id. To use this agent, bake the package into the bootstrap image via a custom Containerfile, or choose an npm-global/pipx adapter instead." ;;
     esac
 
     # Build the argv list.

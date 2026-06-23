@@ -21,6 +21,7 @@ launch_bootstrap() {
     _info "  Run inside:    /project/bootstrap/home/start-here.sh"
 
     local _prompts_dir="${CODEX_JAILS_DIR}/prompts"
+    local _lib_dir="${CODEX_JAILS_DIR}/lib"
 
     # Build argv array — no shell interpolation of registry values.
     local _args=(
@@ -38,6 +39,12 @@ launch_bootstrap() {
 
     # start-here.sh is delivered via the /project mount at
     # /project/bootstrap/home/start-here.sh (B1); no root bind mount.
+
+    # Expose the plugin lib/ read-only so start-here.sh can source adapter.sh
+    # and call run_install_adapter at launch time (B2, R3.1, AC5).
+    if [[ -d "$_lib_dir" ]]; then
+        _args+=(--volume "${_lib_dir}:/start-here-lib:ro,z")
+    fi
 
     # Mount prompts/ read-only so start-here.sh can copy the bootstrap prompt.
     if [[ -d "$_prompts_dir" ]]; then

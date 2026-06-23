@@ -36,6 +36,15 @@ RUN dnf install -y \
 
 # No project build tools, no language stacks — only runtime-install tooling.
 ENV HOME=/project/bootstrap/home
+
+# Home-based package prefixes so non-root launch-time installs succeed
+# under --userns=keep-id (B2, R3.1, R3.3). Directories are under the
+# writable /project mount so installs persist across container restarts.
+ENV NPM_CONFIG_PREFIX=/project/bootstrap/home/.npm-global
+ENV PIPX_HOME=/project/bootstrap/home/.local/pipx
+ENV PIPX_BIN_DIR=/project/bootstrap/home/.local/bin
+ENV PATH=/project/bootstrap/home/.npm-global/bin:/project/bootstrap/home/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 WORKDIR /project
 EOF
 }
