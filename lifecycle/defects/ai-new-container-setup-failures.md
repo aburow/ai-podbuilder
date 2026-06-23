@@ -1,7 +1,7 @@
 ---
 title: 'ai-new container: start-here.sh misplaced and non-executable, agent not installed'
 type: defect
-status: draft
+status: clarifying
 lineage: ai-new-container-setup-failures
 created: "2026-06-23T14:38:05+10:00"
 priority: normal
