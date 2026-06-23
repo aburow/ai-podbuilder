@@ -21,6 +21,9 @@ AGENT_ENV_VARS=""
 AGENT_PROMPT_MODE="default"
 AGENT_AUTH_CHECK_ARGV="codex|--version"
 AEOF
+    # Stub start-here.sh required by create_scaffold (B1).
+    printf '#!/usr/bin/env bash\n# stub\n' > "${_TMPDIR}/start-here.sh"
+    chmod +x "${_TMPDIR}/start-here.sh"
 }
 
 _run_ai_new_create() {

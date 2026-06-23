@@ -18,8 +18,8 @@ launch_bootstrap() {
     _info "Launching bootstrap container: ${_container_name}"
     _info "  Project mount: ${_proj} → /project"
     _info "  HOME inside:   /project/bootstrap/home"
+    _info "  Run inside:    /project/bootstrap/home/start-here.sh"
 
-    local _start_here="${CODEX_JAILS_DIR}/start-here.sh"
     local _prompts_dir="${CODEX_JAILS_DIR}/prompts"
 
     # Build argv array — no shell interpolation of registry values.
@@ -36,10 +36,8 @@ launch_bootstrap() {
         --network host
     )
 
-    # Mount start-here.sh at container root if it exists in the plugin directory.
-    if [[ -f "$_start_here" ]]; then
-        _args+=(--volume "${_start_here}:/start-here.sh:ro,z")
-    fi
+    # start-here.sh is delivered via the /project mount at
+    # /project/bootstrap/home/start-here.sh (B1); no root bind mount.
 
     # Mount prompts/ read-only so start-here.sh can copy the bootstrap prompt.
     if [[ -d "$_prompts_dir" ]]; then
