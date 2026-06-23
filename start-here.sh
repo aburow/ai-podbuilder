@@ -231,21 +231,31 @@ _install_runtime() {
 _validate_runtime() {
     local _cmd="$RESOLVED_COMMAND"
 
-    # manual adapter with missing command → report setup instructions, not an install.
+    # manual adapter — explicit fallback for agents that cannot self-install.
+    # Shipped agents no longer use this adapter; it is reserved for future manual agents.
     if [[ "$AGENT_INSTALL_ADAPTER" == "manual" ]]; then
         if ! command -v "$_cmd" >/dev/null 2>&1; then
             echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is not installed." >&2
             echo "        This runtime uses the 'manual' adapter and cannot be installed automatically." >&2
-            echo "        Install '${_cmd}' manually before running start-here.sh." >&2
+            echo "        Install '${_cmd}' and place it on PATH, then rerun start-here.sh." >&2
+            echo "        Home-based bin directories already on PATH:" >&2
+            echo "          \$HOME/.npm-global/bin   (npm-global packages)" >&2
+            echo "          \$HOME/.local/bin        (pipx packages)" >&2
             exit 1
         fi
     fi
 
-    # If no auth-check argv is defined, just verify the command exists.
+    # If no auth-check argv is defined, just verify the command is present post-install.
     if [[ -z "$AGENT_AUTH_CHECK_ARGV" ]]; then
         if ! command -v "$_cmd" >/dev/null 2>&1; then
-            echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is not installed." >&2
-            echo "        Install it and ensure it is on PATH, then rerun start-here.sh." >&2
+            local _attempted_argv=()
+            while IFS= read -r _word; do
+                [[ -n "$_word" ]] && _attempted_argv+=("$_word")
+            done < <(build_argv "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION")
+            echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is still missing after install." >&2
+            echo "        Adapter used:    ${AGENT_INSTALL_ADAPTER}" >&2
+            [[ "${#_attempted_argv[@]}" -gt 0 ]] && echo "        Install command: ${_attempted_argv[*]}" >&2
+            echo "        Ensure the install succeeded and that '${_cmd}' is on PATH." >&2
             exit 1
         fi
         return 0
@@ -283,7 +293,18 @@ _validate_runtime() {
     echo "[INFO]  Auth check passed for runtime '${RESOLVED_AGENT}'."
 }
 
-_install_runtime
+if ! _install_runtime; then
+    _INSTALL_FAIL_ARGV=()
+    while IFS= read -r _word; do
+        [[ -n "$_word" ]] && _INSTALL_FAIL_ARGV+=("$_word")
+    done < <(build_argv "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION")
+    echo "[ERROR] Install failed for runtime '${RESOLVED_AGENT}'." >&2
+    echo "        Adapter:  ${AGENT_INSTALL_ADAPTER}" >&2
+    echo "        Package:  ${AGENT_INSTALL_PACKAGE}${AGENT_INSTALL_VERSION:+@${AGENT_INSTALL_VERSION}}" >&2
+    [[ "${#_INSTALL_FAIL_ARGV[@]}" -gt 0 ]] && echo "        Command:  ${_INSTALL_FAIL_ARGV[*]}" >&2
+    echo "        Likely cause: network unreachable, registry down, or prefix not writable." >&2
+    exit 1
+fi
 _validate_runtime
 
 # ── Agent launch with bootstrap prompt (R4.5, R4.6, R15.2) ───────────────────
