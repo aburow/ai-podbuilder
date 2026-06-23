@@ -28,10 +28,15 @@ fi
 
 _usage() {
     cat >&2 <<'USAGE_EOF'
-Usage: start-here.sh [--agent <agent>] [--resume] [-h|--help]
+Usage: ./start-here.sh [--agent <agent>] [--resume] [-h|--help]
+   or: /project/bootstrap/home/start-here.sh [--agent <agent>] [--resume] [-h|--help]
 
 Start the agent-primed bootstrap session inside the ai-new bootstrap container.
 Reads runtime metadata from /project/bootstrap/agent.env (never source/eval).
+
+The script is directly executable (no 'bash' prefix needed).  The container
+drops into $HOME = /project/bootstrap/home, so from the shell prompt use:
+  ./start-here.sh
 
 Options:
   --agent <agent>   Override the pinned agent runtime.
@@ -47,8 +52,8 @@ Environment:
   /project/bootstrap/session.json     Session state (status, generated files).
 
 This script is designed to be run inside the bootstrap container created by
-'ai-new'.  It validates the agent runtime, loads API keys, and launches the
-agent with the bootstrap prompt.
+'ai-new'.  It installs the pinned agent runtime, validates credentials, and
+launches the agent with the bootstrap prompt.
 
 If the bootstrap session was interrupted, re-enter the container with:
   ai-new <name> --resume
@@ -370,7 +375,8 @@ _launch_agent() {
     echo "────────────────────────────────────────────────────────────────────────────"
     echo "  The agent will interview you, design your container, and generate files."
     echo "  Follow the agent's next-step instructions when it finishes."
-    echo "  If interrupted, re-enter with: ai-new <name> --resume"
+    echo "  If interrupted, re-enter the container with:  ai-new <name> --resume"
+    echo "  Then restart the session with:  /project/bootstrap/home/start-here.sh"
     echo "────────────────────────────────────────────────────────────────────────────"
     echo ""
 
