@@ -58,6 +58,10 @@ durable image it generated.
   launcher** — not a questionnaire and not a generator. It validates/selects the agent
   runtime, confirms authentication, launches the agent in the workspace, and hands it a
   structured bootstrap prompt.
+  > **Superseded (location).** The root placement (`/start-here.sh`) is superseded by
+  > `ai-new-container-setup-failures-2.md` R1. The script is now delivered into the
+  > project scaffold home at `/project/bootstrap/home/start-here.sh` (via the `/project`
+  > bind mount), not bind-mounted at the container root.
 - Make the **agent responsible** for interviewing the user, progressively narrowing
   requirements, designing the container, generating the durable project files, and
   running a quality gate over the generated `Containerfile`.
@@ -157,6 +161,12 @@ durable image it generated.
 
 - R4.1 `/start-here.sh` lives at the filesystem root of the bootstrap container and is
   the single primary entrypoint the user runs after entering.
+  > **Superseded (location).** The root location is superseded by
+  > `ai-new-container-setup-failures-2.md` R1 and implemented in
+  > `ai-new-container-setup-failures-3-be.md` B1. The script now lives at
+  > `/project/bootstrap/home/start-here.sh` (under `$HOME` on the `/project` mount).
+  > The root bind mount (`:/start-here.sh:ro,z`) has been removed. All other R4
+  > behaviour is unchanged.
 - R4.2 It MUST NOT contain a hardcoded questionnaire and MUST NOT attempt to generate
   the final project itself.
 - R4.3 It determines the agent runtime: it uses the runtime selected at `ai-new` time;
@@ -291,6 +301,10 @@ durable image it generated.
   zero), validates authentication before any interview, and launches the agent in the
   workspace — without a hardcoded questionnaire and without generating the project
   itself.
+  > **Superseded (location).** The root path is superseded by
+  > `ai-new-container-setup-failures-2.md` R1. The script is at
+  > `/project/bootstrap/home/start-here.sh`; the functional behaviour described here
+  > is unchanged.
 - AC4. When agent credentials are missing or invalid, `start-here.sh` reports the
   failure and the required setup command/path, exiting non-zero, and does not start the
   interview.
