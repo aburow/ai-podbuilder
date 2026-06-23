@@ -1,7 +1,7 @@
 ---
 title: 'ai-new: Agent-Primed Bootstrap Container'
 type: requirement
-status: in-development
+status: done
 lineage: ai-new
 created: "2026-06-22T00:00:00+10:00"
 priority: normal
@@ -9,6 +9,23 @@ parent: lifecycle/requirements/ai-new-8.md
 assignees:
     - role: product-owner
       who: agent
+docs:
+    - path: docs/ai-new.md
+      produced_by: technical-writer
+      produced_at: "2026-06-23T00:00:00Z"
+      covers: >
+          Full production-quality reference documentation for the ai-new command
+          and bootstrap workflow. Covers: overview, prerequisites, quick start,
+          command reference (ai-new and /start-here.sh), project layout, bootstrap
+          container, runtime registry (format, adapters, pinning, hashing),
+          agent interview and generation, session state and resumability, host-side
+          quality gate (trial build, image naming, slug sanitizer, timeout, repair),
+          host↔container coordination protocol (file format, atomicity, polling,
+          in-container UX, crash reconstruction), concurrency and lock management
+          (heartbeat, stale-lock reconciliation), security and safety posture,
+          generated scaffold file list, secrets and credentials handling,
+          configuration variables table, deferred features, and acceptance-criteria
+          cross-reference appendix.
 ---
 
 # ai-new: Agent-Primed Bootstrap Container
