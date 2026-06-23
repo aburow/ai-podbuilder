@@ -1,11 +1,28 @@
 #!/usr/bin/env bash
 # start-here.sh — Agent-primed bootstrap container entrypoint.
-# Placed at /start-here.sh inside the bootstrap container by the ai-new launcher.
+# Placed at /project/bootstrap/home/start-here.sh inside the bootstrap container by the ai-new launcher.
 # Reads runtime metadata only from the pinned bootstrap/agent.env (never source/eval).
 set -euo pipefail
 
 BOOTSTRAP_DIR="/project/bootstrap"
 AGENT_ENV="${BOOTSTRAP_DIR}/agent.env"
+
+# ── Mounted helper libraries ───────────────────────────────────────────────────
+# Guard against a missing /start-here-lib mount (older image or misconfigured launch).
+if [[ ! -f "/start-here-lib/common.sh" ]]; then
+    echo "[ERROR] Required mount is absent: /start-here-lib/common.sh" >&2
+    echo "        Ensure the bootstrap container was started with a current version of ai-new." >&2
+    exit 1
+fi
+if [[ ! -f "/start-here-lib/adapter.sh" ]]; then
+    echo "[ERROR] Required mount is absent: /start-here-lib/adapter.sh" >&2
+    echo "        Ensure the bootstrap container was started with a current version of ai-new." >&2
+    exit 1
+fi
+# shellcheck source=/dev/null
+. /start-here-lib/common.sh
+# shellcheck source=/dev/null
+. /start-here-lib/adapter.sh
 
 # ── Usage ─────────────────────────────────────────────────────────────────────
 
@@ -195,6 +212,20 @@ _load_env_local() {
 
 _load_env_local
 
+# ── Runtime install (R3.1, R3.3, AC3, AC5) ────────────────────────────────────
+
+_install_runtime() {
+    if command -v "$RESOLVED_COMMAND" >/dev/null 2>&1; then
+        _info "Runtime '${RESOLVED_AGENT}' (${RESOLVED_COMMAND}) is already present; skipping install."
+        return 0
+    fi
+
+    _info "Installing runtime '${RESOLVED_AGENT}' via adapter '${AGENT_INSTALL_ADAPTER}'…"
+    run_install_adapter "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION"
+    # Refresh the shell's command-hash table so the newly installed binary resolves.
+    hash -r 2>/dev/null || true
+}
+
 # ── Authentication / runtime-presence validation (R4.4, R10, AC6) ─────────────
 
 _validate_runtime() {
@@ -252,6 +283,7 @@ _validate_runtime() {
     echo "[INFO]  Auth check passed for runtime '${RESOLVED_AGENT}'."
 }
 
+_install_runtime
 _validate_runtime
 
 # ── Agent launch with bootstrap prompt (R4.5, R4.6, R15.2) ───────────────────
