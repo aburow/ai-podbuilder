@@ -1,7 +1,7 @@
 ---
 title: 'Fix ai-new bootstrap container setup — Test Plan'
 type: plan-test
-status: in-development
+status: done
 lineage: ai-new-container-setup-failures
 parent: lifecycle/requirements/ai-new-container-setup-failures-2.md
 created: "2026-06-23T00:00:00+10:00"
