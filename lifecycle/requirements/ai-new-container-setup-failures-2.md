@@ -1,7 +1,7 @@
 ---
 title: Fix ai-new bootstrap container setup — start-here.sh location & permissions, and agent installation
 type: requirement
-status: clarifying
+status: approved
 lineage: ai-new-container-setup-failures
 parent: lifecycle/defects/ai-new-container-setup-failures.md
 assignees:
