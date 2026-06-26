@@ -83,6 +83,32 @@ upload_asset() {
     --clobber
 }
 
+# ---- step: verify_asset (Milestone 3) ---------------------------------------
+
+verify_asset() {
+  local version="${1}"
+  local name size state
+
+  info "verify_asset: checking install.sh asset on release ${version}"
+
+  local assets_json
+  assets_json="$(gh release view "${version}" --repo "${REPO}" --json assets --jq '.assets')"
+
+  name="$(printf '%s' "${assets_json}" | jq -r '.[] | select(.name == "install.sh") | .name')"
+  [[ "${name}" == "install.sh" ]] \
+    || die "verify_asset" "no install.sh asset on release ${version}"
+
+  state="$(printf '%s' "${assets_json}" | jq -r '.[] | select(.name == "install.sh") | .state')"
+  [[ "${state}" == "uploaded" ]] \
+    || die "verify_asset" "install.sh asset on release ${version} is in state '${state}', expected 'uploaded'"
+
+  size="$(printf '%s' "${assets_json}" | jq -r '.[] | select(.name == "install.sh") | .size')"
+  [[ "${size}" -gt 0 ]] \
+    || die "verify_asset" "install.sh asset on release ${version} has size 0"
+
+  info "verify_asset: OK — install.sh (${size} bytes, state=${state})"
+}
+
 # ---- main -------------------------------------------------------------------
 
 main() {
@@ -98,8 +124,9 @@ main() {
   create_tag "${version}"
   create_release "${version}"
   upload_asset "${version}"
+  verify_asset "${version}"
 
-  info "Release ${version} created and asset uploaded"
+  info "Release ${version} created, asset uploaded and verified"
 }
 
 main "$@"
