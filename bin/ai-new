@@ -148,7 +148,6 @@ if [[ "$RESUME" -eq 1 ]]; then
     _COORDINATION_PID=$!
 
     launch_bootstrap "$PROJECT_ROOT" 1 "$SHELL_ON_EXIT"
-    install_generated_profile "$PROJECT_ROOT" "$NAME"
 
 else
     # Create path.
@@ -192,5 +191,4 @@ else
     _COORDINATION_PID=$!
 
     launch_bootstrap "$PROJECT_ROOT" 0 "$SHELL_ON_EXIT"
-    install_generated_profile "$PROJECT_ROOT" "$NAME"
 fi

@@ -130,7 +130,6 @@ reconcile_on_resume() {
     fi
 
     reconcile_durable_project "$_proj" || true
-    install_generated_profile "$_proj" "$_project_name"
 
     _info "Reconciliation complete. Current status: $(read_status "$_proj")"
 }

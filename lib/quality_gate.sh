@@ -184,7 +184,5 @@ run_quality_gate() {
     write_session_field "$_proj" "static_check_status" "$STATIC_CHECK_STATUS"
     write_session_field "$_proj" "build_log_path" "$_log"
     [[ -n "$_error_summary" ]] && write_session_field "$_proj" "last_error" "$_error_summary"
-    install_generated_profile "$_proj" "$_project_name"
-
     _info "Quality gate complete: ${GATE_STATUS} (static: ${STATIC_CHECK_STATUS}, build_rc: ${_build_rc})"
 }
