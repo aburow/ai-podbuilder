@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox Framework — v1 Requirement
 type: requirement
-status: in-development
+status: done
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T00:00:00+10:00"
 documented: "2026-06-22T00:00:00+10:00"
