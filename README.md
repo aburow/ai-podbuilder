@@ -158,6 +158,12 @@ More detail: [docs/security-model.md](docs/security-model.md)
 - [docs/desktop-integration.md](docs/desktop-integration.md) — launcher scripts and desktop entrypoints
 - [docs/teardown.md](docs/teardown.md) — reset and recreate workflows
 
+## Releasing (maintainers)
+
+See [docs/releasing.md](docs/releasing.md) for the step-by-step release runbook
+(asset upload, asset-verify, and public-URL checks that must pass before a
+release is considered done).
+
 ## Testing
 
 The repository ships a shell-based test suite under `tests/`.
