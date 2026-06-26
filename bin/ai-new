@@ -36,7 +36,9 @@ source "${SCRIPT_DIR}/../lib/messages.sh"
 
 NAME=""
 AGENT_FLAG=""
+BOOST_AUTH=""
 RESUME=0
+SHELL_ON_EXIT=0
 export SKIP_TRIAL_BUILD="${AI_NEW_SKIP_TRIAL_BUILD:-0}"
 
 while [[ $# -gt 0 ]]; do
@@ -48,8 +50,15 @@ while [[ $# -gt 0 ]]; do
             AGENT_FLAG="$2"; shift 2 ;;
         --agent=*)
             AGENT_FLAG="${1#--agent=}"; shift ;;
+        --boost)
+            [[ $# -ge 2 ]] || _die "--boost requires a path to auth.json"
+            BOOST_AUTH="$2"; shift 2 ;;
+        --boost=*)
+            BOOST_AUTH="${1#--boost=}"; shift ;;
         --resume)
             RESUME=1; shift ;;
+        --shell-on-exit)
+            SHELL_ON_EXIT=1; shift ;;
         --skip-trial-build)
             SKIP_TRIAL_BUILD=1; shift ;;
         --force|--refresh-agent-registry)
@@ -68,6 +77,10 @@ done
 
 [[ -n "$NAME" ]] || { usage_ai_new; exit 1; }
 
+if [[ -n "$BOOST_AUTH" && "$RESUME" -eq 1 ]]; then
+    _die "--boost is only available when creating a new Codex project, not with --resume."
+fi
+
 # ── Environment resolution ────────────────────────────────────────────────────
 
 resolve_jails_dir
@@ -75,6 +88,11 @@ if ! command -v podman >/dev/null 2>&1; then
     msg_podman_unavailable; exit 1
 fi
 project_paths "$NAME"
+
+if [[ -n "$BOOST_AUTH" ]]; then
+    BOOST_AUTH="$(normalize_boost_auth_source "$BOOST_AUTH")"
+    [[ -f "$BOOST_AUTH" ]] || _die "--boost auth file not found: ${BOOST_AUTH}"
+fi
 
 # ── Slug sanitisation ─────────────────────────────────────────────────────────
 
@@ -84,6 +102,25 @@ export SLUG
 # ── Create or resume dispatch ─────────────────────────────────────────────────
 
 SESSION_JSON="${PROJECT_BOOTSTRAP}/session.json"
+_HEARTBEAT_PID=""
+_COORDINATION_PID=""
+
+_cleanup_session() {
+    if [[ -n "${_COORDINATION_PID:-}" ]]; then
+        # poll_requests may currently be waiting on timeout/podman. Terminate
+        # its direct child first, then the polling shell.
+        pkill -TERM -P "$_COORDINATION_PID" 2>/dev/null || true
+        kill "$_COORDINATION_PID" 2>/dev/null || true
+        wait "$_COORDINATION_PID" 2>/dev/null || true
+        _COORDINATION_PID=""
+    fi
+    if [[ -n "${_HEARTBEAT_PID:-}" ]]; then
+        kill "$_HEARTBEAT_PID" 2>/dev/null || true
+        wait "$_HEARTBEAT_PID" 2>/dev/null || true
+        _HEARTBEAT_PID=""
+    fi
+    release_lock "$PROJECT_ROOT"
+}
 
 if [[ "$RESUME" -eq 1 ]]; then
     # Resume path — project must exist with a readable session.json.
@@ -101,16 +138,17 @@ if [[ "$RESUME" -eq 1 ]]; then
     esac
 
     acquire_lock "$PROJECT_ROOT"
-    trap 'release_lock "$PROJECT_ROOT"' EXIT
+    trap _cleanup_session EXIT
 
-    ensure_bootstrap_image
+    refresh_bootstrap_entrypoint "$PROJECT_ROOT"
+    ensure_bootstrap_image "$PROJECT_ROOT"
     _heartbeat_loop "$PROJECT_ROOT" &
     _HEARTBEAT_PID=$!
+    poll_requests "$PROJECT_ROOT" &
+    _COORDINATION_PID=$!
 
-    launch_bootstrap "$PROJECT_ROOT"
-
-    kill "$_HEARTBEAT_PID" 2>/dev/null || true
-    wait "$_HEARTBEAT_PID" 2>/dev/null || true
+    launch_bootstrap "$PROJECT_ROOT" 1 "$SHELL_ON_EXIT"
+    install_generated_profile "$PROJECT_ROOT" "$NAME"
 
 else
     # Create path.
@@ -130,6 +168,8 @@ else
 
     [[ -n "$AGENT_FLAG" ]] \
         || _die "A new project requires --agent <agent>. See 'ai-new --help'."
+    [[ "$AGENT_FLAG" == "codex" || -z "$BOOST_AUTH" ]] \
+        || _die "--boost is only supported with --agent codex at this stage."
 
     # Validate agent and pin registry.
     validate_agent "$AGENT_FLAG"
@@ -137,15 +177,20 @@ else
     pin_registry "$AGENT_FLAG" "$PROJECT_ROOT"
     init_session "$PROJECT_ROOT" "$NAME" "$AGENT_FLAG"
 
-    acquire_lock "$PROJECT_ROOT"
-    trap 'release_lock "$PROJECT_ROOT"' EXIT
+    if [[ -n "$BOOST_AUTH" ]]; then
+        install_codex_auth_boost "$BOOST_AUTH"
+    fi
 
-    ensure_bootstrap_image
+    acquire_lock "$PROJECT_ROOT"
+    trap _cleanup_session EXIT
+
+    refresh_bootstrap_entrypoint "$PROJECT_ROOT"
+    ensure_bootstrap_image "$PROJECT_ROOT"
     _heartbeat_loop "$PROJECT_ROOT" &
     _HEARTBEAT_PID=$!
+    poll_requests "$PROJECT_ROOT" &
+    _COORDINATION_PID=$!
 
-    launch_bootstrap "$PROJECT_ROOT"
-
-    kill "$_HEARTBEAT_PID" 2>/dev/null || true
-    wait "$_HEARTBEAT_PID" 2>/dev/null || true
+    launch_bootstrap "$PROJECT_ROOT" 0 "$SHELL_ON_EXIT"
+    install_generated_profile "$PROJECT_ROOT" "$NAME"
 fi

@@ -2,6 +2,16 @@
 # Host-side quality gate: static check, trial build, timeout (R8.1–R8.6, R18, R20).
 # Source this file; do not execute directly. Requires common.sh, session.sh, slug.sh.
 
+_QUALITY_GATE_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./profile.sh
+source "${_QUALITY_GATE_LIB_DIR}/profile.sh"
+# shellcheck source=./policy.sh
+source "${_QUALITY_GATE_LIB_DIR}/policy.sh"
+# shellcheck source=./coordination.sh
+source "${_QUALITY_GATE_LIB_DIR}/coordination.sh"
+# shellcheck source=./durable.sh
+source "${_QUALITY_GATE_LIB_DIR}/durable.sh"
+
 # Build timeout (GNU timeout syntax, default 30m).
 _BUILD_TIMEOUT="${AI_NEW_BUILD_TIMEOUT:-30m}"
 
@@ -107,6 +117,8 @@ run_quality_gate() {
     local _image_tag="$5"
     local _reason="$6"
     local _repair_iter="$7"
+    local _project_name
+    _project_name="$(basename "$_proj")"
 
     local _slug="${SLUG:-unknown}"
     local _log="${_proj}/bootstrap/build.log"
@@ -127,8 +139,19 @@ run_quality_gate() {
         trial_build "$_cfile" "$_context" "$_trial_tag" "$_log" || _build_rc=$?
     fi
 
+    local _validation_rc=0
+    if ! reconcile_durable_project "$_proj"; then
+        _validation_rc=1
+    elif ! validate_launchability_contract "$_proj"; then
+        _validation_rc=1
+    fi
+
     # Map status.
     map_gate_status "$_static_rc" "$_build_rc" "$_skip_build"
+    if [[ "$_skip_build" -eq 0 && "$_build_rc" -eq 0 && "$_validation_rc" -ne 0 ]]; then
+        GATE_STATUS="quality-gate-failed"
+        _build_rc=1
+    fi
 
     # Tag image if built successfully.
     if [[ "$_skip_build" -eq 0 && "$_build_rc" -eq 0 ]]; then
@@ -142,9 +165,17 @@ run_quality_gate() {
         _error_summary="$(tail -5 "$_log" 2>/dev/null | tr '\n' ' ')"
     fi
 
-    # Write result file.
+    local _result_status
+    case "$GATE_STATUS" in
+        complete)             _result_status="passed" ;;
+        quality-gate-timeout) _result_status="timeout" ;;
+        generated-unvalidated) _result_status="skipped" ;;
+        *)                    _result_status="failed" ;;
+    esac
+
+    # Write the protocol-level result status expected by the bootstrap agent.
     write_result "$_proj" "$_id" "$_build_rc" \
-        "$GATE_STATUS" "$STATIC_CHECK_STATUS" \
+        "$_result_status" "$STATIC_CHECK_STATUS" \
         "$_log" "$_trial_tag" "${_error_summary}"
 
     # Update session.
@@ -153,6 +184,7 @@ run_quality_gate() {
     write_session_field "$_proj" "static_check_status" "$STATIC_CHECK_STATUS"
     write_session_field "$_proj" "build_log_path" "$_log"
     [[ -n "$_error_summary" ]] && write_session_field "$_proj" "last_error" "$_error_summary"
+    install_generated_profile "$_proj" "$_project_name"
 
     _info "Quality gate complete: ${GATE_STATUS} (static: ${STATIC_CHECK_STATUS}, build_rc: ${_build_rc})"
 }
