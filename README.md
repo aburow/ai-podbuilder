@@ -23,6 +23,35 @@ tests/      Shell test suite
 start-here.sh  Bootstrap entrypoint used inside ai-new containers
 ```
 
+## Install
+
+```sh
+curl -fsSL https://github.com/aburow/ai-podbuilder/releases/latest/download/install.sh | bash
+```
+
+Pass an alternate root as the first argument (default: `~/ai-podman-jails`):
+
+```sh
+curl -fsSL https://github.com/aburow/ai-podbuilder/releases/latest/download/install.sh | bash -s -- /opt/ai-podman-jails
+```
+
+The installer writes `~/.bashrc.d/podbuilder.sh` and appends a source line to
+`~/.bashrc`. To activate in your current shell:
+
+```sh
+source "$HOME/.bashrc.d/podbuilder.sh"
+```
+
+Re-running the one-liner updates an existing installation.
+
+**Uninstall:** remove the install root and the env file, then remove the
+source line the installer added to `~/.bashrc`:
+
+```sh
+rm -rf ~/ai-podman-jails ~/.bashrc.d/podbuilder.sh
+# then remove the 'source …podbuilder.sh' line from ~/.bashrc
+```
+
 ## Main Workflows
 
 ### 1. Bootstrap a new project with `ai-new`
@@ -70,17 +99,18 @@ ai-list
 `aider`, `opencode`, `ollama-shell`, and an ephemeral privileged `builder`
 mode for cases that require raw device access.
 
-## PATH Setup
+## PATH Setup (checkout)
 
-Add the repo's `bin/` directory to your shell `PATH`:
+If you are running the tooling directly from a source checkout rather than an
+installed copy, add the repo's `bin/` directory to your `PATH`:
 
 ```sh
-export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"
-export PATH="${CODEX_JAILS_DIR}/bin:${PATH}"
+export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/ai-podman-jails}"
+export PATH="${AI_PODMAN_JAILS_DIR}/bin:${PATH}"
 ```
 
-If `CODEX_JAILS_DIR` is unset, the commands derive the base directory from
-their own location, so the repo remains self-hosting.
+The commands derive the base directory from their own location when
+`AI_PODMAN_JAILS_DIR` is unset, so the repo remains self-hosting.
 
 ## Project Layout
 
