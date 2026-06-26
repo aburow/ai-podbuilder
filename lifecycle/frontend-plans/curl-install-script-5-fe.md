@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder — Frontend Plan
 type: plan-frontend
-status: draft
+status: approved
 lineage: curl-install-script
 parent: lifecycle/requirements/curl-install-script-3.md
 ---
