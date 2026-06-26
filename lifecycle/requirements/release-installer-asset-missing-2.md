@@ -166,19 +166,22 @@ install one-liner MUST remain the canonical, tested path.
 
 ## Open Questions
 
-1. **Automation surface:** Should the release flow be a GitHub Actions workflow
-   triggered on tag push, a local script invoked by the releaser, or both? There
-   is currently no `.github/` workflow directory in the repo.
-2. **Additional assets:** Besides `install.sh`, should the release also attach
-   the source tarball or other artifacts as named assets, or is the bootstrap
-   `install.sh` (which fetches the tarball itself) the only required asset?
-3. **Network-dependent test:** The R3/R4 smoke checks require public network
-   access to github.com. Should these be gated/skippable in offline CI runs
-   (consistent with the existing `AI_PODMAN_INSTALL_TARBALL` offline bypass in
-   `install.sh`), and how do we still guarantee they run for real releases?
-4. **Versioning source of truth:** Where does `<version>` (`0.51`, etc.) come
-   from — a VERSION file, the latest tag, or manual input — and should the flow
-   validate that the tag and asset content agree?
-5. **Integrity:** Out of scope for now, but should we publish a checksum and/or
-   signature for `install.sh` so a piped `curl | bash` can be verified? (Possible
-   follow-up defect/idea.)
+1. **Automation surface:** Should the release flow be a GitHub Actions workflow triggered on tag push, a local script invoked by the releaser, or both? There is currently no `.github/` workflow directory in the repo.
+
+Answer: Trigger a workflow based on a tag push
+
+2. **Additional assets:** Besides `install.sh`, should the release also attach the source tarball or other artifacts as named assets, or is the bootstrap `install.sh` (which fetches the tarball itself) the only required asset?
+
+Answer: install.sh is the only required asset
+
+3. **Network-dependent test:** The R3/R4 smoke checks require public network access to github.com. Should these be gated/skippable in offline CI runs (consistent with the existing `AI_PODMAN_INSTALL_TARBALL` offline bypass in `install.sh`), and how do we still guarantee they run for real releases?
+
+Answer: I will test locally as a part of the upgrade at this stage
+
+4. **Versioning source of truth:** Where does `<version>` (`0.51`, etc.) come from — a VERSION file, the latest tag, or manual input — and should the flow validate that the tag and asset content agree?
+
+Answer: We should store it in a version file
+
+5. **Integrity:** Out of scope for now, but should we publish a checksum and/or signature for `install.sh` so a piped `curl | bash` can be verified? (Possible follow-up defect/idea.)
+
+Answer: yes
