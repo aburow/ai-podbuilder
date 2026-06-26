@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization — Backend Plan
 type: plan-backend
-status: in-development
+status: done
 lineage: project-local-profiles
 parent: lifecycle/requirements/project-local-profiles-2.md
 ---
