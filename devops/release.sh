@@ -188,7 +188,7 @@ main() {
   info "  Asset : install.sh"
   info "  URL   : https://github.com/${REPO}/releases/latest/download/install.sh"
   if [[ "${SKIP_NETWORK}" == "1" ]]; then
-    info "  Status: asset verified — public URL/content checks SKIPPED"
+    info "  Status: asset verified — public URL/content checks SKIPPED (NOT fully verified)"
   else
     info "  Status: fully verified (asset uploaded + public URL 200 + content OK)"
   fi
