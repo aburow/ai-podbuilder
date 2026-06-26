@@ -1,7 +1,7 @@
 ---
 title: Relocate start-here.sh out of the user-accessible host project tree
 type: requirement
-status: blocked
+status: draft
 lineage: start-here-sh-exposed-location
 parent: lifecycle/defects/start-here-sh-exposed-location.md
 assignees:
@@ -175,21 +175,32 @@ The script MUST reach the container through one of the following mechanisms
 - **AC8.** `agent.env`, `agent.env.local`, `session.json`, and the bootstrap
   prompt are still read correctly from `/project/bootstrap`.
 
-## Open Questions
+## Answers
 
 1. **Delivery mechanism (R2.a vs R2.b).** A read-only mount keeps the script
    outside the image and trivially current; baking it into the image removes
    any host bind for the script but adds cache-busting complexity. The existing
    `/start-here-prompts` / `/start-here-lib` convention favours R2.a — is that
    the project's preference?
+
+Answer: Yes
+   
 2. **Pre-existing project copies.** Should the launcher actively remove a stale
    `${project_root}/bootstrap/home/start-here.sh` left by older versions, or
    simply stop creating/using it and leave existing files untouched?
+
+Answer: Leave it untouched
+
 3. **`HOME` overlap.** The container `HOME` is `/project/bootstrap/home`, which
    is itself user-facing. Does relocating only the script suffice, or is the
    home-in-project-tree concern worth a follow-up (out of scope here)?
-4. **Mount path name.** If R2.a is chosen, what is the canonical container path
-   (e.g. `/start-here/start-here.sh`, or reuse an existing namespace)?
-5. **Permissions model.** Given `--userns=keep-id`, is a read-only mount alone
-   sufficient, or is an explicit root-owned / non-`keep-id` ownership required
-   to fully prevent in-container modification?
+
+Answer: this is fine, the concern was with it being available directly in the root of the tool on the HOST where users have tampered out of misunderstanding.
+
+4. **Mount path name.** If R2.a is chosen, what is the canonical container path (e.g. `/start-here/start-here.sh`, or reuse an existing namespace)?
+
+Answer: This is not an in container issue
+
+5. **Permissions model.** Given `--userns=keep-id`, is a read-only mount alone sufficient, or is an explicit root-owned / non-`keep-id` ownership required to fully prevent in-container modification?
+
+Answer: This is a HOST side issue with users changing a file that is visible in the root directory of the app and says "start-here.sh"... this is a human behaviour issue we are resolving in the HOST tool/directory structure.
