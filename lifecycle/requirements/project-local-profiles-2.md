@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization
 type: requirement
-status: blocked
+status: approved
 lineage: project-local-profiles
 parent: lifecycle/ideas/project-local-profiles.md
 assignees:
@@ -148,7 +148,7 @@ self-contained, shippable increment.
 - **AC8** The full test suite passes after test updates (R4.2); no test still
   asserts the removed mirror/copy-back behaviour.
 
-## Open Questions
+## Answers
 
 - **Q1 (resolution key).** The project tree is keyed by raw `<name>` while the
   legacy registry is keyed by `sanitize_slug(<name>)`. Should project-local
