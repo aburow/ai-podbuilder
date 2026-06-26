@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T1b — start-here.sh scaffold copy has execute bit regardless of host mode (AC2, B1, R2.2).
 set -uo pipefail
 

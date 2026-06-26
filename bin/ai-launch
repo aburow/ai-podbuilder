@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,7 +22,6 @@ declare -A MODE_CMDS
 MODE_CMDS=(
     [shell]="bash"
     [bash]="bash"
-    [codex]="codex"
     [codex]="codex"
     [aider]="aider"
     [opencode]="opencode"

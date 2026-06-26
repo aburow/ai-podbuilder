@@ -375,3 +375,6 @@ container disposal and resumed sessions (R7.1, R9, AC14).
 
 - Generated files persist after the container is removed; agent config under
   `/project/bootstrap/home` persists across rebuilds and resumed sessions (AC14).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -55,3 +55,6 @@ the initial relabel may take several seconds.
 
 Both modes retain all other safety controls. The choice affects only SELinux
 label enforcement, not user namespace, networking, or privilege controls.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Codex must use the supported interactive CLI shape.
 set -uo pipefail
 

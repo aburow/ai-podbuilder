@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6a — Network policy (AC7). Tier A: arg inspection. Tier B: connectivity check.
 set -uo pipefail
 

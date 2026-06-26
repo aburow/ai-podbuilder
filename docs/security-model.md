@@ -63,3 +63,6 @@ sessions. Containment is preserved because:
 A persistent container that is compromised by a runaway AI agent can be
 removed with `ai-launch <profile> --reset --yes` and recreated from the
 original image — the workspace and home directory are untouched.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

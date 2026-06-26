@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2 — Registry parsing: known keys, unknown keys ignored, multi-value decode (AC20).
 set -uo pipefail
 

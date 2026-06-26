@@ -166,3 +166,6 @@ PODMAN_LIVE=1 bash tests/test_install_resolves_in_container.sh
 PODMAN_LIVE=1 bash tests/test_bootstrap_image_prefixes.sh
 PODMAN_LIVE=1 bash tests/test_bootstrap_setup_e2e.sh
 ```
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

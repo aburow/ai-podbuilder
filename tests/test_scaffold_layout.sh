@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — Scaffold layout creation (R2.2, AC3).
 set -uo pipefail
 

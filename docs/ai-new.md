@@ -965,3 +965,6 @@ The following maps documentation sections to the requirements that drove them.
 | AC26 — Resume honors recorded agent; fails clearly if absent or broken | §9, §15 |
 | AC27 — File-based coordination; atomic writes; stable hash; deterministic slug | §11, §7, §10 |
 | AC28 — In-container progress UX; no `podman build` from container | §11 |
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

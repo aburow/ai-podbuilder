@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6 — Auth gate: fail → report + no interview; pass → agent launched (AC6, R10, D4).
 set -uo pipefail
 

@@ -16,3 +16,6 @@ Remove the legacy central `profiles/` registry from the runtime model and make e
 Because this system has not been released externally and all deployed environments already operate in the dual-mode layout, no staged compatibility plan is required. The change should directly remove all central-registry assumptions from profile loading, project discovery (`ai-list`), project scaffolding (`ai-new`), and documentation.
 
 Acceptance requires that `ai-build`, `ai-launch`, `ai-terminal`, and `ai-list` all function correctly with no `profiles/` directory present, that `ai-new` no longer creates or mirrors `profiles/<name>.env`, and that generated projects are fully self-contained with `projects/<name>/profile.env` as the only supported profile path.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

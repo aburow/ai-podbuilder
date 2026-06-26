@@ -75,3 +75,6 @@ the key persists across container recreations.
 Mounting the host `~/.ssh` would give the container access to all host
 identities, known_hosts, and potentially a forwarded agent socket. A scoped
 deploy key limits the blast radius of a compromised agent to a single repository.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -98,3 +98,6 @@ docs.
 **Acceptance criteria.**
 - [ ] `grep -rIl -e 'launchers/esp32-codex' -e 'launchers/uxplay-builder' -e 'launchers/uxplay-codex' -e 'launch-esp32-workspace' -e 'launch-uxplay-workspace' -e 'short-launch-esp32-workspace' -e 'launch-uxplay-builder' -e 'update-codex-esp32-image' -e 'update-codex-uxplay-image' -e 'extra-terminal' docs doc README.md` returns nothing.
 - [ ] No source code, test, or non-doc artifact modified by this plan.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

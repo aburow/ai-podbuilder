@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Resume reconciliation and crash recovery (R8.12, R8.13, R19.8, R20.4–R20.6).
 # Source this file; do not execute directly. Requires common.sh, session.sh, lock.sh.
 

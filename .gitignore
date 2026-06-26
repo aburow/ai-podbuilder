@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # kaos-control SQLite index (generated; do not commit)
 lifecycle/.kaos-control.db
 lifecycle/.kaos-control.db-shm
@@ -13,12 +15,16 @@ projects/
 !config/agents.d/*.env
 
 # SSH keys and TLS material
+.ssh/
 *.pem
 *.key
 id_rsa
 id_ed25519
 id_ecdsa
 known_hosts
+
+# Local shell history
+.bash_history
 
 # OS artefacts
 .DS_Store
@@ -27,5 +33,7 @@ Thumbs.db
 # Editor directories and files
 .idea/
 .vscode/
+.cl[a]ude/
+.codex/
 *.swp
 *.swo

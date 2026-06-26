@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7 — Interview coverage: bootstrap-prompt.md covers R5.2 minimum topic set (AC7).
 set -uo pipefail
 

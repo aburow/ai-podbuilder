@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Integration tests for install.sh — offline via AI_PODMAN_INSTALL_TARBALL fixture.
 # Covers test plan milestones 1–6 (M7 static lint is in 00_static.sh).
 set -uo pipefail

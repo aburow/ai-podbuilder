@@ -152,3 +152,6 @@ Candidate fixes (in order of preference):
   FAIL  start-here.sh unknown flag exits non-zero
   ── test_help_and_flags: 7 passed  3 failed  0 skipped
 ```
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T3 — Registry pinning: copies entry with provenance metadata; resume survives global removal (AC21).
 set -uo pipefail
 

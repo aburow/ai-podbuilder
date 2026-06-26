@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Durable project normalization, validation, and build-spec generation for ai-new.
 # Source this file; do not execute directly.
 # Requires common.sh, session.sh, slug.sh.

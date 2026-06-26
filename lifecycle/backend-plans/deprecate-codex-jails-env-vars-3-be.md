@@ -155,3 +155,6 @@ aliases.
 **Acceptance criteria.**
 - `build`/`vet` (shellcheck or project linter) passes with no new warnings.
 - The full existing test suite passes unchanged (compat path intact).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

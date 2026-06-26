@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T5 (slow) — Bootstrap container safety posture (R14, R15, R17, AC15, AC17, AC22).
 # Tagged slow: requires PODMAN_LIVE=1 and rootless Podman.
 set -uo pipefail

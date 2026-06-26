@@ -105,3 +105,6 @@ to cover the new `release.sh` code paths (it already lints repo scripts — conf
   requirement, not in offline CI.
 - The tgz-vs-install.sh Q2 ambiguity flagged in the backend plan: if resolved
   toward a tarball, these tests need revision.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

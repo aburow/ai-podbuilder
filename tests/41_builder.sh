@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T5b — Builder privilege and ephemerality (AC5, AC6).
 set -uo pipefail
 

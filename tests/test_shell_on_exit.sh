@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # --shell-on-exit must retain the container after an agent/launcher failure.
 set -uo pipefail
 

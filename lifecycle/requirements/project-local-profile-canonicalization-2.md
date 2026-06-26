@@ -129,3 +129,6 @@ directory as the discovery location MUST be removed or corrected.
    Is the profile name argument always identical to the `projects/<name>`
    directory name, or does `PROFILE_NAME` inside the file ever differ from the
    directory and need reconciling?
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

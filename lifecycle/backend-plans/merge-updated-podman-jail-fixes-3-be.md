@@ -217,3 +217,6 @@ Frozen from `diff -rq updated-code/podman-jails . -x .git -x lifecycle -x kaos -
 | `tests/test_session_json_fields.sh` | merge (updated wins) | |
 | `tests/test_shell_on_exit.sh` | add (new in updated) | |
 | `tests/test_supervisor_cleanup.sh` | add (new in updated) | |
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

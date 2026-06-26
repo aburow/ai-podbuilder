@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Session state read/write for ai-new (R11). Source this; do not execute directly.
 # Requires common.sh.
 

@@ -13,7 +13,7 @@ labels:
 
 ## Summary
 
-Three setup failures prevent the ai-new container from functioning: `start-here.sh` is placed in the container root (`/`) instead of the home directory, `start-here.sh` does not have the executable bit set, and no agent (Codex, Codex, or Gemini) is installed. Agent installation is critical to core container functionality.
+Three setup failures prevent the ai-new container from functioning: `start-here.sh` is placed in the container root (`/`) instead of the home directory, `start-here.sh` does not have the executable bit set, and no agent (Codex or Gemini) is installed. Agent installation is critical to core container functionality.
 
 ## Reproduction Steps
 
@@ -26,7 +26,7 @@ Three setup failures prevent the ai-new container from functioning: `start-here.
 
 - `start-here.sh` is placed in the container user's home directory (e.g. `/root/start-here.sh` or `/home/<user>/start-here.sh`).
 - `start-here.sh` is executable (`chmod +x`).
-- At least one agent (Codex, Codex, or Gemini) is installed and available on `$PATH` inside the container.
+- At least one agent (Codex or Gemini) is installed and available on `$PATH` inside the container.
 
 ## Actual Behaviour
 
@@ -37,3 +37,6 @@ Three setup failures prevent the ai-new container from functioning: `start-here.
 ## Logs / Output
 
 Not provided
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6c — SELinux mode selection (AC9). Tier A (DRY_RUN).
 set -uo pipefail
 

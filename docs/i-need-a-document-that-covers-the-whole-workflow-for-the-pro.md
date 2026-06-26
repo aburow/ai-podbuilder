@@ -28,8 +28,8 @@ end when you need a fast reference.
 
 ## 1. What This Framework Does
 
-The AI Agent Podman Sandbox framework runs AI coding agents (Codex, Codex,
-Aider, etc.) inside **rootless Podman containers**. Each container is:
+The AI Agent Podman Sandbox framework runs AI coding agents (Codex, Aider,
+etc.) inside **rootless Podman containers**. Each container is:
 
 - **Persistent** — shell history, build caches, and agent configuration survive
   across sessions.
@@ -664,3 +664,6 @@ them. Run them from any host terminal where `$AI_PODMAN_JAILS_DIR/bin` is on you
 - [Secrets and SSH](secrets-and-ssh.md) — `ENV_FILE`, mode 600 rule, and in-sandbox SSH keys.
 - [Teardown](teardown.md) — `--reset`, `--recreate`, and raw Podman escape hatch.
 - [Desktop integration](desktop-integration.md) — Launcher scripts and `.desktop` file examples.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

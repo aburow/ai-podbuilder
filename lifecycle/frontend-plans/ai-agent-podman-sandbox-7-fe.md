@@ -207,3 +207,6 @@ its escape hatches explicit and selectable.
 - No doc example contains a hardcoded username or `/var/home/<user>` path
   (R12.2).
 </content>
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

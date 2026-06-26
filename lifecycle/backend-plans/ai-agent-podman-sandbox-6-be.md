@@ -397,3 +397,6 @@ thin wrappers that `exec` the corresponding generic command with fixed arguments
 - `shellcheck bin/*` is clean across all wrappers and commands.
 </content>
 </invoke>
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

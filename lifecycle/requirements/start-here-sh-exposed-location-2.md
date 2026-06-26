@@ -204,3 +204,6 @@ Answer: This is not an in container issue
 5. **Permissions model.** Given `--userns=keep-id`, is a read-only mount alone sufficient, or is an explicit root-owned / non-`keep-id` ownership required to fully prevent in-container modification?
 
 Answer: This is a HOST side issue with users changing a file that is visible in the root directory of the app and says "start-here.sh"... this is a human behaviour issue we are resolving in the HOST tool/directory structure.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

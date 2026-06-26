@@ -842,3 +842,6 @@ When `build.result.json` appears:
 - on failure, the agent reads `bootstrap/build.log`, repairs generated files where
   appropriate, and may request another host-side build using the next `request_id`;
 - on timeout, the agent reports the timeout and leaves the session resumable.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

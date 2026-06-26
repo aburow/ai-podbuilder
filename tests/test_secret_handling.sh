@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7 — Secret handling: placeholders only in .env.example; .gitignore covers secrets (AC10).
 set -uo pipefail
 

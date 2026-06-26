@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2 — Adapter validation: v1 fixed set passes; unknown fails; ai-new --agent <unknown> (AC2, AC20).
 set -uo pipefail
 

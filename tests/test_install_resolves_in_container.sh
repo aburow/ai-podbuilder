@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2e — after start-here.sh install step, agent command resolves on $PATH inside the container (AC3).
 # Tagged slow: skipped unless PODMAN_LIVE=1 and rootless podman is available.
 set -uo pipefail

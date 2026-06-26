@@ -185,3 +185,6 @@ Answer: We should store it in a version file
 5. **Integrity:** Out of scope for now, but should we publish a checksum and/or signature for `install.sh` so a piped `curl | bash` can be verified? (Possible follow-up defect/idea.)
 
 Answer: yes
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

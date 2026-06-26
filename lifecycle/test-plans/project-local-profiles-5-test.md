@@ -108,3 +108,6 @@ Acceptance criteria:
 - Spot-check AC1 manually or via an existing build/launch test stub: a project
   with only `projects/<name>/profile.env` drives `ai-build`/`ai-launch`/
   `ai-terminal` profile loading without a legacy copy.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

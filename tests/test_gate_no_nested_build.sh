@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9 — Build runs host-side; bootstrap container neither builds nor accesses socket (AC22, AC28).
 set -uo pipefail
 

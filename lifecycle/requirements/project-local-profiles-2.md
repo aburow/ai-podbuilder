@@ -171,3 +171,6 @@ Answer: slug
 - **Q4 (legacy authoring).** Is hand-authoring new `profiles/<slug>.env` files still a supported workflow going forward, or is the registry strictly a read-only compatibility shim for files that already exist?
 
 Answer: Hand editing should be allowed - but the tooling should be able to manage most change processes.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

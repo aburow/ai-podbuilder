@@ -217,3 +217,6 @@ Answer: The URL will be the latest release on github for this project
 - **Q6 (legacy inline export).** A returning user may still have a manual  `export CODEX_JAILS_DIR=$HOME/codex-jails` in their `~/.bashrc` from the old README. Should the installer (a) leave it alone and let the new env file's `AI_PODMAN_JAILS_DIR` take precedence — accepting the deprecation warning until the user removes the old line, (b) detect and warn about it, or (c) offer to migrate the old install root's `projects/` into the new default? Tied to the interactive yes/no setup flow flagged in the `deprecate` requirement (Q5).
 
 Answer: (a), (b) and (c)
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

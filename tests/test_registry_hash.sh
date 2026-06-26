@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T3 — Registry hashing, normalization & cross-run stability (R13.6, R13.10, AC21, AC27).
 set -uo pipefail
 

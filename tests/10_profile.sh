@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2a — Profile loading: required fields, missing profiles, optional arrays.
 set -uo pipefail
 

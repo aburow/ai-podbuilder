@@ -69,3 +69,6 @@ Acceptance criteria:
 
 - Profile file format and validated fields (unchanged).
 - The discovery/dedup logic and the decision to emit the notice (backend plan).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

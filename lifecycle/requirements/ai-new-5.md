@@ -816,3 +816,6 @@ The boundary is:
 - `bootstrap/home/`
 - any project `.env`
 - other runtime-specific secret/cache files
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

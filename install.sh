@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Milestone 1 — Skeleton, strict mode, arg & help parsing
 set -euo pipefail
 

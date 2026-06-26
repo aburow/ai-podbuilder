@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6c — Optional GUI forwarding: X11 args appear only when requested and host
 # display state is present.
 set -uo pipefail

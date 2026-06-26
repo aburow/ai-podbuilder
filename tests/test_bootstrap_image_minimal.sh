@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T5 (slow) — Bootstrap image minimality: no project stack, only runtime tooling (AC1, AC15).
 # Tagged slow: requires PODMAN_LIVE=1 and rootless Podman.
 set -uo pipefail

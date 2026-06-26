@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T12 — ai-new --boost copies Codex auth.json into bootstrap and durable homes.
 set -uo pipefail
 
@@ -10,15 +12,15 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 _seed_runtime_registry() {
     mkdir -p "${_TMPDIR}/config/agents.d"
-    cat > "${_TMPDIR}/config/agents.d/codex.env" <<'EOF'
+    cat > "${_TMPDIR}/config/agents.d/gemini.env" <<'EOF'
 AGENT_REGISTRY_VERSION="1"
-AGENT_NAME="codex"
-AGENT_COMMAND="codex"
-AGENT_CONFIG_DIRS=".codex"
+AGENT_NAME="gemini"
+AGENT_COMMAND="gemini"
+AGENT_CONFIG_DIRS=".gemini"
 AGENT_ENV_VARS=""
 AGENT_PROMPT_MODE="default"
 AGENT_INSTALL_ADAPTER="preinstalled"
-AGENT_AUTH_CHECK_ARGV="codex|--version"
+AGENT_AUTH_CHECK_ARGV="gemini|--version"
 EOF
     cat > "${_TMPDIR}/config/agents.d/codex.env" <<'EOF'
 AGENT_REGISTRY_VERSION="1"
@@ -89,7 +91,7 @@ test_boost_rejected_for_non_codex_agent() {
     _seed_auth_file
 
     local out rc=0
-    out="$(_run_ai_new codexproj --agent codex --boost "${_TMPDIR}/auth.json")" || rc=$?
+    out="$(_run_ai_new geminiproj --agent gemini --boost "${_TMPDIR}/auth.json")" || rc=$?
     assert_failure $rc "ai-new --boost should fail for non-Codex agents" || _fail=1
     assert_contains "codex" "$out" "error should mention codex restriction" || _fail=1
     return $_fail

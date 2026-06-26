@@ -30,3 +30,6 @@ so the rename has no frontend impact.
 - `grep -rn 'CODEX_' web 2>/dev/null` returns nothing.
 - All user-facing naming changes are delivered by the backend plan's help-text
   and warning milestones; no separate frontend change is required.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

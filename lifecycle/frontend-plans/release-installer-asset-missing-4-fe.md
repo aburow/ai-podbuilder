@@ -81,3 +81,6 @@ corrections land in `devops/release.sh`.
   with `docs/releasing.md`.
 - Any "verification skipped" message (offline mode, Q3) is unambiguous that the
   release was not fully verified.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

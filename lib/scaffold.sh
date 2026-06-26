@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Scaffold creation for ai-new projects (R2.2, R2.4). Source; do not execute.
 # Requires common.sh, slug.sh, session.sh, registry.sh.
 

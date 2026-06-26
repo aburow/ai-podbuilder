@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6b — Per-profile extras: devices, hosts, env appear verbatim for declaring
 # profile only (AC8). All Tier A (DRY_RUN).
 set -uo pipefail

@@ -706,3 +706,6 @@ questions for v1:
   available (currently fail-with-guidance, per D4).
 - Destructive `--force` recreate-after-confirmation.
 - `--refresh-agent-registry` to re-pin a drifted runtime definition from the global registry.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

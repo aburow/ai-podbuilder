@@ -48,3 +48,6 @@ Notes for the writer:
 - Copy-pasting the verified block against a real release prints `install.sh: OK`
   and only then runs the script.
 - The original quick one-liner and the install URL/repo name are unchanged.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -120,3 +120,6 @@ data contract and install set intact.
 - Container security posture changes (Non-goal).
 - Operator-facing string updates — owned by the **frontend plan** (R3.2).
 - Test updates — owned by the **test plan** (R6).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

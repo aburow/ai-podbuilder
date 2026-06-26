@@ -115,3 +115,6 @@ not re-appear after a prior cleanup.
 | build happens before container launch | `test_ai_new_builds_before_launch` — asserts line number of `ensure_bootstrap_image` < line number of `launch_bootstrap` in bin/ai-new |
 
 All deleted assertions map to a covering test. No coverage gap.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

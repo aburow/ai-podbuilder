@@ -80,3 +80,6 @@ ai-launch esp32
 Prefer the `ai-launch` flags over raw Podman commands so that safety policy
 is applied consistently. Use raw commands only when the framework cannot
 complete the operation.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

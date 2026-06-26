@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9a — Stale-image reconciliation (AC14). Tier A: flag handling. Tier B: live flow.
 set -uo pipefail
 

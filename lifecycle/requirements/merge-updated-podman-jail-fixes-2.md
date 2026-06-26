@@ -161,3 +161,6 @@ answer: they are intentional
 5. **Repo-local divergence** — for any file changed in *both* the updated tree and the repo root since the fork, how should conflicts be resolved (prefer updated, prefer local, or manual merge)?
 
 answer: updated should win as it has a higher level of testing
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

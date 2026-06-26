@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Stub podman for Tier A (dry-run/inspection) tests.
 # Satisfies `require_cmd podman` and any inspection calls tests may make.
 # Real container operations must not reach this stub (DRY_RUN exits before them).

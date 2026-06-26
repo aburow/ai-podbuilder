@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T1 — Command surface, help & flag handling (AC19, R12.1).
 set -uo pipefail
 
@@ -100,7 +102,7 @@ test_podman_unavailable_exits_nonzero() {
     mkdir -p "$_no_podman_bin"
     # Symlink essential posix tools but not podman.
     local _tool
-    for _tool in bash sh date hostname grep awk sed cat mkdir rm mv cp printf; do
+    for _tool in bash sh date hostname grep awk sed cat mkdir rm mv cp printf dirname; do
         local _real
         _real="$(command -v "$_tool" 2>/dev/null || true)"
         [[ -n "$_real" ]] && ln -sf "$_real" "${_no_podman_bin}/${_tool}" 2>/dev/null || true

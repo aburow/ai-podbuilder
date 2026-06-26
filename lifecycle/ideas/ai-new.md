@@ -88,7 +88,7 @@ The agent should determine, at minimum:
 
 ```text
 - the intended project purpose
-- the preferred AI agent runtime, such as Codex, Codex, or another supported runtime
+- the preferred AI agent runtime, such as Codex or another supported runtime
 - the desired project role or profile
 - the target language/runtime stack
 - required OS packages
@@ -181,3 +181,6 @@ Then enter the bootstrap environment, run:
 ```
 
 And be guided by an AI agent that asks the right questions and produces a tailored, reproducible project container.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

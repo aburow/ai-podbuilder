@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Regression: launch_bootstrap must return to ai-new so EXIT cleanup can remove
 # the session lock after the disposable container exits.
 set -uo pipefail

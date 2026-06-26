@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9 — Broken Containerfile fails gate; repair cap honoured (AC12, AI_NEW_MAX_REPAIR_ATTEMPTS).
 set -uo pipefail
 

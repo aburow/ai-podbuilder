@@ -75,3 +75,6 @@ isolation, keeping at least one legacy-only case to exercise the compat path.
 - The legacy-only compat test still passes (and warns once), proving `CODEX_*`
   remains honoured.
 - `build`/`vet` (shellcheck or project linter) passes.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

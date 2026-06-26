@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Safety policy assembly. Source this file; do not execute directly.
 # Requires common.sh and a loaded profile to be in scope.
 

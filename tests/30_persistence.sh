@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — Persistence and reuse (AC3). All tests are Tier B (live Podman).
 set -uo pipefail
 

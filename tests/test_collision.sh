@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — Collision and resume dispatch: status-driven create/refuse/abort (AC3, AC4).
 set -uo pipefail
 

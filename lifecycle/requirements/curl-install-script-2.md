@@ -202,3 +202,6 @@ or set the variable the commands actually honour. See Open Questions Q1.
 - **Q5 (download URL stability).** What is the public `<url>` users will curl,
   and is it owned/stable enough to advertise in the README as the supported
   install path?
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

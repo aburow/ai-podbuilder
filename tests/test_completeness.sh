@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T10 — is_complete returns true only when all R11.6 conditions hold (AC9).
 set -uo pipefail
 

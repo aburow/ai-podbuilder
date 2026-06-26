@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Usage functions for all ai-* commands. Source this file; do not execute directly.
 
 usage_ai_build() {
@@ -90,7 +92,7 @@ Arguments:
   <name>                   Project name (used as directory slug under AI_PODMAN_JAILS_DIR/projects/).
 
 Options:
-  --agent <agent>          Select the AI agent runtime (e.g. codex, codex, gemini).
+  --agent <agent>          Select the AI agent runtime (e.g. codex, gemini).
                            Required when creating a new project.
   --boost <auth.json>      Seed local Codex auth.json for bootstrap and durable
                            setup. Durable state is reconciled against the final

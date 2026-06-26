@@ -75,7 +75,7 @@ durable image it generated.
   so they survive container disposal and support **resumable** bootstrap sessions.
 - Give the user clear, explicit next steps (review → exit → build → relaunch) that
   reference real generated paths and commands.
-- Support multiple agent runtimes (Codex, Codex, Gemini, and other supported
+- Support multiple agent runtimes (Codex, Gemini, and other supported
   runtimes) as the priming target, with the runtime chosen at `ai-new` time.
 
 ### Non-goals
@@ -108,7 +108,7 @@ durable image it generated.
   separate command name. `ai-new <name> --agent <agent>` creates the scaffold
   (workspace, image directory, starter profile, launchers, bootstrap Containerfile,
   bootstrap `/start-here.sh`) and selects the agent runtime to install.
-- R1.3 `--agent <agent>` selects the agent runtime (Codex, Codex, Gemini, or another
+- R1.3 `--agent <agent>` selects the agent runtime (Codex, Gemini, or another
   supported runtime). It is the preferred v1 path and determines which runtime is
   installed/made available in the bootstrap environment.
 - R1.4 The bootstrap container launches under the sandbox framework's safety posture:
@@ -488,3 +488,6 @@ home unless the selected runtime requires a different documented path.
 
 This keeps all project-specific bootstrap state, generated files, session notes, and
 agent config grouped under one project directory.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

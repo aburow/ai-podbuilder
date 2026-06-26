@@ -35,3 +35,6 @@ The codebase contains references to `CODEX_JAILS` and related environment variab
 ## Logs / Output
 
 Not provided
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T12 — Generated files persist after container disposal; agent config survives rebuild (AC14).
 set -uo pipefail
 

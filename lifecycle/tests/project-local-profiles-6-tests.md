@@ -85,3 +85,6 @@ pass against the current codebase (`tests/run_tests.sh` green).
 | R2.3 | `test_list_dedupes_by_slug` |
 | R3.2 | `test_legacy_load_emits_deprecation_info` |
 | R3.3 | `test_install_generated_profile_absent` |
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

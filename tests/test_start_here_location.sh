@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T1a — start-here.sh lives under bootstrap/home, not at container root (AC1, B1).
 set -uo pipefail
 

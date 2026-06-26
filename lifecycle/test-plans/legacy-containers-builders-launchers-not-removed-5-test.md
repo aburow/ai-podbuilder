@@ -100,3 +100,6 @@ frontend changes to confirm no collateral breakage.
       still passing.
 - [ ] Companion artifact written to `lifecycle/tests/` documenting the fixture
       decoupling and the retired AC12 contract.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

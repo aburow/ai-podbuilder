@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T11 — Stale lock detection; report with safe clear path; non-interactive fails closed (AC24, D3).
 set -uo pipefail
 

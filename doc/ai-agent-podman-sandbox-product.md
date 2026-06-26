@@ -1183,3 +1183,6 @@ It adds product-level structure:
 - clearer separation between normal, hardware, and builder modes
 
 The result is a practical local AI-agent development environment that can grow from a personal script collection into a reusable tool.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

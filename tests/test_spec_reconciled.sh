@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T3c — ai-new-3.md no longer presents /start-here.sh at root as the current spec (AC4, B4).
 set -uo pipefail
 

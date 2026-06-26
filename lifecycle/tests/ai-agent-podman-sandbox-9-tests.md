@@ -110,3 +110,6 @@ Each file is independently executable and prints its own pass/fail summary.
 
 Per the test plan: DA1 (desktop launchers), DA2 (ai-doctor), DA3
 (agent-delegated builder), DA4 (clone-to-second-host) — none implemented here.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

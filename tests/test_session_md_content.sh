@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T10 — session.md carries R11.2 content including reconciliation notes (AC9).
 set -uo pipefail
 

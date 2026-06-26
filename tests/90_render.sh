@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T10 — User-surface rendering: banner (F2), stale prompt (F3), help text (F1).
 set -uo pipefail
 

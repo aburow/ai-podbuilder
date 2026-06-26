@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T11 — Reconciliation: running status → correct replacement per R19.8 (AC24).
 set -uo pipefail
 

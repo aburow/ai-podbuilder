@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9 — Static check is advisory: skip when no tool; failure alone doesn't fail gate (AC12).
 set -uo pipefail
 

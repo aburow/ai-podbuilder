@@ -110,3 +110,6 @@ Use the project commit conventions (no skipped hooks, no signing bypass).
 - [ ] `git fetch && git ls-tree -r origin/main --name-only` shows none of the
       removed paths.
 - [ ] No changes to `templates/Containerfile.durable.tmpl` or `lib/` in the diff.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

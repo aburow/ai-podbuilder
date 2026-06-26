@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T3b — bootstrap image carries home-based NPM_CONFIG_PREFIX, PIPX_*, and PATH (AC3, B2).
 # Tagged slow: skipped unless PODMAN_LIVE=1 and rootless podman is available.
 set -uo pipefail

@@ -59,7 +59,7 @@ FAIL  ai-list works without profiles/ dir (AC2)
 ASSERT_CONTAINS fail: codex not found in output
 ASSERT_CONTAINS fail: codex not found in output
 ASSERT_CONTAINS fail: gemini not found in output
-FAIL  repo agents.d exposes codex, codex, gemini
+FAIL  repo agents.d exposes codex, gemini
 
 ASSERT_CONTAINS fail: myagent.env should be listed: myagent not found in output
 FAIL  non-.env files are not listed
@@ -82,3 +82,6 @@ test-supplied agents directory.
 
 **Fix:** Update the affected tests / helpers to export `AI_PODMAN_JAILS_DIR` and
 `AI_PODMAN_AGENTS_DIR` instead of (or in addition to) their `CODEX_*` counterparts.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

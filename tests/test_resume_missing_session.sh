@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — --resume with missing/unreadable session.json fails clearly (AC4).
 set -uo pipefail
 

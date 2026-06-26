@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2b — ai-build: missing profile / missing IMAGE_DIR exit non-zero; no container created.
 set -uo pipefail
 

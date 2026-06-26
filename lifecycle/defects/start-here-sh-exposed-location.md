@@ -32,3 +32,6 @@ The script is placed in a host-accessible location, exposing it to accidental mo
 ## Logs / Output
 
 Not provided
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

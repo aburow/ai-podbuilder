@@ -62,3 +62,6 @@ across all tests in the file.
 Each test creates its own sandboxed `HOME` inside `_TMPDIR` (which
 `setup_test_env`/`teardown_test_env` in the harness manage), so no test
 writes outside its temp directory.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

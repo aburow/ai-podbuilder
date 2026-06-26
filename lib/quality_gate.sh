@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Host-side quality gate: static check, trial build, timeout (R8.1–R8.6, R18, R20).
 # Source this file; do not execute directly. Requires common.sh, session.sh, slug.sh.
 

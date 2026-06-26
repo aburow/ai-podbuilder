@@ -120,3 +120,6 @@ flag parsing, and that printed guidance matches the new path.
 
 `tests/run_tests.sh` green end-to-end (PODMAN_LIVE checks skipped or passing),
 mapping AC1–AC8 to the milestones above.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

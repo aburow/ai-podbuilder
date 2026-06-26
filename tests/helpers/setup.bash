@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Shared test harness for container-builder integration tests.
 # Source this file in every test script; do not execute directly.
 

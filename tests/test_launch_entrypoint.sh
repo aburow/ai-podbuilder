@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Regression: ai-new must enter start-here.sh so the selected runtime installer runs.
 set -uo pipefail
 

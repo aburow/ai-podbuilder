@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Top-level test runner. Executes each test file and reports overall results.
 # Usage: ./tests/run_tests.sh [PODMAN_LIVE=1]
 set -euo pipefail

@@ -121,3 +121,6 @@ Release asset inspection after fix:
 ```json
 {"assets":[{"name":"install.sh","state":"uploaded","size":7284}],"name":"Release 0.51","tagName":"0.51"}
 ```
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

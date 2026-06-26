@@ -138,3 +138,6 @@ Each file is independently executable and prints its own pass/fail summary.
 
 223 Tier A tests across 39 new files — all pass without a live Podman daemon.
 12 Tier B tests skip cleanly on the same machine (guarded by `skip_unless_live`).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

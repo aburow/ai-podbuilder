@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# T5a — Mode dispatch: codex/codex/bash map to the right in-container command (AC4).
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
+# T5a — Mode dispatch: codex/bash map to the right in-container command (AC4).
 # All Tier A (DRY_RUN).
 set -uo pipefail
 
@@ -21,14 +23,6 @@ test_codex_mode_command() {
     # What we can assert: DRY_RUN:create emitted (not DRY_RUN:run = builder)
     assert_contains "DRY_RUN:create" "$out" "codex mode uses normal (non-builder) create" || _fail=1
     assert_not_contains "--privileged" "$out" "codex mode must not be privileged" || _fail=1
-    return $_fail
-}
-
-test_codex_mode_command() {
-    local _fail=0
-    local out; out="$(_dry_run codex)"
-    assert_contains "DRY_RUN:create" "$out" "codex mode uses normal create" || _fail=1
-    assert_not_contains "--privileged" "$out" || _fail=1
     return $_fail
 }
 
@@ -65,7 +59,6 @@ test_unknown_mode_exits_nonzero() {
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "codex mode uses normal (non-builder) container"  test_codex_mode_command
-run_test "codex mode uses normal container"               test_codex_mode_command
 run_test "bash mode uses normal container"                 test_bash_mode_command
 run_test "shell (default) mode uses normal container"      test_shell_mode_is_default
 run_test "unknown mode → non-zero + mode named in error"   test_unknown_mode_exits_nonzero

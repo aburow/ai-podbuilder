@@ -134,3 +134,6 @@ reports `VERIFIED` when M3 failed or (network-enabled) M4 failed. Update the
   which check failed — missing checksum asset (M3) vs. content/checksum mismatch
   (M4) (R6).
 - `main()` success summary names both `install.sh` and `install.sh.sha256`.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

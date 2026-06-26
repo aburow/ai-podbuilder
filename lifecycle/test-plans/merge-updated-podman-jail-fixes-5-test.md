@@ -87,3 +87,6 @@ install tests maps to a covering test.
 - [ ] Test-file count after merge ≥ before, plus the 11 additions accounted for.
 - [ ] Mapping table: each deleted install-test assertion → its covering test
       (or explicit confirmation it was redundant per answer 4).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

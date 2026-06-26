@@ -109,3 +109,6 @@ Answer: removal alone satisfies the requirement
 4. **`bin/extra-terminal`** defaults to esp32 but is a generic helper. Remove it, or keep it as a profile-agnostic convenience? Default: remove (self-labelled legacy).
 
 Answer: remove it, there is a replacement
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

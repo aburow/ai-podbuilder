@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Agent requests use /project-relative paths; the host must resolve them safely.
 set -uo pipefail
 

@@ -82,3 +82,6 @@ and are not visible in Podman Desktop after they exit.
 
 > **Note:** Automatic `.desktop` generation from profiles is planned but
 > deferred (D4). Until then, copy and edit the examples above.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

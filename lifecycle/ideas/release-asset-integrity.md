@@ -34,3 +34,6 @@ lineage. This idea captures it so it is not lost.
 ## Out of scope here
 
 Changing the install.sh behaviour itself (that belongs in `curl-install-script`).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

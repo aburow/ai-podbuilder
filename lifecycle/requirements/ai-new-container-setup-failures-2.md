@@ -172,8 +172,8 @@ launch time as it will install the latest version
    given its adapter is `manual`? Is leaving it as a documented manual step
    acceptable, or must R3 fully automate it?
 
-the "manual" status is a nonsense add it as we would codex or codex at launch time 
-   
+the "manual" status is a nonsense add it as we would codex at launch time
+
 4. **Exact home path.** Is `/project/bootstrap/home/start-here.sh` the desired
    location, or should it sit at a conventional `~/start-here.sh` that the
    defect's examples (`/root/start-here.sh`, `/home/<user>/start-here.sh`)
@@ -200,4 +200,7 @@ bash-5.3$ pwd
    agent for the current run? Pre-installing all three increases image size but
    removes per-run install latency.
 
-Just the requested agent. codex, codex, or gemini at this stage
+Just the requested agent. codex or gemini at this stage
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

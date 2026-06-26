@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — End-to-end integration: home-dir location, executability, and agent PATH resolution (AC6, R4.1).
 # Tagged slow: skipped unless PODMAN_LIVE=1 and rootless podman is available.
 # Mocks the agent install with a fake npm for determinism; never touches the real network.

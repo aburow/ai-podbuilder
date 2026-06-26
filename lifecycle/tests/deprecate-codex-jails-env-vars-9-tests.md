@@ -30,3 +30,6 @@ PASS  image build context excludes project secrets
 ```
 
 All six tests in `test_no_dead_install_code.sh` pass.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

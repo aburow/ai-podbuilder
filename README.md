@@ -174,3 +174,6 @@ tests/run_tests.sh
 
 Some tests rely on Podman and the expected host environment, so run them on a
 machine that matches the framework's target assumptions.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

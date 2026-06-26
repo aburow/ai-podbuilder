@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Shared library sourced by every ai-* command. Do not execute directly.
 
 _die()  { echo "[ERROR] $*" >&2; exit 1; }

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2 — Registry security: hostile values are never executed (R13, AC20).
 set -uo pipefail
 

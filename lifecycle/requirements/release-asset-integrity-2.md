@@ -145,3 +145,6 @@ Answer: single file but it needs to be calculated against the tgz not install.sh
 3. **Regression test:** Should a test in `tests/` assert the release flow fails on a tampered/mismatched checksum (mirroring the empty-assets regression test from the parent lineage)?
 
 Answer: okay
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

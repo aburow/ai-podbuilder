@@ -70,3 +70,6 @@ contradiction is found).
 - [x] No stale instruction in README contradicts merged CLI behavior.
 - [x] Any doc edit is committed in the docs/templates focused commit (M5 of the
       backend plan).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

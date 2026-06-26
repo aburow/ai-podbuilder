@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Bootstrap container launch (R14, R15, R17). Source; do not execute.
 # Requires common.sh.
 

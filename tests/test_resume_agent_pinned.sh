@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T11 — Resume honours selected_agent; fails clearly on absent agent; auth problems reported (AC26).
 set -uo pipefail
 

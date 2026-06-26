@@ -273,3 +273,6 @@ acceptance criteria.
   pointing at a sandbox-style workspace path (covered indirectly by the temp-dir
   harness in T1).
 </content>
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

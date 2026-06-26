@@ -136,3 +136,6 @@ Acceptance criteria:
   requirement Non-goals).
 - No bulk migration or deletion of existing `profiles/*.env` files.
 - No redesign of the name↔slug scheme beyond pinning the resolution key.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

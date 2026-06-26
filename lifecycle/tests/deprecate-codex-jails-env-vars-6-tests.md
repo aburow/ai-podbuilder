@@ -54,3 +54,6 @@ warning fires.
 above; no dedicated test cases because the existing suite validates it
 implicitly. The M3 compat test intentionally uses the legacy name inside its
 own isolated subshell to prove `CODEX_*` remains honoured.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

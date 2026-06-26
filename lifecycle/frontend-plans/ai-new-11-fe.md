@@ -321,3 +321,6 @@ the backend triggers exits.
   resume state, active/stale lock) exit non-zero with a clear message (AC19).
 - The unknown-`--agent` message names the agent and lists registered agents (AC2).
 - `shellcheck` clean across the user-surface scripts.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

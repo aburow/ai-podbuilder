@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T8 — Coordination atomicity: .tmp+rename, malformed requests rejected (AC27).
 set -uo pipefail
 

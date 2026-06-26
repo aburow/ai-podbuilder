@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T6 — start-here.sh runtime resolution across all four cases (AC5, R4).
 set -uo pipefail
 

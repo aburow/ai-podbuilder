@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T3 — Normal-mode safety policy inspection via DRY_RUN (AC2).
 set -uo pipefail
 

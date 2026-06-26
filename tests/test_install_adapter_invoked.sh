@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T2a — run_install_adapter uses the correct pinned package for each supported agent (AC3, R3.2).
 # Uses a fake npm on PATH that records its argv; no network or real installs.
 set -uo pipefail
@@ -55,22 +57,6 @@ test_codex_npm_package_called() {
     return $_fail
 }
 
-test_codex_npm_package_called() {
-    local _fail=0
-    local _log; _log="$(_npm_call_log)"
-    _setup_fake_npm "$_log"
-
-    local rc=0
-    _run_install_adapter "npm-global" "@openai/codex" "" >/dev/null 2>&1 || rc=$?
-    assert_success $rc "run_install_adapter should exit 0 with fake npm" || _fail=1
-
-    [[ -f "$_log" ]] || { printf '    npm was never called\n' >&2; return 1; }
-    local _recorded
-    _recorded="$(cat "$_log")"
-    assert_contains "@openai/codex" "$_recorded" "npm must use the codex package name" || _fail=1
-    return $_fail
-}
-
 test_gemini_npm_package_called() {
     local _fail=0
     local _log; _log="$(_npm_call_log)"
@@ -92,10 +78,6 @@ test_packages_come_from_registry_not_literal() {
     # This guards against a hardcoded package string in lib/ diverging from registry (R3.2).
     local _fail=0
     local _agents_dir="${REPO_ROOT}/config/agents.d"
-
-    local _codex_pkg
-    _codex_pkg="$(grep 'AGENT_INSTALL_PACKAGE' "${_agents_dir}/codex.env" | cut -d= -f2 | tr -d '"')"
-    assert_eq "@openai/codex" "$_codex_pkg" "codex.env package" || _fail=1
 
     local _codex_pkg
     _codex_pkg="$(grep 'AGENT_INSTALL_PACKAGE' "${_agents_dir}/codex.env" | cut -d= -f2 | tr -d '"')"
@@ -137,7 +119,6 @@ test_dnf_package_adapter_exits_nonzero_with_message() {
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "codex: npm called with @openai/codex"     test_codex_npm_package_called
-run_test "codex: npm called with @openai/codex"                  test_codex_npm_package_called
 run_test "gemini: npm called with @google/gemini-cli"            test_gemini_npm_package_called
 run_test "package names come from registry, not lib/ literals"   test_packages_come_from_registry_not_literal
 run_test "preinstalled adapter: npm not called, exits 0"         test_preinstalled_adapter_is_noop

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # start-here.sh — Agent-primed bootstrap container entrypoint.
 # Placed at /project/bootstrap/home/start-here.sh inside the bootstrap container by the ai-new launcher.
 # Reads runtime metadata only from the pinned bootstrap/agent.env (never source/eval).

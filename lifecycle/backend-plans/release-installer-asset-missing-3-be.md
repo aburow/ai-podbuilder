@@ -193,3 +193,6 @@ implementing it here.
   references this requirement.
 - No checksum/signature code is added to `devops/release.sh` in this lineage
   (stays within Non-goals).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

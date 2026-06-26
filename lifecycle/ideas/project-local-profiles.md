@@ -14,3 +14,6 @@ Move from a central `profiles/` registry to project-owned profiles at `projects/
 The target model resolves profile identity directly from the project tree: `load_profile()` prefers `projects/<name>/profile.env` first and falls back to `profiles/<name>.env` only for hand-authored legacy profiles; `ai-list` enumerates `projects/*/profile.env` directly; scaffold code stops copying generated profiles into `profiles/`; and docs reframe `profiles/` as an optional compatibility area rather than required runtime state. A three-phase compatibility strategy (dual-read → dual-discovery → deprecation) preserves support for existing users who rely on `profiles/<name>.env` without a corresponding project tree.
 
 Acceptance criteria center on `ai-build`, `ai-launch`, and `ai-terminal` working with only the project-local profile present; `ai-list` functioning when `profiles/` does not exist; `ai-new` creating no mirrored copy; and legacy profiles continuing to work during transition. This is a cleanup and model-alignment change — the runtime already supports project-local profiles; the remaining work is discovery semantics, compatibility handling, and removal of central-registry assumptions.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

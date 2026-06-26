@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Shared user-facing message builders for ai-new and start-here.sh (R1.7, R16.2, F8).
 # Source this file; do not execute directly.  Requires common.sh (for list_registered_agents
 # via registry.sh).

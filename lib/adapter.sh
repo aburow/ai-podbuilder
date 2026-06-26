@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Install adapter contract for ai-new (R13.12, R3.4). Source; do not execute.
 # Requires common.sh, registry.sh.
 

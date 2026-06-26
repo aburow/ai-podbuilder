@@ -54,3 +54,6 @@ this is a review gate, fixes land in the backend script.
   (R5.5, R6.1).
 - `grep -rn 'CODEX_' README.md install.sh` shows `CODEX_JAILS_DIR` only in the
   legacy-migration warning context, nowhere as guidance to set it.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

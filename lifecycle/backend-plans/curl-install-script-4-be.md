@@ -210,3 +210,6 @@ current shell without a new terminal (R4.3, R5.5).
 **Acceptance criteria.**
 - `shellcheck install.sh` passes with no new warnings.
 - `--help` and prereq-fail paths exit before any write (covered by test plan).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

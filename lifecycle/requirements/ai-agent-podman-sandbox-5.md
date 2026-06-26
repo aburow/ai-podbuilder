@@ -41,7 +41,7 @@ the v1 release gate.
 
 ## Problem
 
-AI coding agents (Codex, Codex, Aider, OpenCode) are run against project
+AI coding agents (Codex, Aider, OpenCode) are run against project
 workspaces on a Bazzite/Fedora desktop using rootless Podman. Today each project
 is launched by its own hand-written script — every script a copy of the same
 sound pattern (rootless, `--userns=keep-id`, `--security-opt no-new-privileges`,
@@ -505,3 +505,6 @@ following files were written or verified:
 The main reference document at `docs/ai-agent-podman-sandbox.md` covers all
 v1 acceptance criteria (AC1–AC15) and cross-references each to the relevant
 documentation section.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

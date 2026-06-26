@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7 — Next-steps content references actual generated paths/commands (AC16).
 set -uo pipefail
 

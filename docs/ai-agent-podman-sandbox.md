@@ -40,7 +40,7 @@ persistent containers on Bazzite / Fedora Atomic desktops.
 
 ### Problem
 
-AI coding agents — Codex, Codex, Aider, OpenCode — run against project
+AI coding agents — Codex, Aider, OpenCode — run against project
 workspaces on a Bazzite desktop using rootless Podman. The previous approach
 used one hand-written launch script per project. Every script was a copy of the
 same sound pattern (`--userns=keep-id`, `--security-opt no-new-privileges`, a
@@ -980,3 +980,6 @@ document that describe the corresponding behaviour.
 
 *Last updated: 2026-06-22*  
 *Requirements source: `lifecycle/requirements/ai-agent-podman-sandbox-5.md`*
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

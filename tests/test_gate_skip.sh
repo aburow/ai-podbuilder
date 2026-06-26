@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9 — Skip trial build yields generated-unvalidated with warning (AC13).
 set -uo pipefail
 

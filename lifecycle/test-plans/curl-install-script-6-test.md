@@ -103,3 +103,6 @@ suite.
 **Acceptance criteria.**
 - `shellcheck install.sh` reports no new warnings (extend `00_static.sh`'s lint
   coverage to include `install.sh`).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

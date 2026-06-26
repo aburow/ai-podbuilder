@@ -86,3 +86,6 @@ behaviour agree on `/start-here/start-here.sh`.
   the container root as current behaviour.
 - `tests/test_spec_reconciled.sh` still passes (no unannotated root-location claim).
 - HOME-as-`bootstrap/home` documentation is unchanged.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

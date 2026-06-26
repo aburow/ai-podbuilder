@@ -28,7 +28,7 @@ in here:
 
 ## Problem
 
-AI coding agents (Codex, Codex, Aider, OpenCode) are run against project
+AI coding agents (Codex, Aider, OpenCode) are run against project
 workspaces on a Bazzite/Fedora desktop using rootless Podman. Each project is
 launched by its own hand-written script, all copies of the same sound pattern
 (rootless, `--userns=keep-id`, `no-new-privileges`, a narrow workspace-only mount,
@@ -507,3 +507,6 @@ Deferred beyond v1:
 
 The v1 acceptance target is a safe, reusable replacement for the current hand-written
 project scripts, not the full product vision.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

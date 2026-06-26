@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Agent-specific bootstrap image management for ai-new. Source; do not execute.
 # Requires common.sh and registry.sh.
 

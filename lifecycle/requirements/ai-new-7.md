@@ -668,3 +668,6 @@ Key final decisions folded into the requirements:
   multiple runtimes are registered.
 - `gemini` ships as a registered `manual` runtime in v1 unless a safe official install path is
   deliberately selected before implementation.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

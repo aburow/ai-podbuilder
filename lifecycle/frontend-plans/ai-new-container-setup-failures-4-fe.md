@@ -70,7 +70,7 @@ the call site that makes `run_install_adapter` live code.
 
 **Acceptance criteria.**
 
-- For `--agent codex|codex|gemini`, launching the bootstrap container and
+- For `--agent codex|gemini`, launching the bootstrap container and
   reaching `start-here.sh` installs the agent so `command -v <cmd>` resolves
   inside the container before `_validate_runtime` runs (AC3).
 - `run_install_adapter` is actually executed on a normal run (verify via its
@@ -165,3 +165,6 @@ user how to invoke the now-executable script (R1.3, R2.3, AC2).
 - **AC5** `run_install_adapter` is invoked on a normal run — no dead code (F1).
 - **R3.4/R3.5** failed/`manual` installs produce clear, actionable, non-zero
   errors rather than silent missing-command failures (F2).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

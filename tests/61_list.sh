@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7b — ai-list: aligned listing with state column; missing dir exits non-zero (AC11).
 set -uo pipefail
 

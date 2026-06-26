@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # ai-new durable contract tests for ai-new-9 / ai-new-10-be.
 set -uo pipefail
 

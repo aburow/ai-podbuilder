@@ -33,7 +33,7 @@ questions whenever an answer is ambiguous or implies further choices.
    - Follow-up: Is this for development, CI/CD, serving, research, or something else?
 
 2. **Preferred agent runtime** — Which AI agent runtime will work inside this container
-   (e.g. codex, codex, gemini, none)?
+   (e.g. codex, gemini, none)?
 
 3. **Role / profile** — Developer workspace, build agent, service, data-science sandbox, etc.?
 
@@ -515,3 +515,6 @@ the list of generated file paths.
 ---
 
 *End of bootstrap prompt.*
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -483,3 +483,6 @@ interrupted state (R8.12, R8.13, R19.8, R20.4–R20.6).
 - Resume honours the recorded `selected_agent`, never re-prompts, and fails
   clearly if the pinned agent is absent (AC26, R20.4, R20.5).
 - `shellcheck` clean.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

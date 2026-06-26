@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7a — ai-terminal (AC10). Tier B: attach when running. Tier A: error when not.
 set -uo pipefail
 

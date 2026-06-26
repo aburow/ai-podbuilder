@@ -41,7 +41,7 @@ agent. The frontend consumes those guarantees.
   version." The agent is installed **inside the running container at launch**,
   not baked into the image.
 - **D-Q3 (gemini).** The `manual` adapter is "nonsense" — gemini is installed
-  exactly like codex/codex at launch time (npm-global).
+  exactly like codex at launch time (npm-global).
 - **D-Q4 (home path).** Container opens in `/project`; `$HOME` is
   `/project/bootstrap/home`. The script lives at
   `/project/bootstrap/home/start-here.sh`.
@@ -204,7 +204,7 @@ content is the single source of truth for package names — no hard-coding (R3.2
   `@google/gemini-cli` (AC3).
 - The registry parser/validator still accepts `manual` as a known adapter (no
   regression to the v1 fixed set) (R3.4).
-- For each of codex/codex/gemini, the package name used by the install comes
+- For each of codex/gemini, the package name used by the install comes
   from the pinned registry, not a literal in `lib/` (R3.2).
 
 ---
@@ -246,3 +246,6 @@ which now contradicts the home-directory placement (R1.4, AC4).
 - **AC3/AC5** install adapter is reachable, runs non-root, resolves the agent on
   `$PATH`; no dead code remains (B2, B3).
 - **AC4** spec reconciliation (B4).
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

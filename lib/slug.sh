@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # Slug sanitizer for ai-new project names (R20.1, D2).
 # Source this file; do not execute directly. Requires common.sh.
 

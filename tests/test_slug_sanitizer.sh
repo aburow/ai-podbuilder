@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T4 — Slug sanitizer: deterministic rules (R20.1, D2, AC27).
 set -uo pipefail
 

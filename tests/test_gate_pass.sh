@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T9 (slow) — Valid Containerfile builds; status → complete; image tagged (AC12, AC25).
 # Tagged slow: requires PODMAN_LIVE=1 and rootless Podman.
 set -uo pipefail

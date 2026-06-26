@@ -109,3 +109,6 @@ curl -fsSL https://github.com/aburow/ai-podbuilder/releases/latest/download/inst
 Set `RELEASE_SKIP_NETWORK=1` to skip the public-URL and content checks (steps
 5–6). The script will print a clear warning that the release was **not fully
 verified**. Do not use this mode for production releases.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

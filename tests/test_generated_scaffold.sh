@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
 # T7 — Generated scaffold structure verification (R5, R6, R7, AC8, AC10, AC11).
 # Uses a mock agent that writes the expected files.
 set -uo pipefail

@@ -695,3 +695,6 @@ If no `--agent <agent>` is provided:
   using `--agent <agent>`.
 
 `start-here.sh` MUST NOT implement an interactive multi-runtime chooser in v1.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

@@ -62,3 +62,6 @@ In `tests/test_no_dead_install_code.sh`, update `test_build_context_excludes_pro
 ```bash
 assert_contains 'local _build_context="${AI_PODMAN_JAILS_DIR}/config"' "$src" || return 1
 ```
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

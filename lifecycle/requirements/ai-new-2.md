@@ -60,7 +60,7 @@ durable image it generated.
   so the output drops cleanly into that framework.
 - Give the user **clear, explicit next steps** at the end: review files, exit the
   bootstrap container, build the real image, relaunch into it.
-- Support multiple agent runtimes (Codex, Codex, Gemini, and other supported
+- Support multiple agent runtimes (Codex, Gemini, and other supported
   runtimes) as the priming target.
 
 ### Non-goals
@@ -110,7 +110,7 @@ durable image it generated.
   is the single primary entrypoint a user runs after entering.
 - R3.2 It MUST NOT contain a hardcoded questionnaire and MUST NOT attempt to generate
   the final project itself.
-- R3.3 It detects or asks which AI agent runtime to use (e.g. Codex, Codex, Gemini,
+- R3.3 It detects or asks which AI agent runtime to use (e.g. Codex, Gemini,
   or another supported runtime).
 - R3.4 It launches the selected agent in the current project workspace.
 - R3.5 It provides the agent with a structured **project-bootstrap prompt** that
@@ -244,7 +244,7 @@ primes the selected agent to interview the user and complete the real project
 `Containerfile` and supporting project files.
   
 - OQ2. **Agent runtime availability inside the bootstrap container.** Are agent
-  runtimes (Codex, Codex, Gemini, etc.) baked into the bootstrap image, mounted in,
+  runtimes (Codex, Gemini, etc.) baked into the bootstrap image, mounted in,
   or connected to from the host? Baking them in tensions with the "minimal/disposable"
   principle (R2); mounting/connecting needs a defined mechanism and auth strategy.
 
@@ -399,3 +399,6 @@ bootstrap container with network enabled by default.
 The generated durable project profile may still set its own `NETWORK_MODE`, including
 `NETWORK_MODE=none`, after the bootstrap phase is complete. Bootstrap networking and
 final project sandbox networking are separate decisions.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

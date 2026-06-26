@@ -43,3 +43,6 @@ which is what `list_registered_agents` (registry.sh:105) reads directly.
 bash tests/61_list.sh       → 11 passed  0 failed  0 skipped
 bash tests/test_list_agents.sh → 4 passed  0 failed  0 skipped
 ```
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

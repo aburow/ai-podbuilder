@@ -130,3 +130,6 @@ rest of the suite.
 - `shellcheck devops/release.sh` reports no new warnings, enforced by
   `00_static.sh`.
 - The new test files are discovered and run by `tests/run_tests.sh`.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

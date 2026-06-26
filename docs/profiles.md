@@ -108,3 +108,6 @@ To author one manually:
 Placing a file in `profiles/<slug>.env` instead is also supported as a
 legacy/compatibility path. `ai-list` will find it, but project-local profiles
 take precedence when both exist for the same slug.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

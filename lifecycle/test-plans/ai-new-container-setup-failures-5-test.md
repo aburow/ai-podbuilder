@@ -76,7 +76,7 @@ install code is no longer dead.
 - `tests/test_install_adapter_invoked.sh` (fast) — with a fake `npm` on `PATH`
   that records its argv and drops a stub binary into `NPM_CONFIG_PREFIX/bin`,
   run `start-here.sh`'s install step (or `run_install_adapter` directly) for
-  codex/codex/gemini; assert `npm install -g <package>` was called with the
+  codex/gemini; assert `npm install -g <package>` was called with the
   package from the **pinned** `agent.env` (`@openai/codex`,
   `@openai/codex`, `@google/gemini-cli`) and the command then resolves via
   `command -v` (AC3, R3.2).
@@ -124,7 +124,7 @@ documentation reconciliation.
 
 **Acceptance criteria.**
 
-- gemini installs via a real adapter like codex/codex; `manual` remains a valid
+- gemini installs via a real adapter like codex; `manual` remains a valid
   (if unused) adapter (AC3).
 - The image exposes home-based prefixes + PATH enabling non-root install
   resolution (AC3, AC5).
@@ -171,3 +171,6 @@ an explicit skip when Podman is unavailable.
 - **AC4** `ai-new-3.md` reconciled → T3.
 - **AC5** no dead install code; install reachable on a normal run → T2, T3.
 - **AC6** R4.1 integration test passes → T4.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

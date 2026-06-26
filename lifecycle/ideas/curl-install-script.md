@@ -15,3 +15,6 @@ Provide a single shell script that users can bootstrap via `curl | bash` (or dow
 The installer must handle initial installation and idempotent updates: fetching the latest required files from the repository, placing them under the chosen directory, and emitting the shell environment changes (e.g. `PATH`, any project-specific variables) needed for the tooling to work. Environment wiring should be written to a sourced file (e.g. `~/.bashrc.d/podbuilder.sh` or equivalent) rather than mutated inline, so users can review and opt out.
 
 Success criteria: a user on a fresh system can run `curl -fsSL <url> | bash` and have a fully functional ai-podbuilder installation; a returning user running the same command gets an in-place update with no manual steps required.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

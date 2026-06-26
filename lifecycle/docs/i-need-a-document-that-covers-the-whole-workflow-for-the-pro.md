@@ -33,3 +33,6 @@ The document covers:
 11. **Day-to-day operations** — rebuild, reset, secrets, SSH keys.
 12. **Desktop integration** — launcher scripts, `.desktop` files, Podman Desktop.
 13. **Quick-Start Deployment Checklist** — five-phase numbered steps with exact commands; ends with a "where to launch each tool" table clarifying that all five framework commands are host-side only.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

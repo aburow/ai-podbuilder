@@ -15,7 +15,7 @@ assignees:
 
 ## Problem
 
-AI coding agents (Codex, Codex, Aider, OpenCode) are run directly against
+AI coding agents (Codex, Aider, OpenCode) are run directly against
 project workspaces on a Bazzite/Fedora desktop using rootless Podman. Today each
 project is launched by its own hand-written script (`launch-esp32-workspace`,
 `launch-uxplay-workspace`, `launch-uxplay-builder`, `extra-terminal`, the
@@ -324,7 +324,7 @@ way to package the whole approach so it can be cloned onto another machine.
   it be split into its own lineage/epic rather than bundled here? What is the
   interface — a new `ai-` command, or an agent prompt?
 
-**Response** The tool will need to make use of an AI agent such as codex/codex/gemini/chatgpt/google in order to obtain a minimum set of requirements including the base container - ie fedora/latest
+**Response** The tool will need to make use of an AI agent such as codex/gemini/chatgpt/google in order to obtain a minimum set of requirements including the base container - ie fedora/latest
   
 - OQ3. **Conflict/cost detection (R16.3).** What defines "non-optimal" or "highly
   costly"? Is there a concrete rubric (e.g. native vs cross-compile vs QEMU
@@ -370,3 +370,6 @@ way to package the whole approach so it can be cloned onto another machine.
   runner, or manual acceptance on a Bazzite host?
 
 **Response** Manual acceptance - BUT we will import them and launch them with podman out of /home/mrnobody/codex-jails/podman-plugin-workspace - this gives the ability to move from one contained environment to another without needing to break out of any of the containers.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

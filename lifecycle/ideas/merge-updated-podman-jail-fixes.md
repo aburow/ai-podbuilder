@@ -18,3 +18,6 @@ The review should diff the updated code against the current package source, iden
 Once reviewed, the merged changes should be committed with appropriate references to the defects addressed.
 
 Ensure appropriate git adds and git commits
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow

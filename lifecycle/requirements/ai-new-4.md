@@ -613,3 +613,6 @@ If the pinned agent exists but the runtime is no longer installable/authenticate
 `start-here.sh` reports the missing runtime/auth problem and gives setup instructions.
 
 The global registry is not consulted during normal resume except for diagnostics.
+
+SPDX-License-Identifier: GPL-3.0-only
+2026 - Anthony Burow - https://github.com/aburow
