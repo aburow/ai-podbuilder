@@ -1,7 +1,7 @@
 ---
 title: Deprecate CODEX_* Env Vars in Favour of AI_PODMAN_*
 type: requirement
-status: planning
+status: done
 lineage: deprecate-codex-jails-env-vars
 parent: lifecycle/defects/deprecate-codex-jails-env-vars.md
 assignees:
