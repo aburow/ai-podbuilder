@@ -70,6 +70,11 @@ init_session() {
   "build_log_path": "",
   "trial_image_tag": "",
   "static_check_status": "",
+  "final_runtime": "",
+  "enabled_optional_features": [],
+  "rejected_optional_features": [],
+  "durable_reconciliation_status": "",
+  "durable_spec_path": "",
   "pinned_agent_env": "${_pinned}",
   "pinned_agent_hash": "${_pinned_hash}"
 }

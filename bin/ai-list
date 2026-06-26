@@ -4,6 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../lib/common.sh
 source "${SCRIPT_DIR}/../lib/common.sh"
+source "${SCRIPT_DIR}/../lib/slug.sh"
+source "${SCRIPT_DIR}/../lib/scaffold.sh"
 # shellcheck source=../lib/container.sh
 source "${SCRIPT_DIR}/../lib/container.sh"
 # shellcheck source=../lib/usage.sh
@@ -21,6 +23,14 @@ require_cmd podman
 
 PDIR="$(profiles_dir)"
 [[ -d "$PDIR" ]] || _die "Profiles directory not found: ${PDIR}"
+
+shopt -s nullglob
+for project_profile in "${CODEX_JAILS_DIR}"/projects/*/profile.env; do
+    project_root="$(dirname "$project_profile")"
+    project_name="$(basename "$project_root")"
+    install_generated_profile "$project_root" "$project_name"
+done
+shopt -u nullglob
 
 # Collect .env files (strip .example entries — those are templates, not profiles).
 shopt -s nullglob

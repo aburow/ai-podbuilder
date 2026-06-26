@@ -37,7 +37,8 @@ recreate_preserving_workspace() {
 create_normal_container() {
     _info "Creating container '${CONTAINER_NAME}' …"
     build_normal_run_args
-    podman create --name "$CONTAINER_NAME" "${_NORMAL_RUN_ARGS[@]}" "$IMAGE_NAME"
+    local _shell_cmd=(bash --rcfile "$BASHRC_CONTAINER" -i)
+    podman create --name "$CONTAINER_NAME" "${_NORMAL_RUN_ARGS[@]}" "$IMAGE_NAME" "${_shell_cmd[@]}"
 }
 
 start_and_attach() {

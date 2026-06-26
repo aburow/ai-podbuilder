@@ -86,6 +86,31 @@ validate_request() {
         return 1
     fi
 
+    # Agent-written requests use paths relative to /project. Resolve them
+    # against the host project root and reject path traversal.
+    local _project_real
+    _project_real="$(realpath -m "$_proj")"
+    if [[ "$REQ_CONTAINERFILE" != /* ]]; then
+        REQ_CONTAINERFILE="${_proj}/${REQ_CONTAINERFILE}"
+    fi
+    if [[ "$REQ_CONTEXT_DIR" != /* ]]; then
+        REQ_CONTEXT_DIR="${_proj}/${REQ_CONTEXT_DIR}"
+    fi
+    REQ_CONTAINERFILE="$(realpath -m "$REQ_CONTAINERFILE")"
+    REQ_CONTEXT_DIR="$(realpath -m "$REQ_CONTEXT_DIR")"
+    case "$REQ_CONTAINERFILE" in
+        "${_project_real}"/*) ;;
+        *) _warn "Rejecting request path outside project: ${REQ_CONTAINERFILE}"; return 1 ;;
+    esac
+    case "$REQ_CONTEXT_DIR" in
+        "${_project_real}"/*) ;;
+        *) _warn "Rejecting context outside project: ${REQ_CONTEXT_DIR}"; return 1 ;;
+    esac
+    [[ -f "$REQ_CONTAINERFILE" ]] \
+        || { _warn "Rejecting missing Containerfile: ${REQ_CONTAINERFILE}"; return 1; }
+    [[ -d "$REQ_CONTEXT_DIR" ]] \
+        || { _warn "Rejecting missing build context: ${REQ_CONTEXT_DIR}"; return 1; }
+
     # ID must be integer.
     [[ "$REQ_ID" =~ ^[0-9]+$ ]] || { _warn "Rejecting non-integer request id: ${REQ_ID}"; return 1; }
 

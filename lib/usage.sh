@@ -3,7 +3,7 @@
 
 usage_ai_build() {
     cat >&2 <<'EOF'
-Usage: ai-build <profile>
+Usage: ai-build <profile> [--edit]
 
 Build (or rebuild) the container image defined by the named profile.
 The image is built from IMAGE_DIR using BUILD_ARGS. If POST_BUILD_CHECK
@@ -12,10 +12,14 @@ print installed tool/library versions.
 
 ai-build never touches existing containers.
 
+Use `--edit` to open `IMAGE_DIR/Containerfile` in your host editor instead of
+building the image.
+
 Example:
   ai-build esp32
 
 Options:
+  --edit        Open IMAGE_DIR/Containerfile in $VISUAL, $EDITOR, or vi and exit.
   -h, --help    Show this help and exit.
 EOF
 }
@@ -77,7 +81,8 @@ EOF
 
 usage_ai_new() {
     cat >&2 <<'EOF'
-Usage: ai-new <name> [--agent <agent>] [--resume] [--skip-trial-build] [-h|--help]
+Usage: ai-new <name> [--agent <agent>] [--boost <auth.json>] [--resume]
+              [--shell-on-exit] [--skip-trial-build] [-h|--help]
 
 Bootstrap a new agent-primed container project, or resume an incomplete one.
 
@@ -87,8 +92,13 @@ Arguments:
 Options:
   --agent <agent>          Select the AI agent runtime (e.g. codex, codex, gemini).
                            Required when creating a new project.
+  --boost <auth.json>      Seed local Codex auth.json for bootstrap and durable
+                           setup. Durable state is reconciled against the final
+                           interview runtime before completion.
   --resume                 Re-enter an existing incomplete project scaffold instead
                            of starting fresh.
+  --shell-on-exit          Drop into interactive Bash inside the bootstrap container
+                           if start-here.sh or the selected agent exits.
   --skip-trial-build       Skip the quality-gate trial build (yields generated-unvalidated).
   -h, --help               Show this help and exit.
 
@@ -100,8 +110,9 @@ Notes:
 
 Examples:
   ai-new myproject --agent codex
-  ai-new myproject --resume
+  ai-new myproject --resume --shell-on-exit
   ai-new myproject --agent codex --skip-trial-build
+  ai-new myproject --agent codex --boost ~/.codex/auth.json
 EOF
 }
 

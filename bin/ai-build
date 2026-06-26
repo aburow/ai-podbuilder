@@ -11,15 +11,57 @@ source "${SCRIPT_DIR}/../lib/usage.sh"
 
 case "${1:-}" in
     -h|--help) usage_ai_build; exit 0 ;;
-    -*)        usage_ai_build; exit 1 ;;
 esac
 [[ $# -eq 0 ]] && { usage_ai_build; exit 0; }
 
 resolve_base_dir
-require_cmd podman
 
-PROFILE_NAME_ARG="$1"
+EDIT_ONLY=0
+PROFILE_NAME_ARG=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --edit)
+            EDIT_ONLY=1
+            shift
+            ;;
+        --edit=*)
+            EDIT_ONLY=1
+            shift
+            ;;
+        -*)
+            usage_ai_build
+            exit 1
+            ;;
+        *)
+            if [[ -z "$PROFILE_NAME_ARG" ]]; then
+                PROFILE_NAME_ARG="$1"
+            else
+                usage_ai_build
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+[[ -n "$PROFILE_NAME_ARG" ]] || { usage_ai_build; exit 0; }
+
 load_profile "$PROFILE_NAME_ARG"
+
+if [[ "$EDIT_ONLY" -eq 1 ]]; then
+    editor_command="${VISUAL:-${EDITOR:-vi}}"
+    containerfile_path="${IMAGE_DIR}/Containerfile"
+    mkdir -p "$IMAGE_DIR"
+    touch "$containerfile_path"
+    _info "Opening Containerfile in ${editor_command}: ${containerfile_path}"
+    # Allow a simple editor command name or a command string with arguments.
+    # shellcheck disable=SC2206
+    editor_argv=($editor_command "$containerfile_path")
+    "${editor_argv[@]}"
+    exit 0
+fi
+
+require_cmd podman
 
 [[ -d "$IMAGE_DIR" ]] \
     || _die "IMAGE_DIR does not exist: ${IMAGE_DIR}"

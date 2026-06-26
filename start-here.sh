@@ -7,36 +7,18 @@ set -euo pipefail
 BOOTSTRAP_DIR="/project/bootstrap"
 AGENT_ENV="${BOOTSTRAP_DIR}/agent.env"
 
-# ── Mounted helper libraries ───────────────────────────────────────────────────
-# Guard against a missing /start-here-lib mount (older image or misconfigured launch).
-if [[ ! -f "/start-here-lib/common.sh" ]]; then
-    echo "[ERROR] Required mount is absent: /start-here-lib/common.sh" >&2
-    echo "        Ensure the bootstrap container was started with a current version of ai-new." >&2
-    exit 1
-fi
-if [[ ! -f "/start-here-lib/adapter.sh" ]]; then
-    echo "[ERROR] Required mount is absent: /start-here-lib/adapter.sh" >&2
-    echo "        Ensure the bootstrap container was started with a current version of ai-new." >&2
-    exit 1
-fi
-# shellcheck source=/dev/null
-. /start-here-lib/common.sh
-# shellcheck source=/dev/null
-. /start-here-lib/adapter.sh
-
 # ── Usage ─────────────────────────────────────────────────────────────────────
 
 _usage() {
     cat >&2 <<'USAGE_EOF'
-Usage: ./start-here.sh [--agent <agent>] [--resume] [-h|--help]
-   or: /project/bootstrap/home/start-here.sh [--agent <agent>] [--resume] [-h|--help]
+Usage: ./start-here.sh [--agent <agent>] [--resume] [--shell-on-exit] [-h|--help]
+   or: /project/bootstrap/home/start-here.sh [options]
 
 Start the agent-primed bootstrap session inside the ai-new bootstrap container.
 Reads runtime metadata from /project/bootstrap/agent.env (never source/eval).
 
-The script is directly executable (no 'bash' prefix needed).  The container
-drops into $HOME = /project/bootstrap/home, so from the shell prompt use:
-  ./start-here.sh
+The script is directly executable (no 'bash' prefix needed). ai-new invokes it
+automatically as the bootstrap container entrypoint.
 
 Options:
   --agent <agent>   Override the pinned agent runtime.
@@ -44,6 +26,8 @@ Options:
                     is not what you want.
   --resume          Resume an interrupted bootstrap session.
                     Never re-prompts for the agent runtime.
+  --shell-on-exit   Open interactive Bash in this container if the launcher or
+                    selected agent exits. Type 'exit' to leave the container.
   -h, --help        Show this help and exit (zero).
 
 Environment:
@@ -52,8 +36,8 @@ Environment:
   /project/bootstrap/session.json     Session state (status, generated files).
 
 This script is designed to be run inside the bootstrap container created by
-'ai-new'.  It installs the pinned agent runtime, validates credentials, and
-launches the agent with the bootstrap prompt.
+'ai-new'. The selected agent is installed while the Containerfile is built;
+this script validates that baked runtime and launches it with the prompt.
 
 If the bootstrap session was interrupted, re-enter the container with:
   ai-new <name> --resume
@@ -64,6 +48,20 @@ USAGE_EOF
 
 AGENT_OVERRIDE=""
 RESUME=0
+SHELL_ON_EXIT=0
+
+_shell_on_exit() {
+    local _rc=$?
+    local _fallback_shell="${AI_NEW_FALLBACK_SHELL:-/bin/bash}"
+    trap - EXIT
+    echo "" >&2
+    echo "[WARN]  Bootstrap process exited with status ${_rc}." >&2
+    echo "[INFO]  Opening interactive Bash inside the bootstrap container." >&2
+    echo "[INFO]  Agent exit status is available as AI_NEW_AGENT_EXIT_STATUS." >&2
+    echo "[INFO]  Type 'exit' to leave the container." >&2
+    export AI_NEW_AGENT_EXIT_STATUS="$_rc"
+    exec "$_fallback_shell" -i
+}
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -76,6 +74,10 @@ while [[ $# -gt 0 ]]; do
             AGENT_OVERRIDE="${1#--agent=}"; shift ;;
         --resume)
             RESUME=1; shift ;;
+        --shell-on-exit)
+            SHELL_ON_EXIT=1
+            trap _shell_on_exit EXIT
+            shift ;;
         -*)
             echo "[ERROR] Unknown flag: $1.  Try 'start-here.sh --help'." >&2; exit 1 ;;
         *)
@@ -217,50 +219,17 @@ _load_env_local() {
 
 _load_env_local
 
-# ── Runtime install (R3.1, R3.3, AC3, AC5) ────────────────────────────────────
-
-_install_runtime() {
-    if command -v "$RESOLVED_COMMAND" >/dev/null 2>&1; then
-        _info "Runtime '${RESOLVED_AGENT}' (${RESOLVED_COMMAND}) is already present; skipping install."
-        return 0
-    fi
-
-    _info "Installing runtime '${RESOLVED_AGENT}' via adapter '${AGENT_INSTALL_ADAPTER}'…"
-    run_install_adapter "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION"
-    # Refresh the shell's command-hash table so the newly installed binary resolves.
-    hash -r 2>/dev/null || true
-}
-
 # ── Authentication / runtime-presence validation (R4.4, R10, AC6) ─────────────
 
 _validate_runtime() {
     local _cmd="$RESOLVED_COMMAND"
 
-    # manual adapter — explicit fallback for agents that cannot self-install.
-    # Shipped agents no longer use this adapter; it is reserved for future manual agents.
-    if [[ "$AGENT_INSTALL_ADAPTER" == "manual" ]]; then
-        if ! command -v "$_cmd" >/dev/null 2>&1; then
-            echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is not installed." >&2
-            echo "        This runtime uses the 'manual' adapter and cannot be installed automatically." >&2
-            echo "        Install '${_cmd}' and place it on PATH, then rerun start-here.sh." >&2
-            echo "        Home-based bin directories already on PATH:" >&2
-            echo "          \$HOME/.npm-global/bin   (npm-global packages)" >&2
-            echo "          \$HOME/.local/bin        (pipx packages)" >&2
-            exit 1
-        fi
-    fi
-
-    # If no auth-check argv is defined, just verify the command is present post-install.
+    # The image build must have installed the selected command.
     if [[ -z "$AGENT_AUTH_CHECK_ARGV" ]]; then
         if ! command -v "$_cmd" >/dev/null 2>&1; then
-            local _attempted_argv=()
-            while IFS= read -r _word; do
-                [[ -n "$_word" ]] && _attempted_argv+=("$_word")
-            done < <(build_argv "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION")
-            echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is still missing after install." >&2
-            echo "        Adapter used:    ${AGENT_INSTALL_ADAPTER}" >&2
-            [[ "${#_attempted_argv[@]}" -gt 0 ]] && echo "        Install command: ${_attempted_argv[*]}" >&2
-            echo "        Ensure the install succeeded and that '${_cmd}' is on PATH." >&2
+            echo "[ERROR] Agent runtime '${RESOLVED_AGENT}' (command: ${_cmd}) is not installed in the bootstrap image." >&2
+            echo "        The selected agent must be installed by bootstrap/Containerfile.bootstrap." >&2
+            echo "        Exit and rerun 'ai-new <name> --resume' to rebuild the image." >&2
             exit 1
         fi
         return 0
@@ -298,18 +267,6 @@ _validate_runtime() {
     echo "[INFO]  Auth check passed for runtime '${RESOLVED_AGENT}'."
 }
 
-if ! _install_runtime; then
-    _INSTALL_FAIL_ARGV=()
-    while IFS= read -r _word; do
-        [[ -n "$_word" ]] && _INSTALL_FAIL_ARGV+=("$_word")
-    done < <(build_argv "$AGENT_INSTALL_ADAPTER" "$AGENT_INSTALL_PACKAGE" "$AGENT_INSTALL_VERSION")
-    echo "[ERROR] Install failed for runtime '${RESOLVED_AGENT}'." >&2
-    echo "        Adapter:  ${AGENT_INSTALL_ADAPTER}" >&2
-    echo "        Package:  ${AGENT_INSTALL_PACKAGE}${AGENT_INSTALL_VERSION:+@${AGENT_INSTALL_VERSION}}" >&2
-    [[ "${#_INSTALL_FAIL_ARGV[@]}" -gt 0 ]] && echo "        Command:  ${_INSTALL_FAIL_ARGV[*]}" >&2
-    echo "        Likely cause: network unreachable, registry down, or prefix not writable." >&2
-    exit 1
-fi
 _validate_runtime
 
 # ── Agent launch with bootstrap prompt (R4.5, R4.6, R15.2) ───────────────────
@@ -317,10 +274,10 @@ _validate_runtime
 PROMPT_FILE="${BOOTSTRAP_DIR}/bootstrap-prompt.md"
 
 _prepare_prompt() {
-    # If the prompt hasn't been placed in bootstrap/ yet, nothing to do — the
-    # launch.sh bind-mounts prompts/ as /start-here-prompts inside the container.
+    # The prompt is framework-owned. Refresh it on every launch so resumed
+    # projects receive coordination and workflow corrections.
     local _src="/start-here-prompts/bootstrap-prompt.md"
-    if [[ ! -f "$PROMPT_FILE" && -f "$_src" ]]; then
+    if [[ -f "$_src" ]]; then
         cp "$_src" "$PROMPT_FILE"
     fi
 }
@@ -344,7 +301,19 @@ _build_launch_argv() {
             ;;
         codex)
             if [[ -n "$_prompt_text" ]]; then
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --full-auto -q "$_prompt_text")
+                # Current Codex CLI accepts an initial prompt positionally and
+                # remains in the interactive TUI. Legacy --full-auto/-q flags
+                # were removed from the CLI.
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")
+            else
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            fi
+            ;;
+        gemini)
+            if [[ -n "$_prompt_text" ]]; then
+                # Gemini's explicit interactive-prompt mode executes the
+                # bootstrap prompt and keeps the terminal session open.
+                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --prompt-interactive "$_prompt_text")
             else
                 _LAUNCH_ARGV=("$RESOLVED_COMMAND")
             fi
@@ -381,6 +350,11 @@ _launch_agent() {
     echo ""
 
     _build_launch_argv
+    if [[ "$SHELL_ON_EXIT" -eq 1 ]]; then
+        local _agent_rc=0
+        "${_LAUNCH_ARGV[@]}" || _agent_rc=$?
+        return "$_agent_rc"
+    fi
     exec "${_LAUNCH_ARGV[@]}"
 }
 

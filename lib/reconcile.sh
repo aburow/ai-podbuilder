@@ -2,6 +2,10 @@
 # Resume reconciliation and crash recovery (R8.12, R8.13, R19.8, R20.4–R20.6).
 # Source this file; do not execute directly. Requires common.sh, session.sh, lock.sh.
 
+_RECONCILE_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./durable.sh
+source "${_RECONCILE_LIB_DIR}/durable.sh"
+
 # Max repair attempts (default 3).
 _MAX_REPAIR_ATTEMPTS="${AI_NEW_MAX_REPAIR_ATTEMPTS:-3}"
 
@@ -40,6 +44,8 @@ reconcile_on_resume() {
     local _proj="$1"
     local _status
     _status="$(read_status "$_proj")"
+    local _project_name
+    _project_name="$(basename "$_proj")"
     local _ts_now
     _ts_now="$(date -u +%s)"
 
@@ -122,6 +128,9 @@ reconcile_on_resume() {
     if [[ -n "$_pinned_agent" && "$_pinned_agent" != "$_selected_agent" ]]; then
         _die "Cannot resume: pinned agent.env declares '${_pinned_agent}' but session.json records '${_selected_agent}'."
     fi
+
+    reconcile_durable_project "$_proj" || true
+    install_generated_profile "$_proj" "$_project_name"
 
     _info "Reconciliation complete. Current status: $(read_status "$_proj")"
 }

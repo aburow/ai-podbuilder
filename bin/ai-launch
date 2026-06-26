@@ -95,7 +95,7 @@ touch "$HISTFILE"
 # ── Builder mode (R4.5, R4.12) — ephemeral privileged container ──────────────
 if [[ "$_LAUNCH_MODE" == "builder" ]]; then
     render_launch_summary "no"
-    run_builder_ephemeral bash
+    run_builder_ephemeral bash --rcfile "$BASHRC_CONTAINER" -i
     exit 0
 fi
 
@@ -115,12 +115,12 @@ fi
 REUSING="no"
 if container_exists "$CONTAINER_NAME"; then
     REUSING="yes"
-    if image_is_stale; then
-        if [[ "$FLAG_RECREATE" -eq 1 ]]; then
-            recreate_preserving_workspace
-            create_normal_container
-            REUSING="no"
-        elif [[ "$FLAG_NO_RECREATE" -eq 1 || "$FLAG_YES" -eq 1 || "$FLAG_NON_INTERACTIVE" -eq 1 ]]; then
+    if [[ "$FLAG_RECREATE" -eq 1 ]]; then
+        recreate_preserving_workspace
+        create_normal_container
+        REUSING="no"
+    elif image_is_stale; then
+        if [[ "$FLAG_NO_RECREATE" -eq 1 || "$FLAG_YES" -eq 1 || "$FLAG_NON_INTERACTIVE" -eq 1 ]]; then
             _warn "Image has changed; continuing with existing container '${CONTAINER_NAME}' (use --recreate to update)."
         elif is_interactive; then
             stale_choice="$(prompt_stale_choice)"
