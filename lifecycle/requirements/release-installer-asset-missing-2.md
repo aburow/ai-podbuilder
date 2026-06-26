@@ -1,7 +1,7 @@
 ---
 title: Reliable release process that publishes and verifies the install.sh asset
 type: requirement
-status: approved
+status: planning
 lineage: release-installer-asset-missing
 created: "2026-06-26T18:30:00+10:00"
 priority: high
