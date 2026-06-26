@@ -80,12 +80,63 @@ fetch_release() {
   SRCROOT="${srcdirs[0]}"
 }
 
+# ---------- milestone 4: select managed set & atomic swap ----------
+WAS_UPDATE=0
+
+install_files() {
+  local managed item
+  managed=(bin lib config templates prompts start-here.sh)
+
+  # Stage final layout in $STAGE/out
+  mkdir -p "${STAGE}/out"
+  for item in "${managed[@]}"; do
+    [[ -e "${SRCROOT}${item}" ]] || continue
+    cp -a "${SRCROOT}${item}" "${STAGE}/out/${item}"
+  done
+
+  # profiles: only *.example files
+  if [[ -d "${SRCROOT}profiles" ]]; then
+    mkdir -p "${STAGE}/out/profiles"
+    find "${SRCROOT}profiles" -maxdepth 1 -name '*.example' \
+      -exec cp {} "${STAGE}/out/profiles/" \;
+  fi
+
+  # Detect update vs fresh install
+  if [[ -d "${INSTALL_ROOT}/bin" ]]; then
+    # shellcheck disable=SC2034
+    WAS_UPDATE=1
+  fi
+
+  mkdir -p "${INSTALL_ROOT}"
+
+  # Atomic per-dir swap: stage to <dir>.new, then mv -T
+  for item in "${managed[@]}"; do
+    [[ -e "${STAGE}/out/${item}" ]] || continue
+    if [[ -d "${STAGE}/out/${item}" ]]; then
+      rm -rf "${INSTALL_ROOT}/${item}.new"
+      cp -a "${STAGE}/out/${item}" "${INSTALL_ROOT}/${item}.new"
+      mv -T "${INSTALL_ROOT}/${item}.new" "${INSTALL_ROOT}/${item}"
+    else
+      cp -a "${STAGE}/out/${item}" "${INSTALL_ROOT}/${item}"
+    fi
+  done
+
+  # profiles/*.example — cp -n to never overwrite hand-authored *.env
+  if [[ -d "${STAGE}/out/profiles" ]]; then
+    mkdir -p "${INSTALL_ROOT}/profiles"
+    find "${STAGE}/out/profiles" -maxdepth 1 -name '*.example' \
+      -exec cp -n {} "${INSTALL_ROOT}/profiles/" \;
+  fi
+
+  chmod +x "${INSTALL_ROOT}"/bin/* "${INSTALL_ROOT}/start-here.sh"
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
 esac
-# shellcheck disable=SC2034
 INSTALL_ROOT="${1:-${HOME}/ai-podman-jails}"
 
 check_prereqs
 fetch_release
+install_files
