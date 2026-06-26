@@ -1,7 +1,7 @@
 ---
 title: Merge Updated podman-jail Bug Fixes — Frontend Plan
 type: plan-frontend
-status: draft
+status: approved
 lineage: merge-updated-podman-jail-fixes
 parent: lifecycle/requirements/merge-updated-podman-jail-fixes-2.md
 ---
