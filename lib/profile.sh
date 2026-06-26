@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Profile sourcing and validation. Source this file; do not execute directly.
 # Requires common.sh to be sourced first.
+# shellcheck source=slug.sh
+source "$(dirname "${BASH_SOURCE[0]}")/slug.sh"
 
 # load_profile <name>
 # Sources profiles/<name>.env, validates required fields, and normalises
@@ -68,18 +70,17 @@ validate_profile_file() {
 
 load_profile() {
     local name="$1"
+    local project_profile="${CODEX_JAILS_DIR}/projects/${name}/profile.env"
+    local legacy_profile
+    legacy_profile="$(profiles_dir)/$(sanitize_slug "$name").env"
     local profile_file
-    profile_file="$(profiles_dir)/${name}.env"
 
-    if [[ ! -f "$profile_file" ]]; then
-        local project_profile="${CODEX_JAILS_DIR}/projects/${name}/profile.env"
-        if [[ -f "$project_profile" ]]; then
-            mkdir -p "$(profiles_dir)"
-            cp "$project_profile" "$profile_file"
-            _info "Recovered missing registered profile from ${project_profile}"
-        else
-            _die "Profile not found: ${profile_file}"
-        fi
+    if [[ -f "$project_profile" ]]; then
+        profile_file="$project_profile"
+    elif [[ -f "$legacy_profile" ]]; then
+        profile_file="$legacy_profile"
+    else
+        _die "Profile not found for '${name}': tried ${project_profile} and ${legacy_profile}"
     fi
 
     # shellcheck source=/dev/null
