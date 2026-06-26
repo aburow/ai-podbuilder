@@ -212,8 +212,8 @@ Answer: yes, bash only at this stage
 
 - **Q5 (download URL stability).** What is the public `<url>` users will curl, and is it owned/stable enough to advertise in the README as the supported install path?
 
-Answer: 
+Answer: The URL will be the latest release on github for this project
 
 - **Q6 (legacy inline export).** A returning user may still have a manual  `export CODEX_JAILS_DIR=$HOME/codex-jails` in their `~/.bashrc` from the old README. Should the installer (a) leave it alone and let the new env file's `AI_PODMAN_JAILS_DIR` take precedence — accepting the deprecation warning until the user removes the old line, (b) detect and warn about it, or (c) offer to migrate the old install root's `projects/` into the new default? Tied to the interactive yes/no setup flow flagged in the `deprecate` requirement (Q5).
 
-Answer:
+Answer: (a), (b) and (c)
