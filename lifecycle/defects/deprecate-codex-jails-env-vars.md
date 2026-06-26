@@ -1,7 +1,7 @@
 ---
 title: CODEX_JAILS Env Vars Must Be Deprecated in Favour of AI_PODMAN_*
 type: defect
-status: draft
+status: approved
 lineage: deprecate-codex-jails-env-vars
 created: "2026-06-26T14:51:42+10:00"
 priority: normal
