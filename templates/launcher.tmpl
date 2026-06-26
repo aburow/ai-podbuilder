@@ -4,8 +4,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROFILE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PROFILE_NAME="$(basename "${PROFILE_DIR}")"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PROFILE_NAME="{{PROJECT_SLUG}}"
 
 # Locate the ai-agent-podman-sandbox bin directory.
 CODEX_BIN="${CODEX_JAILS_DIR:-${HOME}/codex-jails}/bin"

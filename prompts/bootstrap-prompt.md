@@ -144,6 +144,7 @@ Generate **all** of the following under `/project/`:
 | `launchers/<slug>` | Launch wrapper following `ai-agent-podman-sandbox` conventions. |
 | `launchers/build-<slug>.sh` | Build/update helper for the durable image. |
 | `README.md` | Project README with next steps (see Phase 4). |
+| `PODMAN_BUILDER.md` | Durable technical build contract for the final container. |
 | `.env.example` | Placeholder env file — no real secrets, only commented examples. |
 | `.gitignore` | Excludes secrets and generated state (see secret-handling rules). |
 | `bootstrap/session.md` | Human-readable session log (see Phase 3). |
@@ -158,20 +159,37 @@ Generate **all** of the following under `/project/`:
   (available at `/start-here-prompts/` in the container if the host mounted it).
   Minimum required fields:
   ```
-  PROJECT_NAME=<name>
-  PROJECT_SLUG=<slug>
-  IMAGE_NAME=localhost/<slug>:latest
-  CONTAINER_HOME=/home/user
-  WORKSPACE_HOST=${CODEX_JAILS_DIR}/projects/<name>/workspace
-  WORKSPACE_CONTAINER=/workspace
-  CONTAINER_NAME=<slug>
-  NETWORK_MODE=bridge
+  PROFILE_NAME="<slug>"
+  CONTAINER_NAME="<slug>"
+  IMAGE_NAME="localhost/<slug>:latest"
+  IMAGE_DIR="${CODEX_JAILS_DIR}/projects/<name>/image"
+  WORKSPACE="${CODEX_JAILS_DIR}/projects/<name>/workspace"
+  CONTAINER_HOME="${CODEX_JAILS_DIR}/projects/<name>/state/home"
+  BASHRC="${WORKSPACE}/.bashrc"
+  WORKDIR="/workspace"
+  BUILD_ARGS=""
+  NETWORK_MODE="bridge"
+  EXTRA_ENV=()
+  EXTRA_VOLUMES=()
+  EXTRA_DEVICES=()
+  EXTRA_HOSTS=()
+  EXTRA_RUN_ARGS=()
   ```
+- The framework will register `/project/profile.env` into
+  `${CODEX_JAILS_DIR}/profiles/<slug>.env` on the host after bootstrap exit and
+  quality-gate transitions so `ai-build`, `ai-launch`, and `ai-list` can work
+  immediately. The generated launcher may delegate directly to
+  `ai-launch <profile-name>` and does not need to perform its own profile-copy
+  step.
 - `launchers/<slug>` must be an executable shell script (`chmod +x`) that calls
   `${CODEX_BIN}/ai-launch <profile-name>` where `CODEX_BIN` is derived from
   `${CODEX_JAILS_DIR:-${HOME}/codex-jails}/bin`.
 - `launchers/build-<slug>.sh` must be executable and call `podman build` with
   `-f image/Containerfile -t <image-tag> image/`.
+- `PODMAN_BUILDER.md` must summarize the final durable contract, including:
+  project purpose, final durable runtime, base image, packages/tools, workdir,
+  mounts/state, ports, env vars, secrets policy, enabled optional services, and
+  explicitly rejected features.
 
 ### Containerfile authoring guidelines
 
@@ -194,6 +212,7 @@ Generate **all** of the following under `/project/`:
 - `.gitignore` **must** exclude all of the following:
   - `bootstrap/agent.env.local`
   - `bootstrap/home/`
+  - `state/`
   - `.env` (the project secrets file — not `.env.example`)
   - `*.env.local`
   - Agent runtime caches: `.codex/`, `.openai/`, `.config/github-copilot/`,
@@ -219,6 +238,16 @@ maintain the following `session.md` sections:
 - **Quality-Gate Result** — Filled in after Phase 4.
 - **Next Recommended Action** — Updated at each phase transition.
 - **Reconciliation Notes** — Any corrections made after a failed build.
+
+When known, also keep these final durable decision fields current in
+`bootstrap/session.json`:
+
+- `"final_runtime"` — the final durable runtime; may be `"none"`
+- `"enabled_optional_features"` — JSON array
+- `"rejected_optional_features"` — JSON array
+
+These fields are authoritative for the final durable project and must override
+bootstrap-time assumptions such as `--boost`.
 
 Update `session.json` status field at each phase transition:
 
@@ -286,14 +315,15 @@ periodically (every ~30 seconds) report to the user:
   Status:   quality-gate-running  (from bootstrap/session.json)
   Log:      bootstrap/build.log   (check with: cat /project/bootstrap/build.log)
   Elapsed:  <elapsed>
-  Timeout:  10 min (default; AI_NEW_BUILD_TIMEOUT overrides)
+  Timeout:  controlled by the host supervisor (default 30 min)
 ```
 
 **Hard constraints while waiting:**
 - Do NOT run `podman build` yourself.
 - Do NOT attempt to access `/run/user/*/podman.sock` or any host socket.
-- Do NOT block indefinitely — after the timeout period (default 10 min), report
-  the timeout and leave the session resumable.
+- Do NOT impose a separate in-container timeout. The host supervisor owns
+  `AI_NEW_BUILD_TIMEOUT` (default 30 min) and will always write a result with
+  status `passed`, `failed`, or `timeout`.
 
 ### Interpreting results
 
@@ -308,6 +338,14 @@ Read `bootstrap/build.result.<id>.json`.  The result file contains:
 
 Report the result clearly:
 > "Quality gate passed!  The Containerfile built successfully."
+
+Before reporting completion, reconcile the durable project against the final
+durable requirements:
+
+- remove durable agent state not allowed by `final_runtime`
+- remove disabled optional-service outputs consistently
+- keep bootstrap-only state under `bootstrap/home/`
+- ensure `PODMAN_BUILDER.md` matches the final durable outputs
 
 Update `session.json` status to `complete`.  Proceed to Phase 5.
 
@@ -340,13 +378,15 @@ Update `session.json` status to `quality-gate-timeout`.
 Record the timeout in `session.md` under Reconciliation Notes.
 Do NOT attempt another build request automatically — leave it for the user to
 resume and retry.
+Do NOT claim the bootstrap is complete, and do NOT instruct the user to build
+or launch the durable image. The only next action is the exact resume command.
 
 ---
 
 ## PHASE 5 — Completion reporting, next steps & session.md narrative (R7, R11.2, AC9, AC16)
 
-When the session reaches a terminal state (build passed, skipped,
-`generated-unvalidated`, timeout, or failure after max repairs):
+When the session reaches a terminal state (build passed, skipped/
+`generated-unvalidated`, or failure after max repairs):
 
 ### 5.1 — Completion statement (R7.2)
 
@@ -360,7 +400,6 @@ Then state the quality-gate outcome:
 | Build passed | "Quality gate: **PASSED** — the Containerfile built successfully." |
 | Build skipped | "Quality gate: **SKIPPED** — the build was not run (see warning below)." |
 | Build failed after repairs | "Quality gate: **FAILED** — the build failed after repair attempts." |
-| Build timed out | "Quality gate: **TIMEOUT** — the build did not complete within the time limit." |
 
 ### 5.2 — Skipped-build warning (R8.3, AC13)
 
@@ -388,6 +427,7 @@ real values from the project.
 # Inside the bootstrap container:
 ls -la /project/image/
 cat /project/image/Containerfile
+cat /project/PODMAN_BUILDER.md
 cat /project/README.md
 cat /project/profile.env
 ```
@@ -417,6 +457,15 @@ ai-launch <name>
 # or using the generated launcher:
 ./launchers/<slug>
 ```
+
+You may also tell the user to verify host-side registration with:
+
+```bash
+ai-list
+```
+
+Do not print Steps 2–4 for `quality-gate-timeout`. A timeout is resumable and
+not complete; print only `ai-new <name> --resume`.
 
 ---
 
