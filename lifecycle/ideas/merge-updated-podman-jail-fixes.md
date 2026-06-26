@@ -1,7 +1,7 @@
 ---
 title: Merge Updated podman-jail Bug Fixes
 type: idea
-status: clarifying
+status: done
 lineage: merge-updated-podman-jail-fixes
 created: "2026-06-26T11:49:07+10:00"
 priority: normal
