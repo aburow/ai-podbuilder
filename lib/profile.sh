@@ -78,6 +78,7 @@ load_profile() {
     if [[ -f "$project_profile" ]]; then
         profile_file="$project_profile"
     elif [[ -f "$legacy_profile" ]]; then
+        _info "Loaded legacy profile '${legacy_profile}'. Move profile.env to '${CODEX_JAILS_DIR}/projects/${name}/profile.env' to use project-local layout."
         profile_file="$legacy_profile"
     else
         _die "Profile not found for '${name}': tried ${project_profile} and ${legacy_profile}"
