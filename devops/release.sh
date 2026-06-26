@@ -4,6 +4,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="aburow/ai-podbuilder"
+SKIP_NETWORK="${RELEASE_SKIP_NETWORK:-0}"
 
 # ---- helpers ----------------------------------------------------------------
 
@@ -109,6 +110,60 @@ verify_asset() {
   info "verify_asset: OK — install.sh (${size} bytes, state=${state})"
 }
 
+# ---- step: verify_public_url (Milestone 4) ----------------------------------
+
+verify_public_url() {
+  local url="https://github.com/${REPO}/releases/latest/download/install.sh"
+
+  if [[ "${SKIP_NETWORK}" == "1" ]]; then
+    printf 'WARNING: public URL verification SKIPPED (RELEASE_SKIP_NETWORK=1) — release is NOT fully verified\n' >&2
+    return 0
+  fi
+
+  info "verify_public_url: checking ${url}"
+
+  local http_code
+  http_code="$(curl -sI -L -o /dev/null -w '%{http_code}' "${url}")"
+
+  [[ "${http_code}" == "200" ]] \
+    || die "verify_public_url" "public URL returned HTTP ${http_code} for ${url}"
+
+  info "verify_public_url: OK — ${url} returned HTTP 200"
+}
+
+# ---- step: verify_content (Milestone 4) -------------------------------------
+
+verify_content() {
+  local url="https://github.com/${REPO}/releases/latest/download/install.sh"
+
+  if [[ "${SKIP_NETWORK}" == "1" ]]; then
+    printf 'WARNING: content verification SKIPPED (RELEASE_SKIP_NETWORK=1) — release is NOT fully verified\n' >&2
+    return 0
+  fi
+
+  info "verify_content: downloading and inspecting ${url}"
+
+  local tmp
+  tmp="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '${tmp}'" RETURN
+
+  curl -fsSL "${url}" -o "${tmp}" \
+    || die "verify_content" "failed to download ${url}"
+
+  local first_line
+  first_line="$(head -1 "${tmp}")"
+  [[ "${first_line}" == "#!/usr/bin/env bash" ]] \
+    || die "verify_content" "unexpected first line: ${first_line}"
+
+  grep -q 'REPO="aburow/ai-podbuilder"' "${tmp}" \
+    || die "verify_content" "stable marker REPO=\"aburow/ai-podbuilder\" not found in downloaded script"
+
+  info "verify_content: OK — valid shebang and known marker present"
+  info "verify_content: first 5 lines:"
+  head -5 "${tmp}"
+}
+
 # ---- main -------------------------------------------------------------------
 
 main() {
@@ -125,8 +180,10 @@ main() {
   create_release "${version}"
   upload_asset "${version}"
   verify_asset "${version}"
+  verify_public_url
+  verify_content
 
-  info "Release ${version} created, asset uploaded and verified"
+  info "Release ${version} created, asset uploaded and fully verified"
 }
 
 main "$@"
