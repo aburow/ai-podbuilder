@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder
 type: requirement
-status: approved
+status: planning
 lineage: curl-install-script
 parent: lifecycle/ideas/curl-install-script.md
 assignees:
