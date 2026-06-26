@@ -1,7 +1,7 @@
 ---
 title: 'AI-New: Interactive Project Bootstrap Container'
 type: idea
-status: in-development
+status: done
 lineage: ai-new
 created: "2026-06-22T19:22:13+10:00"
 priority: normal
