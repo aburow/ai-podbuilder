@@ -48,7 +48,7 @@ fi
 shopt -u nullglob
 
 if [[ ${#profile_files[@]} -eq 0 ]]; then
-    _info "No profiles found"
+    _info "No profiles found (looked in projects/ and profiles/)"
     exit 0
 fi
 

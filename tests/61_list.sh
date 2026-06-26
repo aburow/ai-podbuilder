@@ -70,15 +70,15 @@ test_ai_list_no_ansi_when_piped() {
     return $_fail
 }
 
-test_ai_list_missing_profiles_dir_exits_nonzero() {
+test_ai_list_empty_state_exits_zero() {
     local _fail=0
-    # Point to a dir that has no profiles/ subdirectory
     local empty_dir="${_TMPDIR}/empty_root"
     mkdir -p "$empty_dir"
-    local rc=0
-    CODEX_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
-        "${BIN_DIR}/ai-list" >/dev/null 2>&1 || rc=$?
-    assert_failure $rc "missing profiles dir → non-zero" || _fail=1
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>&1)" || rc=$?
+    assert_success $rc "no profiles anywhere → exit 0 (AC2)" || _fail=1
+    assert_contains "No profiles found" "$out" "empty-state message should be printed" || _fail=1
     return $_fail
 }
 
@@ -111,8 +111,6 @@ EXTRA_DEVICES=()
 EXTRA_HOSTS=()
 EXTRA_RUN_ARGS=()
 EOF
-
-    install_generated_profile "$_proj" "alex"
 
     local out rc=0
     out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
@@ -147,12 +145,8 @@ EOF
     local out rc=0
     out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
-    assert_success $rc "ai-list should succeed when syncing project profiles" || _fail=1
-    assert_contains "alex-sync" "$out" "project profile should be listed even before explicit registration" || _fail=1
-    [[ -f "${_TMPDIR}/profiles/alex-sync.env" ]] || {
-        printf '    ai-list did not sync project profile into profiles/\n' >&2
-        _fail=1
-    }
+    assert_success $rc "ai-list should succeed with project-local profile" || _fail=1
+    assert_contains "alex-sync" "$out" "project-local profile should appear in listing" || _fail=1
     return $_fail
 }
 
@@ -161,7 +155,7 @@ run_test "ai-list prints profile name, image, workspace, state"   test_ai_list_p
 run_test "ai-list state column shows 'absent' with stub podman"   test_ai_list_state_column_absent
 run_test "ai-list column alignment consistent across rows"         test_ai_list_column_alignment
 run_test "ai-list emits no ANSI when piped"                       test_ai_list_no_ansi_when_piped
-run_test "ai-list: missing profiles dir → non-zero"               test_ai_list_missing_profiles_dir_exits_nonzero
+run_test "ai-list: no profiles anywhere → exit 0 with message"    test_ai_list_empty_state_exits_zero
 run_test "ai-list --help exits 0"                                  test_ai_list_help_exits_zero
 run_test "ai-list sees registered generated project"              test_ai_list_sees_registered_generated_project
 run_test "ai-list syncs project profiles automatically"           test_ai_list_syncs_project_profiles_automatically
