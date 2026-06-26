@@ -11,7 +11,7 @@ _bootstrap_containerfile_path() {
     if [[ -n "$_project_root" ]]; then
         echo "${_project_root}/bootstrap/${_BOOTSTRAP_CONTAINERFILE_NAME}"
     else
-        echo "${CODEX_JAILS_DIR}/config/${_BOOTSTRAP_CONTAINERFILE_NAME}"
+        echo "${AI_PODMAN_JAILS_DIR}/config/${_BOOTSTRAP_CONTAINERFILE_NAME}"
     fi
 }
 
@@ -140,7 +140,7 @@ ensure_bootstrap_image() {
         return 0
     fi
 
-    local _build_context="${CODEX_JAILS_DIR}/config"
+    local _build_context="${AI_PODMAN_JAILS_DIR}/config"
     mkdir -p "$_build_context"
 
     _info "Building bootstrap image with '${REG_AGENT_NAME}' installed …"

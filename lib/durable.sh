@@ -385,10 +385,10 @@ validate_launchability_contract() {
     cat > "$_helper" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-source '${CODEX_JAILS_DIR}/lib/common.sh'
-source '${CODEX_JAILS_DIR}/lib/profile.sh'
-source '${CODEX_JAILS_DIR}/lib/policy.sh'
-export CODEX_JAILS_DIR='${CODEX_JAILS_DIR}'
+source '${AI_PODMAN_JAILS_DIR}/lib/common.sh'
+source '${AI_PODMAN_JAILS_DIR}/lib/profile.sh'
+source '${AI_PODMAN_JAILS_DIR}/lib/policy.sh'
+export AI_PODMAN_JAILS_DIR='${AI_PODMAN_JAILS_DIR}'
 resolve_base_dir
 load_profile '$(basename "$_proj")'
 build_normal_run_args

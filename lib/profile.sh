@@ -70,7 +70,7 @@ validate_profile_file() {
 
 load_profile() {
     local name="$1"
-    local project_profile="${CODEX_JAILS_DIR}/projects/${name}/profile.env"
+    local project_profile="${AI_PODMAN_JAILS_DIR}/projects/${name}/profile.env"
     local legacy_profile
     legacy_profile="$(profiles_dir)/$(sanitize_slug "$name").env"
     local profile_file

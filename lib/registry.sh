@@ -102,7 +102,7 @@ validate_adapters() {
 # list_registered_agents
 # Enumerates config/agents.d/*.env and echoes each agent name (one per line).
 list_registered_agents() {
-    local _agents_dir="${CODEX_AGENTS_DIR:-${CODEX_JAILS_DIR}/config/agents.d}"
+    local _agents_dir="${AI_PODMAN_AGENTS_DIR:-${AI_PODMAN_JAILS_DIR}/config/agents.d}"
     local _f _base
     shopt -s nullglob
     local _found=0
@@ -119,7 +119,7 @@ list_registered_agents() {
 # Validates that the named agent has a registry file and its adapter is valid.
 validate_agent() {
     local _agent="$1"
-    local _agents_dir="${CODEX_AGENTS_DIR:-${CODEX_JAILS_DIR}/config/agents.d}"
+    local _agents_dir="${AI_PODMAN_AGENTS_DIR:-${AI_PODMAN_JAILS_DIR}/config/agents.d}"
     local _reg_file="${_agents_dir}/${_agent}.env"
     if [[ ! -f "$_reg_file" ]]; then
         local _registered
@@ -171,7 +171,7 @@ registry_hash() {
 pin_registry() {
     local _agent="$1"
     local _project_root="$2"
-    local _agents_dir="${CODEX_AGENTS_DIR:-${CODEX_JAILS_DIR}/config/agents.d}"
+    local _agents_dir="${AI_PODMAN_AGENTS_DIR:-${AI_PODMAN_JAILS_DIR}/config/agents.d}"
     local _src="${_agents_dir}/${_agent}.env"
     local _dst="${_project_root}/bootstrap/agent.env"
     local _bootstrap_dir="${_project_root}/bootstrap"

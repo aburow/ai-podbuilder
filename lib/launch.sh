@@ -24,7 +24,7 @@ launch_bootstrap() {
     _info "  Entrypoint:    /project/bootstrap/home/start-here.sh"
     _info "  Image:         ${_image_tag}"
 
-    local _prompts_dir="${CODEX_JAILS_DIR}/prompts"
+    local _prompts_dir="${AI_PODMAN_JAILS_DIR}/prompts"
 
     # Build argv array — no shell interpolation of registry values.
     local _args=(

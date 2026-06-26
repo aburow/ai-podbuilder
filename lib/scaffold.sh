@@ -131,7 +131,7 @@ install_codex_auth_boost() {
 # launch so resumed projects receive launcher and agent-argument fixes.
 refresh_bootstrap_entrypoint() {
     local _project_root="$1"
-    local _src_start_here="${CODEX_JAILS_DIR}/start-here.sh"
+    local _src_start_here="${AI_PODMAN_JAILS_DIR}/start-here.sh"
     local _dst_start_here="${_project_root}/bootstrap/home/start-here.sh"
     if [[ -f "$_src_start_here" ]]; then
         mkdir -p "${_project_root}/bootstrap/home"

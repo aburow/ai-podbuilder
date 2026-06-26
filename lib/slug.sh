@@ -3,9 +3,9 @@
 # Source this file; do not execute directly. Requires common.sh.
 
 # _slug_collision_db: path to the slug collision index file.
-# Located at $CODEX_JAILS_DIR/config/slug-index.tsv (name<TAB>slug).
+# Located at $AI_PODMAN_JAILS_DIR/config/slug-index.tsv (name<TAB>slug).
 _slug_db() {
-    echo "${CODEX_JAILS_DIR}/config/slug-index.tsv"
+    echo "${AI_PODMAN_JAILS_DIR}/config/slug-index.tsv"
 }
 
 # sanitize_slug <name>
