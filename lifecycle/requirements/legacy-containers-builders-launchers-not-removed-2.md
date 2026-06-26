@@ -1,7 +1,7 @@
 ---
 title: Remove Legacy Profile-Specific Containers, Builders, and Launchers
 type: requirement
-status: blocked
+status: draft
 lineage: legacy-containers-builders-launchers-not-removed
 parent: lifecycle/defects/legacy-containers-builders-launchers-not-removed.md
 assignees:
@@ -92,17 +92,20 @@ until it is updated.
 - [ ] A short note in the PR/commit records which artifacts were removed and why
       AC12 was retired.
 
-## Open Questions
+## Answers
 
-1. **Keep or drop the esp32/uxplay example profiles?** `profiles/esp32.env.example`,
-   `profiles/uxplay.env.example`, and the esp32/uxplay examples in `docs/profiles.md`
-   are illustrative, not legacy wrappers. Default: keep them. Confirm.
-2. **Is the AC12 backwards-compat contract truly dead?** AC12 was added on purpose.
-   Confirm there are no external desktop entries / muscle-memory dependents before
-   retiring it, or whether a deprecation period is wanted instead of immediate removal.
-3. **"Containers" scope.** No legacy *Containerfiles* are committed (only the current
-   durable template). Does "legacy containers" mean stale *images* on the host/registry
-   (out of scope here), or is this purely about the launcher/builder scripts? Confirm
-   the defect is satisfied by source-artifact removal alone.
-4. **`bin/extra-terminal`** defaults to esp32 but is a generic helper. Remove it, or
-   keep it as a profile-agnostic convenience? Default: remove (self-labelled legacy).
+1. **Keep or drop the esp32/uxplay example profiles?** `profiles/esp32.env.example`, `profiles/uxplay.env.example`, and the esp32/uxplay examples in `docs/profiles.md` are illustrative, not legacy wrappers. Default: keep them. Confirm.
+
+Answer: remove them. There is no need for this any longer as ai-new generates profiles, etc
+
+2. **Is the AC12 backwards-compat contract truly dead?** AC12 was added on purpose. Confirm there are no external desktop entries / muscle-memory dependents before retiring it, or whether a deprecation period is wanted instead of immediate removal.
+
+Answer: Yes, it is truly dead
+
+3. **"Containers" scope.** No legacy *Containerfiles* are committed (only the current durable template). Does "legacy containers" mean stale *images* on the host/registry (out of scope here), or is this purely about the launcher/builder scripts? Confirm the defect is satisfied by source-artifact removal alone.
+
+Answer: removal alone satisfies the requirement
+
+4. **`bin/extra-terminal`** defaults to esp32 but is a generic helper. Remove it, or keep it as a profile-agnostic convenience? Default: remove (self-labelled legacy).
+
+Answer: remove it, there is a replacement
