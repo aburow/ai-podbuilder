@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # 2026 - Anthony Burow - https://github.com/aburow
 # kaos-control SQLite index (generated; do not commit)
+kaos/
 lifecycle/.kaos-control.db
 lifecycle/.kaos-control.db-shm
 lifecycle/.kaos-control.db-wal
