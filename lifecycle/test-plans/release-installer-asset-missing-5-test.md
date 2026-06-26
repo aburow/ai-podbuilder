@@ -1,7 +1,7 @@
 ---
 title: Reliable release process that publishes and verifies the install.sh asset — Test Plan
 type: plan-test
-status: draft
+status: approved
 lineage: release-installer-asset-missing
 parent: lifecycle/requirements/release-installer-asset-missing-2.md
 ---
