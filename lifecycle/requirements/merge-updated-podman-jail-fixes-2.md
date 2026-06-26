@@ -1,7 +1,7 @@
 ---
 title: Merge Updated podman-jail Bug Fixes
 type: requirement
-status: approved
+status: planning
 lineage: merge-updated-podman-jail-fixes
 parent: lifecycle/ideas/merge-updated-podman-jail-fixes.md
 assignees:
