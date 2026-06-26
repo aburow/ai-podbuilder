@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder
 type: requirement
-status: blocked
+status: draft
 lineage: curl-install-script
 parent: lifecycle/ideas/curl-install-script.md
 assignees:
@@ -200,7 +200,7 @@ only ever applies to a self-hosting repo checkout, not a curl install.
 - **AC10** Running a command after install emits no `CODEX_JAILS_DIR`
   deprecation warning (the env file sets only the canonical variable).
 
-## Open Questions
+## Answers
 
 - **Q2 (fetch source).** What is the canonical fetch source — `git clone`/sparse checkout, a per-file raw download from a hosting URL, or a release tarball? And what ref does the installer pin to by default (`main`, latest tag, or a version the script embeds)? This determines how updates detect "newer".
 
