@@ -108,27 +108,6 @@ EOF
     _info "Scaffold created at ${PROJECT_ROOT}"
 }
 
-# install_generated_profile <project_root> <name>
-# Copies the current project profile into the host profiles directory so
-# ai-build, ai-launch, and ai-list can discover it without using a per-project
-# launcher first.
-install_generated_profile() {
-    local _proj="$1"
-    local _name="$2"
-    local _src="${_proj}/profile.env"
-    local _slug
-    _slug="$(sanitize_slug "$_name")"
-    local _dst_dir
-    _dst_dir="$(profiles_dir)"
-    local _dst="${_dst_dir}/${_slug}.env"
-
-    [[ -f "$_src" ]] || return 0
-
-    mkdir -p "$_dst_dir"
-    cp "$_src" "$_dst"
-    _info "Registered host profile: ${_dst}"
-}
-
 # install_codex_auth_boost <source_auth_json>
 # Copies a user-approved Codex auth.json into both the bootstrap container HOME
 # and the durable container HOME. The file contents are never read.
