@@ -1,7 +1,7 @@
 ---
 title: Reliable release process that publishes and verifies the install.sh asset — Frontend Plan
 type: plan-frontend
-status: approved
+status: in-development
 lineage: release-installer-asset-missing
 parent: lifecycle/requirements/release-installer-asset-missing-2.md
 ---
