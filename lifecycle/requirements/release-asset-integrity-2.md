@@ -1,7 +1,7 @@
 ---
 title: Publish and verify a SHA-256 checksum for the install.sh release asset
 type: requirement
-status: blocked
+status: draft
 lineage: release-asset-integrity
 created: "2026-06-26T00:00:00+10:00"
 priority: medium
@@ -130,13 +130,18 @@ verified variant MUST be shown alongside it.
 6. The README shows a working verify-before-run one-liner using the published
    `.sha256` asset.
 
-## Open Questions
+## Answers
 
 1. **Signing:** Should we additionally GPG-sign or sigstore/cosign-sign the
    checksum file for supply-chain transparency, or is a published SHA-256
    sufficient for now? (Drives whether a follow-up lineage is needed.)
-2. **Checksum format:** Single-file `sha256sum` output (`<hash>  install.sh`) vs.
-   a bare hash — does any planned consumer need a specific format?
-3. **Regression test:** Should a test in `tests/` assert the release flow fails
-   on a tampered/mismatched checksum (mirroring the empty-assets regression test
-   from the parent lineage)?
+
+Answer: SHA-256 is sufficient
+
+2. **Checksum format:** Single-file `sha256sum` output (`<hash>  install.sh`) vs. a bare hash — does any planned consumer need a specific format?
+
+Answer: single file but it needs to be calculated against the tgz not install.sh
+
+3. **Regression test:** Should a test in `tests/` assert the release flow fails on a tampered/mismatched checksum (mirroring the empty-assets regression test from the parent lineage)?
+
+Answer: okay
