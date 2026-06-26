@@ -127,4 +127,4 @@ Answer: No because I haven't started numbering releases yet
 
 Q5. **Default directory rename.** Should the on-disk default eventually move from `${HOME}/codex-jails` to e.g. `${HOME}/ai-podman-jails`, or is that explicitly out of scope?
 
-Answer: It should be set to ai-podman-jails for a new install. The user can define a different directory. We should have yes/no questions to allow the user to set in the setup interactively, using defaults, using existing environment... because the setup will have to run over the top of existing installs in order to do updates.
+Answer: It should be set to ai-podman-jails for a new install. The user can define a different directory. We should have yes/no questions to allow the user to set in the setup interactively, using defaults, using existing environment... because the setup will have to run over the top of existing installs in order to do updates - this work is in preparation of the next stage of the project - creating an installion system. That part is out of scope but the environment vars are a critical roadblocker at the moment.
