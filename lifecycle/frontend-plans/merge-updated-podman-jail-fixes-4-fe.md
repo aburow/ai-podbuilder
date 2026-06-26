@@ -1,7 +1,7 @@
 ---
 title: Merge Updated podman-jail Bug Fixes — Frontend Plan
 type: plan-frontend
-status: in-development
+status: done
 lineage: merge-updated-podman-jail-fixes
 parent: lifecycle/requirements/merge-updated-podman-jail-fixes-2.md
 ---
@@ -67,6 +67,6 @@ only outright contradictions introduced by the merge; do not rewrite docs.
 contradiction is found).
 
 **Acceptance criteria:**
-- [ ] No stale instruction in README contradicts merged CLI behavior.
-- [ ] Any doc edit is committed in the docs/templates focused commit (M5 of the
+- [x] No stale instruction in README contradicts merged CLI behavior.
+- [x] Any doc edit is committed in the docs/templates focused commit (M5 of the
       backend plan).
