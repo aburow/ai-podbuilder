@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder — Backend Plan
 type: plan-backend
-status: approved
+status: in-development
 lineage: curl-install-script
 parent: lifecycle/requirements/curl-install-script-3.md
 ---
