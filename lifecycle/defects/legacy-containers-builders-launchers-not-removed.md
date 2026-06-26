@@ -1,7 +1,7 @@
 ---
 title: Legacy Containers, Builders, and Launchers Not Removed from Repo and GitHub
 type: defect
-status: approved
+status: clarifying
 lineage: legacy-containers-builders-launchers-not-removed
 created: "2026-06-26T12:30:35+10:00"
 priority: normal
