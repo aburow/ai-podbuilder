@@ -1,7 +1,7 @@
 ---
 title: Remove Legacy Profile-Specific Containers, Builders, and Launchers — Test Plan
 type: plan-test
-status: draft
+status: abandoned
 lineage: legacy-containers-builders-launchers-not-removed
 parent: lifecycle/requirements/legacy-containers-builders-launchers-not-removed-2.md
 ---
