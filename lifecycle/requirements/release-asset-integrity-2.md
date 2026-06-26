@@ -1,7 +1,7 @@
 ---
 title: Publish and verify a SHA-256 checksum for the install.sh release asset
 type: requirement
-status: approved
+status: planning
 lineage: release-asset-integrity
 created: "2026-06-26T00:00:00+10:00"
 priority: medium
