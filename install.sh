@@ -76,7 +76,6 @@ fetch_release() {
   srcdirs=( "${STAGE}"/src/*/ )
   [[ ${#srcdirs[@]} -eq 1 && -d "${srcdirs[0]}" ]] \
     || die "fetch_release" "Unexpected tarball layout — expected one top-level dir"
-  # shellcheck disable=SC2034
   SRCROOT="${srcdirs[0]}"
 }
 
@@ -103,7 +102,6 @@ install_files() {
 
   # Detect update vs fresh install
   if [[ -d "${INSTALL_ROOT}/bin" ]]; then
-    # shellcheck disable=SC2034
     WAS_UPDATE=1
   fi
 
@@ -196,6 +194,19 @@ migrate_legacy() {
   fi
 }
 
+# ---------- milestone 8: post-install report ----------
+report() {
+  local kind="fresh install"
+  if [[ "${WAS_UPDATE}" -eq 1 ]]; then
+    kind="update"
+  fi
+  local env_file="${HOME}/.bashrc.d/podbuilder.sh"
+  printf '\nai-podbuilder %s complete.\n' "${kind}"
+  printf '  Install root : %s\n' "${INSTALL_ROOT}"
+  printf '  Env file     : %s\n\n' "${env_file}"
+  printf 'To activate in this shell:\n  source "%s"\n\n' "${env_file}"
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
@@ -208,3 +219,4 @@ install_files
 write_env_file
 ensure_sourced
 migrate_legacy
+report
