@@ -4,13 +4,13 @@ type: defect
 status: abandoned
 lineage: start-here-lib-host-execution
 created: "2026-06-23T00:00:00+10:00"
-priority: high
+priority: low
+parent: lifecycle/test-plans/ai-new-container-setup-failures-5-test.md
 labels:
     - defect
 assignees:
     - role: backend-developer
       who: agent
-parent: lifecycle/test-plans/ai-new-container-setup-failures-5-test.md
 ---
 
 # start-here.sh: /start-here-lib mount guard blocks all host-side test execution
