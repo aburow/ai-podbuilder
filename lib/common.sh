@@ -26,16 +26,18 @@ _prefer_canonical() {
     _deprecation_warn "$_old" "$_new"
 }
 
-# Sets CODEX_JAILS_DIR: honours the env var if already set, otherwise derives
-# from this file's location so the repo is self-hosting from any workspace.
+# Sets AI_PODMAN_JAILS_DIR (and mirrors CODEX_JAILS_DIR): prefers AI_PODMAN_*,
+# falls back to CODEX_* (with deprecation warning), then derives from this
+# file's location so the repo is self-hosting from any workspace.
 resolve_base_dir() {
-    if [[ -n "${CODEX_JAILS_DIR:-}" ]]; then
-        export CODEX_JAILS_DIR
-        return 0
+    _prefer_canonical AI_PODMAN_JAILS_DIR CODEX_JAILS_DIR
+    if [[ -z "${AI_PODMAN_JAILS_DIR:-}" ]]; then
+        local _src_dir
+        _src_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        AI_PODMAN_JAILS_DIR="$(cd "${_src_dir}/.." && pwd)"
     fi
-    local _src_dir
-    _src_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    CODEX_JAILS_DIR="$(cd "${_src_dir}/.." && pwd)"
+    export AI_PODMAN_JAILS_DIR
+    CODEX_JAILS_DIR="$AI_PODMAN_JAILS_DIR"
     export CODEX_JAILS_DIR
 }
 
@@ -50,13 +52,17 @@ require_cmd() {
 }
 
 profiles_dir() {
-    echo "${CODEX_JAILS_DIR}/profiles"
+    echo "${AI_PODMAN_JAILS_DIR}/profiles"
 }
 
-# Sets CODEX_JAILS_DIR for ai-new: honours the env var if already set,
-# otherwise defaults to $HOME/codex-jails (R2.1).
+# Sets AI_PODMAN_JAILS_DIR for ai-new: prefers AI_PODMAN_*, falls back to
+# CODEX_* (with deprecation warning), defaults to $HOME/codex-jails (R2.1).
+# Mirrors CODEX_JAILS_DIR for compatibility.
 resolve_jails_dir() {
-    CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-${HOME}/codex-jails}"
+    _prefer_canonical AI_PODMAN_JAILS_DIR CODEX_JAILS_DIR
+    AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-${HOME}/codex-jails}"
+    export AI_PODMAN_JAILS_DIR
+    CODEX_JAILS_DIR="$AI_PODMAN_JAILS_DIR"
     export CODEX_JAILS_DIR
 }
 
