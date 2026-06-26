@@ -17,6 +17,47 @@ network_args() {
     printf '%s\n' "--network" "$net"
 }
 
+# Emits optional GUI/display forwarding args based on GUI_FORWARD.
+# Supported values:
+#   "" / "none"  -> disabled (default)
+#   "x11"        -> pass DISPLAY and mount the X11 socket directory, plus an
+#                   Xauthority file when available.
+gui_args() {
+    local mode="${GUI_FORWARD:-}"
+    case "$mode" in
+        ""|none)
+            return 0
+            ;;
+        x11)
+            if [[ -z "${DISPLAY:-}" ]]; then
+                _warn "GUI_FORWARD=x11 requested but DISPLAY is unset; launching without GUI forwarding"
+                return 0
+            fi
+
+            local socket_dir="${GUI_X11_SOCKET_DIR:-/tmp/.X11-unix}"
+            if [[ -d "$socket_dir" ]]; then
+                printf '%s\n' "-v" "${socket_dir}:/tmp/.X11-unix:ro"
+            else
+                _warn "GUI_FORWARD=x11 requested but X11 socket dir is missing: ${socket_dir}"
+            fi
+
+            printf '%s\n' "-e" "DISPLAY=${DISPLAY}"
+            printf '%s\n' "-e" "QT_X11_NO_MITSHM=1"
+
+            local xauth_host="${GUI_XAUTHORITY_HOST:-${XAUTHORITY:-${HOME}/.Xauthority}}"
+            if [[ -f "$xauth_host" ]]; then
+                printf '%s\n' "-v" "${xauth_host}:/tmp/.ai-launch.Xauthority:ro"
+                printf '%s\n' "-e" "XAUTHORITY=/tmp/.ai-launch.Xauthority"
+            else
+                _warn "GUI_FORWARD=x11 requested but Xauthority file is missing: ${xauth_host}"
+            fi
+            ;;
+        *)
+            _warn "Unsupported GUI_FORWARD mode '${mode}'; launching without GUI forwarding"
+            ;;
+    esac
+}
+
 # Emits --env-file if ENV_FILE is set. Warns and skips if the file is missing.
 secret_args() {
     if [[ -z "${ENV_FILE:-}" ]]; then
@@ -66,16 +107,29 @@ build_normal_run_args() {
     # Workspace mount — exactly one bind mount (R5.2).
     _NORMAL_RUN_ARGS+=("-v" "${WORKSPACE}:/workspace:Z")
 
+    # Persist container HOME state on the host, mounted at the same path
+    # that HOME points to inside the container.
+    _NORMAL_RUN_ARGS+=("-v" "${CONTAINER_HOME}:${CONTAINER_HOME}:Z")
+
     # Container HOME override (R5.4).
     _NORMAL_RUN_ARGS+=("-e" "HOME=${CONTAINER_HOME}")
 
     # Working directory.
     _NORMAL_RUN_ARGS+=("-w" "$WORKDIR")
 
+    # Ensure the project rcfile exists before we create or start the container.
+    mkdir -p "$(dirname "$BASHRC")"
+    touch "$BASHRC"
+
     # Network (R6.1).
     while IFS= read -r arg; do
         _NORMAL_RUN_ARGS+=("$arg")
     done < <(network_args)
+
+    # Optional GUI/display forwarding.
+    while IFS= read -r arg; do
+        _NORMAL_RUN_ARGS+=("$arg")
+    done < <(gui_args)
 
     # Secrets (R7).
     while IFS= read -r arg; do
@@ -98,8 +152,12 @@ build_builder_run_args() {
 
     # Workspace mount for build artifacts.
     _BUILDER_RUN_ARGS+=("-v" "${WORKSPACE}:/workspace:Z")
+    _BUILDER_RUN_ARGS+=("-v" "${CONTAINER_HOME}:${CONTAINER_HOME}:Z")
     _BUILDER_RUN_ARGS+=("-e" "HOME=${CONTAINER_HOME}")
     _BUILDER_RUN_ARGS+=("-w" "$WORKDIR")
+
+    mkdir -p "$(dirname "$BASHRC")"
+    touch "$BASHRC"
 
     # Profile EXTRA_VOLUMES only (caches, not extra devices/env in builder).
     local item
