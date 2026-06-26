@@ -131,6 +131,19 @@ install_files() {
   chmod +x "${INSTALL_ROOT}"/bin/* "${INSTALL_ROOT}/start-here.sh"
 }
 
+# ---------- milestone 5: owned, idempotent env file ----------
+write_env_file() {
+  local env_file="${HOME}/.bashrc.d/podbuilder.sh"
+  mkdir -p "${HOME}/.bashrc.d"
+  # Overwrite whole file each run — prevents duplicate blocks on re-runs (R5.3)
+  cat >"${env_file}" <<EOF
+# Managed by ai-podbuilder install.sh — safe to delete.
+export AI_PODMAN_JAILS_DIR="${INSTALL_ROOT}"
+export PATH="${INSTALL_ROOT}/bin:\${PATH}"
+EOF
+  info "Env file: ${env_file}"
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
@@ -140,3 +153,4 @@ INSTALL_ROOT="${1:-${HOME}/ai-podman-jails}"
 check_prereqs
 fetch_release
 install_files
+write_env_file
