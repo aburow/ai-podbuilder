@@ -149,12 +149,8 @@ EOF
         load_profile recoverme
         printf 'PROFILE_NAME=%s\n' \"\$PROFILE_NAME\"
     " 2>&1)" || rc=$?
-    assert_success $rc "load_profile should recover a missing registered profile from projects/" || _fail=1
+    assert_success $rc "load_profile should load a project-local profile from projects/" || _fail=1
     assert_contains "PROFILE_NAME=recoverme" "$out" || _fail=1
-    [[ -f "${_TMPDIR}/profiles/recoverme.env" ]] || {
-        printf '    recovered profile was not written into profiles/\n' >&2
-        _fail=1
-    }
     return $_fail
 }
 
