@@ -1,7 +1,7 @@
 ---
 title: 'start-here.sh: /start-here-lib mount guard blocks all host-side test execution'
 type: defect
-status: draft
+status: abandoned
 lineage: start-here-lib-host-execution
 created: "2026-06-23T00:00:00+10:00"
 priority: high
