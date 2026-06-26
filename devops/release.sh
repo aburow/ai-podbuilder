@@ -183,7 +183,15 @@ main() {
   verify_public_url
   verify_content
 
-  info "Release ${version} created, asset uploaded and fully verified"
+  printf '\n'
+  info "Release ${version} VERIFIED"
+  info "  Asset : install.sh"
+  info "  URL   : https://github.com/${REPO}/releases/latest/download/install.sh"
+  if [[ "${SKIP_NETWORK}" == "1" ]]; then
+    info "  Status: asset verified — public URL/content checks SKIPPED"
+  else
+    info "  Status: fully verified (asset uploaded + public URL 200 + content OK)"
+  fi
 }
 
 main "$@"
