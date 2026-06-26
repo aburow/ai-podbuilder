@@ -1,7 +1,7 @@
 ---
 title: Remove Legacy Profile-Specific Containers, Builders, and Launchers
 type: requirement
-status: draft
+status: approved
 lineage: legacy-containers-builders-launchers-not-removed
 parent: lifecycle/defects/legacy-containers-builders-launchers-not-removed.md
 assignees:
