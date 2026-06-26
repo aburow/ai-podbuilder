@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization
 type: requirement
-status: approved
+status: planning
 lineage: project-local-profiles
 parent: lifecycle/ideas/project-local-profiles.md
 assignees:
