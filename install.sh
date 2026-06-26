@@ -48,24 +48,30 @@ fetch_release() {
   STAGE="$(mktemp -d)"
   trap 'rm -rf "${STAGE}"' EXIT
 
-  local ref="${AI_PODMAN_REF:-}"
-  local url
-
-  if [[ -n "${ref}" ]]; then
-    url="https://github.com/${REPO}/tarball/${ref}"
+  # ponytail: local-tarball bypass for offline tests; not used in production.
+  if [[ -n "${AI_PODMAN_INSTALL_TARBALL:-}" ]]; then
+    cp "${AI_PODMAN_INSTALL_TARBALL}" "${STAGE}/src.tar.gz" \
+      || die "fetch_release" "Could not copy local tarball: ${AI_PODMAN_INSTALL_TARBALL}"
   else
-    local api
-    api="https://api.github.com/repos/${REPO}/releases/latest"
-    url="$(curl -fsSL "${api}" \
-      | grep '"tarball_url"' \
-      | head -1 \
-      | sed 's/.*"tarball_url": *"\([^"]*\)".*/\1/')"
-    [[ -n "${url}" ]] || die "fetch_release" "Could not parse tarball URL from ${api}"
-  fi
+    local ref="${AI_PODMAN_REF:-}"
+    local url
 
-  info "Fetching ${url}"
-  curl -fsSL "${url}" -o "${STAGE}/src.tar.gz" \
-    || die "fetch_release" "Download failed: ${url}"
+    if [[ -n "${ref}" ]]; then
+      url="https://github.com/${REPO}/tarball/${ref}"
+    else
+      local api
+      api="https://api.github.com/repos/${REPO}/releases/latest"
+      url="$(curl -fsSL "${api}" \
+        | grep '"tarball_url"' \
+        | head -1 \
+        | sed 's/.*"tarball_url": *"\([^"]*\)".*/\1/')"
+      [[ -n "${url}" ]] || die "fetch_release" "Could not parse tarball URL from ${api}"
+    fi
+
+    info "Fetching ${url}"
+    curl -fsSL "${url}" -o "${STAGE}/src.tar.gz" \
+      || die "fetch_release" "Download failed: ${url}"
+  fi
 
   mkdir -p "${STAGE}/src"
   tar -xzf "${STAGE}/src.tar.gz" -C "${STAGE}/src" \
@@ -113,6 +119,7 @@ install_files() {
     if [[ -d "${STAGE}/out/${item}" ]]; then
       rm -rf "${INSTALL_ROOT}/${item}.new"
       cp -a "${STAGE}/out/${item}" "${INSTALL_ROOT}/${item}.new"
+      rm -rf "${INSTALL_ROOT:?}/${item:?}"
       mv -T "${INSTALL_ROOT}/${item}.new" "${INSTALL_ROOT}/${item}"
     else
       cp -a "${STAGE}/out/${item}" "${INSTALL_ROOT}/${item}"
