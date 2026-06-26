@@ -1,7 +1,7 @@
 ---
 title: Remove Legacy Profile-Specific Containers, Builders, and Launchers — Frontend Plan
 type: plan-frontend
-status: draft
+status: abandoned
 lineage: legacy-containers-builders-launchers-not-removed
 parent: lifecycle/requirements/legacy-containers-builders-launchers-not-removed-2.md
 ---
