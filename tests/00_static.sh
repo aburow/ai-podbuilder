@@ -94,7 +94,16 @@ _run_static() {
     fi
 }
 
+test_shellcheck_install_sh() {
+    if ! command -v shellcheck >/dev/null 2>&1; then
+        _SKIP_REASON="shellcheck not in PATH"
+        return 0
+    fi
+    shellcheck -S warning "${REPO_ROOT}/install.sh" 2>&1
+}
+
 _run_static "shellcheck: bin/ and lib/" test_shellcheck_bin_lib
+_run_static "shellcheck: install.sh" test_shellcheck_install_sh
 _run_static "set -euo pipefail present in every bin/ script" test_pipefail_in_bin_scripts
 _run_static "no hardcoded /var/home/ in scripts" test_no_hardcoded_username_or_varhome
 
