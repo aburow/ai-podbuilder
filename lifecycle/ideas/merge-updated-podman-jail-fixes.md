@@ -16,3 +16,5 @@ An updated version of the podman-jail code containing bug fixes has been placed 
 The review should diff the updated code against the current package source, identify all changes, verify correctness of the fixes, and integrate them cleanly without regressions.
 
 Once reviewed, the merged changes should be committed with appropriate references to the defects addressed.
+
+Ensure appropriate git adds and git commits
