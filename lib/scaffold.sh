@@ -12,17 +12,7 @@ create_scaffold() {
     scaffold_layout "$PROJECT_ROOT"
     register_slug "$_name" "$_slug"
 
-    # Copy start-here.sh into the scaffold home so it is available at
-    # /project/bootstrap/home/start-here.sh inside the container (B1, R1.2, R2.2).
-    # The execute bit is set here, independent of the host checkout's mode (R2.2).
-    local _src_start_here="${CODEX_JAILS_DIR}/start-here.sh"
-    local _dst_start_here="${PROJECT_ROOT}/bootstrap/home/start-here.sh"
-    if [[ -f "$_src_start_here" ]]; then
-        cp "$_src_start_here" "$_dst_start_here"
-        chmod +x "$_dst_start_here"
-    else
-        _die "Cannot find start-here.sh at ${_src_start_here}"
-    fi
+    refresh_bootstrap_entrypoint "$PROJECT_ROOT"
 
     # Write profile.env (minimal placeholder; agent-specific content from FE plan).
     cat > "${PROJECT_ROOT}/profile.env" <<EOF
@@ -41,7 +31,147 @@ See \`bootstrap/session.md\` for session continuity notes.
 Run \`/project/bootstrap/home/start-here.sh\` inside the bootstrap container to begin.
 EOF
 
+    cat > "${PROJECT_ROOT}/.env.example" <<EOF
+# .env.example — ${_name}
+# Copy this file to .env and fill in real values.
+# .env is gitignored — never commit real secrets.
+#
+# EXAMPLE_SECRET=<your-value-here>
+EOF
+
+    cat > "${PROJECT_ROOT}/.gitignore" <<'EOF'
+bootstrap/agent.env.local
+bootstrap/home/
+state/
+.env
+*.env.local
+.codex/
+.openai/
+.config/github-copilot/
+.config/gemini/
+.codex/
+__pycache__/
+node_modules/
+target/
+dist/
+build/
+EOF
+
+    cat > "${PROJECT_ROOT}/PODMAN_BUILDER.md" <<EOF
+# PODMAN_BUILDER — ${_name}
+
+## Project purpose
+
+Pending interview completion.
+
+## Final durable agent runtime
+
+unknown
+
+## Base image
+
+unknown
+
+## Required packages and tools
+
+Pending interview completion.
+
+## Workdir
+
+unknown
+
+## Mounts and persistent state
+
+Pending interview completion.
+
+## Ports
+
+Pending interview completion.
+
+## Environment variables
+
+Pending interview completion.
+
+## Secrets policy
+
+Use runtime-mounted secrets or .env. Do not bake secrets into layers.
+
+## Enabled optional services
+
+none
+
+## Explicitly rejected features
+
+none
+EOF
+
     _info "Scaffold created at ${PROJECT_ROOT}"
+}
+
+# install_generated_profile <project_root> <name>
+# Copies the current project profile into the host profiles directory so
+# ai-build, ai-launch, and ai-list can discover it without using a per-project
+# launcher first.
+install_generated_profile() {
+    local _proj="$1"
+    local _name="$2"
+    local _src="${_proj}/profile.env"
+    local _slug
+    _slug="$(sanitize_slug "$_name")"
+    local _dst_dir
+    _dst_dir="$(profiles_dir)"
+    local _dst="${_dst_dir}/${_slug}.env"
+
+    [[ -f "$_src" ]] || return 0
+
+    mkdir -p "$_dst_dir"
+    cp "$_src" "$_dst"
+    _info "Registered host profile: ${_dst}"
+}
+
+# install_codex_auth_boost <source_auth_json>
+# Copies a user-approved Codex auth.json into both the bootstrap container HOME
+# and the durable container HOME. The file contents are never read.
+install_codex_auth_boost() {
+    local _src="$1"
+    local _bootstrap_dest="${PROJECT_BOOTSTRAP_HOME}/.codex/auth.json"
+    local _state_dest="${PROJECT_STATE_HOME}/.codex/auth.json"
+
+    _src="$(normalize_boost_auth_source "$_src")"
+
+    [[ -f "$_src" ]] || _die "--boost auth file not found: ${_src}"
+
+    mkdir -p "$(dirname "$_bootstrap_dest")" "$(dirname "$_state_dest")"
+    install -m 600 "$_src" "$_bootstrap_dest"
+    install -m 600 "$_src" "$_state_dest"
+    _info "Codex auth.json copied into bootstrap and durable container homes."
+}
+
+# refresh_bootstrap_entrypoint <project_root>
+# start-here.sh is framework-owned, not agent-generated. Refresh it before every
+# launch so resumed projects receive launcher and agent-argument fixes.
+refresh_bootstrap_entrypoint() {
+    local _project_root="$1"
+    local _src_start_here="${CODEX_JAILS_DIR}/start-here.sh"
+    local _dst_start_here="${_project_root}/bootstrap/home/start-here.sh"
+    if [[ -f "$_src_start_here" ]]; then
+        mkdir -p "${_project_root}/bootstrap/home"
+        cp "$_src_start_here" "$_dst_start_here"
+        chmod +x "$_dst_start_here"
+    else
+        _die "Cannot find start-here.sh at ${_src_start_here}"
+    fi
+}
+
+# normalize_boost_auth_source <path>
+# Expands a literal leading ~ and echoes the resulting path.
+normalize_boost_auth_source() {
+    local _src="$1"
+    case "$_src" in
+        \~) echo "${HOME}" ;;
+        \~/*) echo "${HOME}/${_src#~/}" ;;
+        *) echo "$_src" ;;
+    esac
 }
 
 # scaffold_layout <project_root>
