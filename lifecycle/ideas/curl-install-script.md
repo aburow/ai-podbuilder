@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder
 type: idea
-status: approved
+status: clarifying
 lineage: curl-install-script
 created: "2026-06-26T14:34:09+10:00"
 priority: normal
