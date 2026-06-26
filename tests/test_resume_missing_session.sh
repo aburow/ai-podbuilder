@@ -9,7 +9,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _ai_new() {
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
 }
 
 _setup_agents() {

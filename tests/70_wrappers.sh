@@ -13,7 +13,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 _dry_run_wrapper() {
     local wrapper="$1"
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/${wrapper}" 2>/dev/null
 }
 
@@ -57,7 +57,7 @@ test_update_codex_esp32_image_delegates_to_ai_build() {
     # ai-build will fail because IMAGE_DIR doesn't exist; that's expected.
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/update-codex-esp32-image" 2>&1)" || rc=$?
     # Must fail because IMAGE_DIR absent — but must reference esp32
     assert_failure $rc "delegates to ai-build (fails without IMAGE_DIR)" || _fail=1
@@ -68,7 +68,7 @@ test_update_codex_esp32_image_delegates_to_ai_build() {
 test_update_codex_uxplay_image_delegates_to_ai_build() {
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/update-codex-uxplay-image" 2>&1)" || rc=$?
     assert_failure $rc "delegates to ai-build (fails without IMAGE_DIR)" || _fail=1
     assert_contains "uxplay" "$out" "references uxplay profile" || _fail=1
@@ -79,7 +79,7 @@ test_extra_terminal_delegates_to_ai_terminal() {
     # extra-terminal defaults to esp32; ai-terminal exits non-zero when not running.
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/extra-terminal" 2>&1)" || rc=$?
     assert_failure $rc "extra-terminal → ai-terminal → non-zero (not running)" || _fail=1
     assert_contains "esp32" "$out" "references esp32 by default" || _fail=1

@@ -1,7 +1,7 @@
 ---
 title: Relocate start-here.sh out of the user-accessible host project tree — Frontend Plan
 type: plan-frontend
-status: draft
+status: done
 lineage: start-here-sh-exposed-location
 parent: lifecycle/backend-plans/start-here-sh-exposed-location-3-be.md
 created: "2026-06-26T00:00:00+10:00"

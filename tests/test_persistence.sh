@@ -62,7 +62,7 @@ test_generated_files_persist_after_simulated_container_removal() {
 
     # Simulate container lifecycle: the project tree is a volume mount, so it survives.
     # Verify all generated files are still present after "container removal" (no-op here
-    # since files are on the host under CODEX_JAILS_DIR).
+    # since files are on the host under AI_PODMAN_JAILS_DIR).
     local _f
     for _f in \
         "image/Containerfile" \
@@ -101,16 +101,16 @@ test_generated_files_under_correct_path() {
     local _fail=0
     _setup_agents
     # Run ai-new with stub podman to create scaffold.
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" persistnew --agent codex >/dev/null 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" persistnew --agent codex >/dev/null 2>&1 || true
 
     local _proj="${_TMPDIR}/projects/persistnew"
     [[ -d "$_proj" ]] || {
         printf '    Project not created at expected path\n' >&2
         _fail=1
     }
-    # Verify the tree is rooted under CODEX_JAILS_DIR/projects/.
+    # Verify the tree is rooted under AI_PODMAN_JAILS_DIR/projects/.
     [[ "$_proj" == "${_TMPDIR}/projects/"* ]] || {
-        printf '    Project not under CODEX_JAILS_DIR/projects/\n' >&2
+        printf '    Project not under AI_PODMAN_JAILS_DIR/projects/\n' >&2
         _fail=1
     }
     return $_fail
@@ -172,8 +172,8 @@ test_pinned_agent_env_persists_independently_of_global_registry() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 pin_registry 'codex' '${_proj}'
 SCRIPT
     bash "${_TMPDIR}/pin_persist_helper.sh" >/dev/null 2>&1 || true
@@ -195,7 +195,7 @@ SCRIPT
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "generated files persist after simulated container removal" test_generated_files_persist_after_simulated_container_removal
 run_test "agent config persists under bootstrap/home"               test_agent_config_persists_under_bootstrap_home
-run_test "generated files under correct CODEX_JAILS_DIR path"       test_generated_files_under_correct_path
+run_test "generated files under correct AI_PODMAN_JAILS_DIR path"       test_generated_files_under_correct_path
 run_test "bootstrap/home is inside project tree, not under \$HOME"  test_bootstrap_home_is_inside_project_tree
 run_test "resume can read persisted session.json"                    test_resume_reads_session_json_from_persisted_project
 run_test "pinned agent.env persists after global registry removed"   test_pinned_agent_env_persists_independently_of_global_registry

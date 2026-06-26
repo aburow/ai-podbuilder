@@ -32,7 +32,7 @@ _parse_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 parse_registry_file '${_path}'
 ${_script}
 SCRIPT

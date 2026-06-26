@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# Launcher: esp32 profile → codex mode (non-interactive, for desktop use)
-# Intended as a desktop / Podman-Desktop entry point.
-exec ai-launch esp32 codex --non-interactive

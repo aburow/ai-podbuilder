@@ -22,15 +22,16 @@ AGENT_PROMPT_MODE="default"
 AGENT_AUTH_CHECK_ARGV="codex|--version"
 AEOF
     # Stub start-here.sh required by create_scaffold (B1).
-    printf '#!/usr/bin/env bash\n# stub\n' > "${_TMPDIR}/start-here.sh"
-    chmod +x "${_TMPDIR}/start-here.sh"
+    mkdir -p "${_TMPDIR}/lib"
+    printf '#!/usr/bin/env bash\n# stub\n' > "${_TMPDIR}/lib/start-here.sh"
+    chmod +x "${_TMPDIR}/lib/start-here.sh"
 }
 
 _run_ai_new_create() {
     local _name="$1"
     # Do NOT use command substitution ($()) here — the heartbeat background job in
     # ai-new keeps the process group alive indefinitely inside $().
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$_name" --agent codex >/dev/null 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$_name" --agent codex >/dev/null 2>&1 || true
 }
 
 _scaffold_layout_helper() {
@@ -43,8 +44,8 @@ source '${LIB_DIR}/registry.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/scaffold.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 project_paths 'myproject'
 create_scaffold 'myproject'
 SCRIPT
@@ -114,12 +115,12 @@ test_scaffold_under_correct_jails_dir() {
     local _fail=0
     _setup_agents
     _run_ai_new_create "jailstest" >/dev/null 2>&1 || true
-    # Project should be under $CODEX_JAILS_DIR/projects/
+    # Project should be under $AI_PODMAN_JAILS_DIR/projects/
     [[ -d "${_TMPDIR}/projects/jailstest" ]] || {
-        printf '    Project not found under CODEX_JAILS_DIR/projects/\n' >&2
+        printf '    Project not found under AI_PODMAN_JAILS_DIR/projects/\n' >&2
         _fail=1
     }
-    # Should NOT be under $HOME/codex-jails (which is the default without CODEX_JAILS_DIR set).
+    # Should NOT be under $HOME/codex-jails (which is the default without AI_PODMAN_JAILS_DIR set).
     if [[ -d "${HOME}/codex-jails/projects/jailstest" ]]; then
         printf '    WARN: project found under $HOME/codex-jails — possible isolation issue\n' >&2
     fi
@@ -165,8 +166,8 @@ test_scaffold_does_not_create_profiles_mirror() {
 run_test "scaffold directories all created"              test_scaffold_directories_created
 run_test "profile.env created by scaffold"               test_scaffold_profile_env_created
 run_test "README.md created by scaffold"                 test_scaffold_readme_created
-run_test "ai-new creates correct layout under CODEX_JAILS_DIR" test_scaffold_layout_via_ai_new
-run_test "project placed under CODEX_JAILS_DIR/projects/" test_scaffold_under_correct_jails_dir
+run_test "ai-new creates correct layout under AI_PODMAN_JAILS_DIR" test_scaffold_layout_via_ai_new
+run_test "project placed under AI_PODMAN_JAILS_DIR/projects/" test_scaffold_under_correct_jails_dir
 run_test "slug registered in slug-index.tsv"             test_scaffold_slug_index_registered
 run_test "scaffold does not create profiles/ mirror (R2.4)" test_scaffold_does_not_create_profiles_mirror
 

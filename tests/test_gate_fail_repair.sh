@@ -43,7 +43,7 @@ test_check_repair_cap_fails_when_at_limit() {
     cat > "${_TMPDIR}/repair_cap_helper.sh" <<SCRIPT
 #!/usr/bin/env bash
 set -uo pipefail
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export AI_NEW_MAX_REPAIR_ATTEMPTS=3
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
@@ -67,7 +67,7 @@ test_check_repair_cap_below_limit_passes() {
     cat > "${_TMPDIR}/repair_ok_helper.sh" <<SCRIPT
 #!/usr/bin/env bash
 set -euo pipefail
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export AI_NEW_MAX_REPAIR_ATTEMPTS=3
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
@@ -90,7 +90,7 @@ test_repair_cap_sets_quality_gate_failed_status() {
     cat > "${_TMPDIR}/repair_status_helper.sh" <<SCRIPT
 #!/usr/bin/env bash
 set -uo pipefail
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export AI_NEW_MAX_REPAIR_ATTEMPTS=2
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
@@ -114,7 +114,7 @@ test_env_var_max_repair_attempts_respected() {
     cat > "${_TMPDIR}/repair_env_helper.sh" <<SCRIPT
 #!/usr/bin/env bash
 set -uo pipefail
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export AI_NEW_MAX_REPAIR_ATTEMPTS=5
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
@@ -149,7 +149,7 @@ set -uo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='${_slug}'
 export SKIP_TRIAL_BUILD=0
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' \

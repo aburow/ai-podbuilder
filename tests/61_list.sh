@@ -12,7 +12,7 @@ source "${LIB_DIR}/scaffold.sh"
 test_ai_list_prints_profiles() {
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 when profiles exist" || _fail=1
     assert_contains "PROFILE"   "$out" "header row present" || _fail=1
@@ -30,7 +30,7 @@ test_ai_list_state_column_absent() {
     # so all profiles should show "absent".
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)"
     assert_contains "absent" "$out" "state column shows absent when no containers" || _fail=1
     return $_fail
@@ -39,7 +39,7 @@ test_ai_list_state_column_absent() {
 test_ai_list_column_alignment() {
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)"
     # All data rows must have the same number of fields (columns) as the header.
     # Count fields in the header (space-separated columns delimited by 2+ spaces).
@@ -61,7 +61,7 @@ test_ai_list_no_ansi_when_piped() {
     # ai-list must not emit ANSI escape codes (output goes to stdout, not a TTY here).
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)"
     if printf '%s' "$out" | grep -qP '\x1b\['; then
         echo "    ANSI escape codes found in piped output" >&2
@@ -75,7 +75,7 @@ test_ai_list_empty_state_exits_zero() {
     local empty_dir="${_TMPDIR}/empty_root"
     mkdir -p "$empty_dir"
     local out rc=0
-    out="$(AI_PODMAN_JAILS_DIR="$empty_dir" CODEX_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$empty_dir" AI_PODMAN_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>&1)" || rc=$?
     assert_success $rc "no profiles anywhere → exit 0 (AC2)" || _fail=1
     assert_contains "No profiles found" "$out" "empty-state message should be printed" || _fail=1
@@ -98,9 +98,9 @@ test_ai_list_sees_registered_generated_project() {
 PROFILE_NAME="alex"
 CONTAINER_NAME="alex"
 IMAGE_NAME="localhost/alex:latest"
-IMAGE_DIR="\${CODEX_JAILS_DIR}/projects/alex/image"
-WORKSPACE="\${CODEX_JAILS_DIR}/projects/alex/workspace"
-CONTAINER_HOME="\${CODEX_JAILS_DIR}/projects/alex/state/home"
+IMAGE_DIR="\${AI_PODMAN_JAILS_DIR}/projects/alex/image"
+WORKSPACE="\${AI_PODMAN_JAILS_DIR}/projects/alex/workspace"
+CONTAINER_HOME="\${AI_PODMAN_JAILS_DIR}/projects/alex/state/home"
 BASHRC="\${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
@@ -113,7 +113,7 @@ EXTRA_RUN_ARGS=()
 EOF
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should succeed after generated profile registration" || _fail=1
     assert_contains "alex" "$out" "registered generated project should be listed" || _fail=1
@@ -128,9 +128,9 @@ test_ai_list_syncs_project_profiles_automatically() {
 PROFILE_NAME="alex-sync"
 CONTAINER_NAME="alex-sync"
 IMAGE_NAME="localhost/alex-sync:latest"
-IMAGE_DIR="\${CODEX_JAILS_DIR}/projects/alex-sync/image"
-WORKSPACE="\${CODEX_JAILS_DIR}/projects/alex-sync/workspace"
-CONTAINER_HOME="\${CODEX_JAILS_DIR}/projects/alex-sync/state/home"
+IMAGE_DIR="\${AI_PODMAN_JAILS_DIR}/projects/alex-sync/image"
+WORKSPACE="\${AI_PODMAN_JAILS_DIR}/projects/alex-sync/workspace"
+CONTAINER_HOME="\${AI_PODMAN_JAILS_DIR}/projects/alex-sync/state/home"
 BASHRC="\${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
@@ -143,7 +143,7 @@ EXTRA_RUN_ARGS=()
 EOF
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should succeed with project-local profile" || _fail=1
     assert_contains "alex-sync" "$out" "project-local profile should appear in listing" || _fail=1
@@ -189,7 +189,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 with both sources for same slug" || _fail=1
     local _dup_count
@@ -219,7 +219,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
     local out rc=0
-    out="$(AI_PODMAN_JAILS_DIR="$_empty" CODEX_JAILS_DIR="$_empty" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_empty" AI_PODMAN_JAILS_DIR="$_empty" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 with legacy-only profile (AC3)" || _fail=1
     assert_contains "legacyonly" "$out" "legacy-only profile should appear" || _fail=1
@@ -248,7 +248,7 @@ EXTRA_HOSTS=()
 EXTRA_RUN_ARGS=()
 EOF
     local out rc=0
-    out="$(AI_PODMAN_JAILS_DIR="$_noleg" CODEX_JAILS_DIR="$_noleg" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_noleg" AI_PODMAN_JAILS_DIR="$_noleg" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 with no profiles/ dir (AC2)" || _fail=1
     assert_contains "onlyproj" "$out" "project should be listed without profiles/ dir" || _fail=1

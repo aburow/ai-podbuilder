@@ -14,7 +14,7 @@ test_reset_without_yes_requires_confirmation() {
     # (no running container → nothing to stop, just recreate).
     local _fail=0
     local out rc=0
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 --reset 2>&1)" || rc=$?
     # DRY_RUN exits before reset path — so we get normal DRY_RUN:create output.
     # This confirms --reset doesn't conflict with DRY_RUN mode.
@@ -63,7 +63,7 @@ EOF
 
     # --reset without --yes when container is running → must exit non-zero
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-launch" rst --reset 2>&1)" || rc=$?
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-launch" rst --reset 2>&1)" || rc=$?
     assert_failure $rc "--reset without --yes on running container → non-zero" || _fail=1
 
     # Container must still be running (not silently stopped)
@@ -117,7 +117,7 @@ EOF
 
     # --reset --yes: should remove and recreate container, leave workspace intact
     local rc=0
-    CODEX_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-launch" rstwk --reset --yes \
+    AI_PODMAN_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-launch" rstwk --reset --yes \
         >/dev/null 2>&1 || rc=$?
     assert_success $rc "--reset --yes should exit 0" || _fail=1
 

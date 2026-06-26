@@ -15,7 +15,7 @@ _validate_adapter_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 validate_adapters '${_adapter}'
 SCRIPT
     bash "${_TMPDIR}/validate_helper.sh" 2>&1
@@ -31,8 +31,8 @@ _pin_gemini_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 pin_registry 'gemini' '${_proj}'
 SCRIPT
     bash "${_TMPDIR}/pin_helper.sh" 2>&1
@@ -128,7 +128,7 @@ test_all_three_agents_use_real_adapters() {
 
 test_gemini_uses_explicit_interactive_prompt_mode() {
     local _src
-    _src="$(cat "${REPO_ROOT}/start-here.sh")"
+    _src="$(cat "${REPO_ROOT}/lib/start-here.sh")"
     assert_contains "gemini)" "$_src" || return 1
     assert_contains '--prompt-interactive "$_prompt_text"' "$_src" \
         "Gemini must execute the bootstrap prompt and remain interactive"

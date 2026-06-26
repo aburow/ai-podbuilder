@@ -95,11 +95,11 @@ so ongoing build state is retained.
 ### Directory layout
 
 The framework lives under a single base directory. The default is
-`~/codex-jails`; override by setting `CODEX_JAILS_DIR` before sourcing your
+`~/codex-jails`; override by setting `AI_PODMAN_JAILS_DIR` before sourcing your
 shell profile.
 
 ```
-$CODEX_JAILS_DIR/
+$AI_PODMAN_JAILS_DIR/
 ├── bin/                  Generic commands (ai-build, ai-launch, ai-terminal, ai-list)
 ├── lib/                  Shared sourced libraries (common.sh, profile.sh, policy.sh, …)
 ├── profiles/             Per-project profile files (<name>.env)
@@ -116,12 +116,12 @@ easy to derive and audit.
 ### Create the base directories
 
 ```bash
-export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"
+export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}"
 
 mkdir -p \
-  "$CODEX_JAILS_DIR/bin" \
-  "$CODEX_JAILS_DIR/profiles" \
-  "$CODEX_JAILS_DIR/launchers"
+  "$AI_PODMAN_JAILS_DIR/bin" \
+  "$AI_PODMAN_JAILS_DIR/profiles" \
+  "$AI_PODMAN_JAILS_DIR/launchers"
 ```
 
 ### Add `bin/` to PATH
@@ -129,24 +129,24 @@ mkdir -p \
 Add both lines to `~/.bashrc` (or `~/.zshrc`):
 
 ```bash
-export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"
-export PATH="${CODEX_JAILS_DIR}/bin:${PATH}"
+export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}"
+export PATH="${AI_PODMAN_JAILS_DIR}/bin:${PATH}"
 ```
 
-If `CODEX_JAILS_DIR` is not set at all, each command falls back to deriving the
+If `AI_PODMAN_JAILS_DIR` is not set at all, each command falls back to deriving the
 base directory from its own location (`BASH_SOURCE`), so the framework is
 self-hosting from any path without requiring the variable to be set.
 
 ### Install the commands
 
-Clone or copy the framework into `$CODEX_JAILS_DIR` and mark the commands
+Clone or copy the framework into `$AI_PODMAN_JAILS_DIR` and mark the commands
 executable:
 
 ```bash
-chmod +x "$CODEX_JAILS_DIR/bin/ai-build" \
-         "$CODEX_JAILS_DIR/bin/ai-launch" \
-         "$CODEX_JAILS_DIR/bin/ai-terminal" \
-         "$CODEX_JAILS_DIR/bin/ai-list"
+chmod +x "$AI_PODMAN_JAILS_DIR/bin/ai-build" \
+         "$AI_PODMAN_JAILS_DIR/bin/ai-launch" \
+         "$AI_PODMAN_JAILS_DIR/bin/ai-terminal" \
+         "$AI_PODMAN_JAILS_DIR/bin/ai-list"
 ```
 
 ---
@@ -181,7 +181,7 @@ A profile is a Bash fragment (`.env` file) sourced by every framework command.
 The filename, without `.env`, is the profile name passed to `ai-build`,
 `ai-launch`, and `ai-terminal`.
 
-Profiles live in `$CODEX_JAILS_DIR/profiles/`. A missing or malformed profile
+Profiles live in `$AI_PODMAN_JAILS_DIR/profiles/`. A missing or malformed profile
 — absent file or missing required field — exits non-zero with a clear,
 actionable message.
 
@@ -204,7 +204,7 @@ For full profile reference and examples, see [profiles.md](profiles.md).
 | `WORKDIR` | Working directory inside the container (typically `/workspace`). |
 | `BUILD_ARGS` | Extra `podman build` arguments as a Bash array; use `()` for none. |
 
-All paths MUST use `$CODEX_JAILS_DIR` or `$HOME` — never hard-coded usernames
+All paths MUST use `$AI_PODMAN_JAILS_DIR` or `$HOME` — never hard-coded usernames
 or `/var/home/<user>` paths.
 
 ### Optional fields
@@ -230,9 +230,9 @@ or `/var/home/<user>` paths.
 PROFILE_NAME="myproject"
 CONTAINER_NAME="codex-myproject"
 IMAGE_NAME="codex-myproject-image"
-IMAGE_DIR="${CODEX_JAILS_DIR}/myproject-image"
-WORKSPACE="${CODEX_JAILS_DIR}/myproject-workspace"
-CONTAINER_HOME="${CODEX_JAILS_DIR}/myproject-home"
+IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/myproject-image"
+WORKSPACE="${AI_PODMAN_JAILS_DIR}/myproject-workspace"
+CONTAINER_HOME="${AI_PODMAN_JAILS_DIR}/myproject-home"
 BASHRC="${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=()
@@ -245,16 +245,16 @@ BUILD_ARGS=()
 PROFILE_NAME="esp32"
 CONTAINER_NAME="codex-esp32"
 IMAGE_NAME="codex-esp32-image"
-IMAGE_DIR="${CODEX_JAILS_DIR}/esp32-image"
-WORKSPACE="${CODEX_JAILS_DIR}/esp32-workspace"
-CONTAINER_HOME="${CODEX_JAILS_DIR}/esp32-home"
+IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/esp32-image"
+WORKSPACE="${AI_PODMAN_JAILS_DIR}/esp32-workspace"
+CONTAINER_HOME="${AI_PODMAN_JAILS_DIR}/esp32-home"
 BASHRC="${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=("--no-cache" "--pull")
 
 SELINUX_MODE="disable"
 NETWORK_MODE="slirp4netns"
-ENV_FILE="${CODEX_JAILS_DIR}/esp32-secrets.env"
+ENV_FILE="${AI_PODMAN_JAILS_DIR}/esp32-secrets.env"
 
 EXTRA_DEVICES=("--device=/dev/ttyUSB0")
 EXTRA_HOSTS=("--add-host" "registry.example.internal:192.168.1.10")
@@ -272,7 +272,7 @@ echo "codex:                $(codex --version)"
 ### Creating a new profile
 
 1. Copy an existing `.env.example` to `profiles/<name>.env`.
-2. Set all required fields using `$CODEX_JAILS_DIR`-based paths.
+2. Set all required fields using `$AI_PODMAN_JAILS_DIR`-based paths.
 3. Create `<name>-image/` with a `Containerfile`.
 4. Build: `ai-build <name>`.
 5. Launch: `ai-launch <name>`.
@@ -285,7 +285,7 @@ All commands:
 - Run with POSIX/Bash and `set -euo pipefail`.
 - Accept `-h` / `--help` (and print usage on no-argument invocation).
 - Exit non-zero on error with a clear, actionable message.
-- Derive the base directory from `$CODEX_JAILS_DIR`, falling back to the
+- Derive the base directory from `$AI_PODMAN_JAILS_DIR`, falling back to the
   script's own location if the variable is unset.
 
 ### 6.1 `ai-build`
@@ -751,7 +751,7 @@ For full details and recipes, see [secrets-and-ssh.md](secrets-and-ssh.md).
 Set `ENV_FILE` in a profile to inject secrets into the container at launch:
 
 ```bash
-ENV_FILE="${CODEX_JAILS_DIR}/esp32-secrets.env"
+ENV_FILE="${AI_PODMAN_JAILS_DIR}/esp32-secrets.env"
 ```
 
 Rules:
@@ -788,13 +788,13 @@ so they never block behind a hidden prompt:
 
 ```bash
 #!/usr/bin/env bash
-exec "${CODEX_JAILS_DIR}/bin/ai-launch" esp32 codex --non-interactive
+exec "${AI_PODMAN_JAILS_DIR}/bin/ai-launch" esp32 codex --non-interactive
 ```
 
 ### `.desktop` entries
 
 `.desktop` files go in `~/.local/share/applications/`. All paths must use
-`$HOME` or `$CODEX_JAILS_DIR` — no hard-coded usernames or `/var/home/<user>`
+`$HOME` or `$AI_PODMAN_JAILS_DIR` — no hard-coded usernames or `/var/home/<user>`
 paths.
 
 **KDE (Konsole):**
@@ -860,7 +860,7 @@ Wrapper template:
 
 ```bash
 #!/usr/bin/env bash
-exec "${CODEX_JAILS_DIR:-$HOME/codex-jails}/bin/ai-launch" esp32 shell "$@"
+exec "${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}/bin/ai-launch" esp32 shell "$@"
 ```
 
 Wrappers inherit the persistence change (R4.2): containers launched via
@@ -872,13 +872,13 @@ original scripts.
 ## 16. Framework Self-Hosting
 
 The framework repository is designed to be usable from inside an ordinary
-sandbox workspace. For example, `$CODEX_JAILS_DIR/podman-plugin-workspace`
+sandbox workspace. For example, `$AI_PODMAN_JAILS_DIR/podman-plugin-workspace`
 can be used to develop, edit, lint, and review the framework itself without
 exposing the full host environment.
 
 This works because:
 
-1. All paths are derived from `$CODEX_JAILS_DIR` or from `BASH_SOURCE` — no
+1. All paths are derived from `$AI_PODMAN_JAILS_DIR` or from `BASH_SOURCE` — no
    hardcoded host paths or usernames.
 2. The framework files (Bash scripts, profiles, docs) are plain text; they can
    be read, edited, and reviewed inside any sandbox with a text editor.
@@ -916,7 +916,7 @@ GC is advisory only — reports stale stopped containers; never auto-removes.
 
 `ai-new <name>` scaffolds `profiles/<name>.env`, `<name>-workspace/`,
 `<name>-image/`, and starter `launchers/<name>-*` files with portable
-`$CODEX_JAILS_DIR`-derived paths.
+`$AI_PODMAN_JAILS_DIR`-derived paths.
 
 ### D3. Named policy levels
 

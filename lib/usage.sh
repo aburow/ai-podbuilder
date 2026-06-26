@@ -107,10 +107,6 @@ Environment:
   AI_PODMAN_BIN            Path to bin directory (default: AI_PODMAN_JAILS_DIR/bin).
   AI_PODMAN_AGENTS_DIR     Path to agents config directory
                            (default: AI_PODMAN_JAILS_DIR/config/agents.d).
-  CODEX_JAILS_DIR, CODEX_BIN, CODEX_AGENTS_DIR
-                           Deprecated aliases of the AI_PODMAN_* variables; still honoured.
-  AI_PODMAN_NO_DEPRECATION_WARN
-                           Set non-empty to suppress deprecation warnings for CODEX_* vars.
 
 Notes:
   --force and --refresh-agent-registry are deferred beyond v1.

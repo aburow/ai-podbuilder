@@ -15,7 +15,7 @@ _session_md_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 ${_script}
 SCRIPT
     bash "${_TMPDIR}/session_md_helper.sh" 2>&1
@@ -35,7 +35,7 @@ AEOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 init_session '${_root}' '${_name}' 'codex'
 SCRIPT
     bash "${_TMPDIR}/init_md_helper.sh" >/dev/null 2>&1 || true
@@ -115,7 +115,7 @@ test_reconciliation_notes_section_present() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 append_session_md '${_proj}' 'Reconciliation' 'Status changed from interviewing to interrupted.'
 cat '${_proj}/bootstrap/session.md'
 SCRIPT

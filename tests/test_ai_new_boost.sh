@@ -33,11 +33,12 @@ EOF
 }
 
 _seed_start_here() {
-    cat > "${_TMPDIR}/start-here.sh" <<'EOF'
+    mkdir -p "${_TMPDIR}/lib"
+    cat > "${_TMPDIR}/lib/start-here.sh" <<'EOF'
 #!/usr/bin/env bash
 exit 0
 EOF
-    chmod +x "${_TMPDIR}/start-here.sh"
+    chmod +x "${_TMPDIR}/lib/start-here.sh"
 }
 
 _seed_auth_file() {
@@ -46,7 +47,7 @@ _seed_auth_file() {
 }
 
 _run_ai_new() {
-    PATH="${STUBS_DIR}:${PATH}" CODEX_JAILS_DIR="${_TMPDIR}" \
+    PATH="${STUBS_DIR}:${PATH}" AI_PODMAN_JAILS_DIR="${_TMPDIR}" \
         bash "${BIN_DIR}/ai-new" "$@" 2>&1
 }
 

@@ -39,7 +39,7 @@ test_container_survives_exit() {
     _minimal_profile "$img"
 
     local ctr
-    ctr="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    ctr="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'
@@ -70,7 +70,7 @@ test_second_launch_reuses_container() {
 
     # Create the container the first time
     local ctr
-    ctr="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    ctr="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'
@@ -106,7 +106,7 @@ test_explicit_removal_destroys_container() {
     _minimal_profile "$img"
 
     local ctr
-    ctr="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    ctr="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'

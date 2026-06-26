@@ -60,8 +60,8 @@ test_banner_contains_all_r48_fields() {
     # Capture the banner from render_launch_summary directly.
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
-        export CODEX_JAILS_DIR='${_TMPDIR}'
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
+        export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/render.sh'
@@ -84,8 +84,8 @@ test_banner_contains_all_r48_fields() {
 test_banner_flags_builder_as_privileged() {
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
-        export CODEX_JAILS_DIR='${_TMPDIR}'
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
+        export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/render.sh'
@@ -104,8 +104,8 @@ test_banner_flags_builder_as_privileged() {
 test_stale_prompt_shows_three_choices() {
     local _fail=0
     local out
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
-        export CODEX_JAILS_DIR='${_TMPDIR}'
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
+        export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/render.sh'
@@ -124,8 +124,8 @@ test_stale_prompt_shows_three_choices() {
 test_stale_prompt_empty_input_returns_continue() {
     local _fail=0
     local result
-    result="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
-        export CODEX_JAILS_DIR='${_TMPDIR}'
+    result="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
+        export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/render.sh'

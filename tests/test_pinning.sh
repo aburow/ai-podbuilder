@@ -31,8 +31,8 @@ _pin_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 pin_registry '${_agent}' '${_proj}'
 SCRIPT
     bash "${_TMPDIR}/pin_helper.sh" 2>&1

@@ -9,7 +9,7 @@ _patched_start_here() {
     local _bootstrap="$1"
     local _out="${_TMPDIR}/start-here-patched.sh"
     sed "s|BOOTSTRAP_DIR=\"/project/bootstrap\"|BOOTSTRAP_DIR=\"${_bootstrap}\"|" \
-        "${REPO_ROOT}/start-here.sh" > "$_out"
+        "${REPO_ROOT}/lib/start-here.sh" > "$_out"
     chmod +x "$_out"
     echo "$_out"
 }

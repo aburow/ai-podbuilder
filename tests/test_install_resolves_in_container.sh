@@ -56,7 +56,7 @@ AEOF
 
     # Copy start-here.sh into the project home.
     mkdir -p "${_proj}/bootstrap/home"
-    cp "${REPO_ROOT}/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
+    cp "${REPO_ROOT}/lib/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
     chmod +x "${_proj}/bootstrap/home/start-here.sh"
 }
 

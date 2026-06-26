@@ -16,7 +16,7 @@ set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 ${_script}
 SCRIPT
     bash "${_TMPDIR}/recon_helper.sh" 2>&1
@@ -117,7 +117,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/reconcile.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 interrupted_requests '${_proj}'
 SCRIPT
     local out rc=0
@@ -147,7 +147,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/reconcile.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 ids="\$(interrupted_requests '${_proj}')"
 if [[ -z "\$ids" ]]; then echo NONE; else echo "\$ids"; fi
 SCRIPT

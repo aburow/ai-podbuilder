@@ -29,7 +29,7 @@ these:
 
 ### Container HOME (R5.4)
 
-The container's `HOME` is set to `CONTAINER_HOME` (e.g. `$CODEX_JAILS_DIR/esp32-home`).
+The container's `HOME` is set to `CONTAINER_HOME` (e.g. `$AI_PODMAN_JAILS_DIR/esp32-home`).
 This directory lives on the host and is bind-mounted into the container so
 that shell history, editor state, and tool configuration persist across
 container recreations, but remain fully separate from the host `$HOME`.

@@ -21,7 +21,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 SELINUX_MODE="${mode}"
 EOF
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" "selinux_${mode}" shell 2>/dev/null
 }
 
@@ -39,7 +39,7 @@ BASHRC="${_TMPDIR}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" selinux_default shell 2>/dev/null
 }
 

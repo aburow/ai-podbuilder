@@ -15,7 +15,7 @@ _completeness_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 ${_script}
 SCRIPT
     bash "${_TMPDIR}/complete_helper.sh" 2>&1

@@ -15,7 +15,7 @@ _validate_adapter_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 validate_adapters '${_adapter}'
 SCRIPT
     bash "${_TMPDIR}/validate_helper.sh" 2>&1
@@ -106,7 +106,7 @@ test_ai_new_unknown_agent_exits_nonzero_and_lists_registered() {
     rm -f "${_TMPDIR}/config/agents.d/mymanual.env"
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" testproject \
+    out="$(AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" testproject \
         --agent not-a-real-agent 2>&1)" || rc=$?
     assert_failure $rc "--agent with unknown name should fail" || _fail=1
     assert_contains "not-a-real-agent" "$out" "error should name the bad agent" || _fail=1
@@ -124,8 +124,8 @@ test_validate_agent_bad_adapter_fails() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 validate_agent 'mymanual'
 SCRIPT
     local out rc=0

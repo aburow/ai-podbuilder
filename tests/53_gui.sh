@@ -10,7 +10,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 _dry_run() {
     local prof="$1"
     shift
-    env "$@" DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    env "$@" DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" "$prof" shell 2>&1
 }
 

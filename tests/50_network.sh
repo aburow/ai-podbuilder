@@ -23,7 +23,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 NETWORK_MODE="${net_mode}"
 EOF
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" nettest shell 2>/dev/null
 }
 
@@ -40,7 +40,7 @@ BASHRC="${_TMPDIR}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" netdef shell 2>/dev/null
 }
 

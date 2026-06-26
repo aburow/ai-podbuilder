@@ -24,7 +24,7 @@ AEOF
 }
 
 _ai_new() {
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
 }
 
 _create_project_with_status() {
@@ -59,7 +59,7 @@ test_create_when_absent_succeeds() {
     local _fail=0
     _setup_agents
     # Run without $() — ai-new's heartbeat background job blocks command substitution.
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" freshproject --agent codex >/dev/null 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" freshproject --agent codex >/dev/null 2>&1 || true
     [[ -d "${_TMPDIR}/projects/freshproject" ]] || {
         printf '    Project directory not created\n' >&2
         _fail=1

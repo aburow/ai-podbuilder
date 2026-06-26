@@ -18,7 +18,7 @@ source '${LIB_DIR}/lock.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
 source '${LIB_DIR}/reconcile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export AI_NEW_LOCK_STALE_AFTER=10s
 ${_script}
 SCRIPT

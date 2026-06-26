@@ -26,7 +26,7 @@ declare -A seen_slugs   # slug → 1
 profile_files=()
 
 shopt -s nullglob
-for project_profile in "${CODEX_JAILS_DIR}"/projects/*/profile.env; do
+for project_profile in "${AI_PODMAN_JAILS_DIR}"/projects/*/profile.env; do
     project_name="$(basename "$(dirname "$project_profile")")"
     slug="$(sanitize_slug "$project_name")"
     if [[ -z "${seen_slugs[$slug]+x}" ]]; then

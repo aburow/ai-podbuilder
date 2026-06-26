@@ -15,7 +15,7 @@ _slug_of() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/slug.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 sanitize_slug '$( printf '%s' "$_name" | sed "s/'/'\'''/g" )'
 SCRIPT
     bash "${_TMPDIR}/slug_helper.sh" 2>&1
@@ -30,7 +30,7 @@ _slug_of_raw() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/slug.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 _name="\$(cat '${_TMPDIR}/slug_name.txt')"
 sanitize_slug "\$_name"
 SCRIPT

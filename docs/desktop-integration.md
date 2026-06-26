@@ -25,7 +25,7 @@ Provided examples:
 | `launchers/uxplay-codex` | uxplay   | codex    |
 | `launchers/uxplay-builder`| uxplay   | builder   |
 
-Add `$CODEX_JAILS_DIR/bin` to your `PATH` so that `ai-launch` resolves
+Add `$AI_PODMAN_JAILS_DIR/bin` to your `PATH` so that `ai-launch` resolves
 without a hard-coded path (see the README PATH setup section).
 
 ---
@@ -33,7 +33,7 @@ without a hard-coded path (see the README PATH setup section).
 ## `.desktop` file examples
 
 `.desktop` files go in `~/.local/share/applications/`. Paths in the examples
-use `$HOME` and `$CODEX_JAILS_DIR` — **no hard-coded usernames or `/var/home`
+use `$HOME` and `$AI_PODMAN_JAILS_DIR` — **no hard-coded usernames or `/var/home`
 paths** (R12.2). Substitute the actual expanded values when writing the file,
 or use a wrapper script that performs the expansion at launch time.
 
@@ -63,7 +63,7 @@ Icon=utilities-terminal
 Categories=Development;
 ```
 
-> Replace `$HOME/codex-jails` with `$CODEX_JAILS_DIR` if that variable is set
+> Replace `$HOME/codex-jails` with `$AI_PODMAN_JAILS_DIR` if that variable is set
 > in your login environment and the terminal inherits it.
 
 ---

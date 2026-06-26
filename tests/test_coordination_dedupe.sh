@@ -16,7 +16,7 @@ set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 ${_script}
 SCRIPT
     bash "${_TMPDIR}/dedupe_helper.sh" 2>&1

@@ -71,7 +71,7 @@ test_scaffold_profile_env_uses_variables() {
     local _fail=0
     _setup_agents
     # Run ai-new to create the scaffold; then check profile.env.
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" convtest --agent codex >/dev/null 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" convtest --agent codex >/dev/null 2>&1 || true
 
     local _profile="${_TMPDIR}/projects/convtest/profile.env"
     [[ -f "$_profile" ]] || { _SKIP_REASON="scaffold not created (stub launch exit?)"; return 0; }
@@ -94,7 +94,7 @@ test_scaffold_profile_env_uses_variables() {
 test_scaffold_session_json_uses_variables() {
     local _fail=0
     _setup_agents
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" convtest2 --agent codex >/dev/null 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" convtest2 --agent codex >/dev/null 2>&1 || true
 
     local _json="${_TMPDIR}/projects/convtest2/bootstrap/session.json"
     [[ -f "$_json" ]] || { _SKIP_REASON="session.json not created"; return 0; }

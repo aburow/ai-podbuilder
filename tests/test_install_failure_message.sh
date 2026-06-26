@@ -21,7 +21,7 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 export PATH='${_TMPDIR}/fakebin':"\$PATH"
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='failure-test'
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'

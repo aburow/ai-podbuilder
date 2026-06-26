@@ -15,7 +15,7 @@ _lock_helper() {
 set -uo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/lock.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 ${_script}
 SCRIPT

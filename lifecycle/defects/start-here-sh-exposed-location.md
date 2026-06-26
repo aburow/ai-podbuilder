@@ -1,7 +1,7 @@
 ---
 title: start-here.sh exposed in user-accessible host location
 type: defect
-status: clarifying
+status: done
 lineage: start-here-sh-exposed-location
 created: "2026-06-26T19:15:45+10:00"
 priority: normal

@@ -25,7 +25,7 @@ trap 'rm -rf "$_MOD_TMP"' EXIT
 # Runs install.sh with sandboxed HOME and offline tarball fixture.
 _run_install() {
     local home="$1"; shift
-    env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    env -u AI_PODMAN_JAILS_DIR -u AI_PODMAN_JAILS_DIR \
         HOME="$home" \
         AI_PODMAN_INSTALL_TARBALL="$FIXTURE_TARBALL" \
         bash "$INSTALL_SH" "$@"
@@ -77,7 +77,7 @@ test_managed_set_present() {
     _run_install "$h" "$root" >/dev/null 2>&1 || true
     local _fail=0
     local item
-    for item in bin lib config templates prompts start-here.sh profiles; do
+    for item in bin lib config templates prompts profiles; do
         [[ -e "$root/$item" ]] || {
             printf '    managed item absent: %s\n' "$item" >&2; _fail=1
         }
@@ -119,7 +119,7 @@ test_executables() {
             printf '    not executable: %s\n' "$(basename "$f")" >&2; _fail=1
         }
     done
-    [[ -x "$root/start-here.sh" ]] || {
+    [[ -x "$root/lib/start-here.sh" ]] || {
         printf '    start-here.sh not executable\n' >&2; _fail=1
     }
     return $_fail
@@ -162,9 +162,6 @@ test_env_file_content() {
     grep -q 'PATH' "$ef" || {
         printf '    PATH not set in env file\n' >&2; _fail=1
     }
-    grep -q 'CODEX_JAILS_DIR' "$ef" && {
-        printf '    CODEX_JAILS_DIR must not appear in env file (AC10)\n' >&2; _fail=1
-    } || true
     return $_fail
 }
 
@@ -238,7 +235,7 @@ test_missing_podman_exits_nonzero() {
     printf '#!/usr/bin/env bash\nexit 1\n' > "$fakebin/podman"
     chmod +x "$fakebin/podman"
     local out rc=0
-    out="$(env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    out="$(env -u AI_PODMAN_JAILS_DIR -u AI_PODMAN_JAILS_DIR \
         HOME="$h" AI_PODMAN_INSTALL_TARBALL="$FIXTURE_TARBALL" \
         PATH="$fakebin:${PATH}" \
         bash "$INSTALL_SH" "$root" 2>&1)" || rc=$?
@@ -256,7 +253,7 @@ test_corrupt_tarball_fresh_install() {
     local corrupt="${_TMPDIR}/corrupt.tar.gz"
     printf 'NOT A VALID TARBALL\n' > "$corrupt"
     local rc=0
-    env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    env -u AI_PODMAN_JAILS_DIR -u AI_PODMAN_JAILS_DIR \
         HOME="$h" AI_PODMAN_INSTALL_TARBALL="$corrupt" \
         bash "$INSTALL_SH" "$root" >/dev/null 2>&1 || rc=$?
     assert_failure "$rc" "corrupt tarball should exit non-zero" || return 1
@@ -279,7 +276,7 @@ test_corrupt_tarball_leaves_prior_install_intact() {
     local corrupt="${_TMPDIR}/corrupt2.tar.gz"
     printf 'GARBAGE\n' > "$corrupt"
     rc=0
-    env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    env -u AI_PODMAN_JAILS_DIR -u AI_PODMAN_JAILS_DIR \
         HOME="$h" AI_PODMAN_INSTALL_TARBALL="$corrupt" \
         bash "$INSTALL_SH" "$root" >/dev/null 2>&1 || rc=$?
     assert_failure "$rc" "corrupt tarball update should exit non-zero" || return 1
@@ -296,13 +293,13 @@ test_pipe_invocation() {
     local root="${h}/install"
     local rc=0
     # cat install.sh | bash -s -- <root>
-    env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    env -u AI_PODMAN_JAILS_DIR \
         HOME="$h" AI_PODMAN_INSTALL_TARBALL="$FIXTURE_TARBALL" \
         bash -s -- "$root" < "$INSTALL_SH" >/dev/null 2>&1 || rc=$?
     assert_success "$rc" "pipe invocation should exit 0" || return 1
     local _fail=0
     local item
-    for item in bin lib config templates prompts start-here.sh profiles; do
+    for item in bin lib config templates prompts profiles; do
         [[ -e "$root/$item" ]] || {
             printf '    pipe invocation: missing %s\n' "$item" >&2; _fail=1
         }
@@ -320,36 +317,13 @@ test_help_flag() {
     assert_contains "Usage" "$out" "--help should print usage" || return 1
     rc=0
     # cat install.sh | bash -s -- --help
-    out="$(env -u AI_PODMAN_JAILS_DIR -u CODEX_JAILS_DIR \
+    out="$(env -u AI_PODMAN_JAILS_DIR \
         HOME="$h" AI_PODMAN_INSTALL_TARBALL="$FIXTURE_TARBALL" \
         bash -s -- --help < "$INSTALL_SH" 2>&1)" || rc=$?
     assert_success "$rc" "piped --help should exit 0" || return 1
     assert_contains "Usage" "$out" "piped --help should print usage" || return 1
 }
 
-test_codex_jails_deprecation_warning() {
-    local h="${_TMPDIR}/home"
-    mkdir -p "$h"
-    local root="${h}/install"
-    # Pre-seed ~/.bashrc with a CODEX_JAILS_DIR export
-    printf 'export CODEX_JAILS_DIR=/old/path\n' > "${h}/.bashrc"
-    local out rc=0
-    out="$(_run_install "$h" "$root" 2>&1)" || rc=$?
-    assert_success "$rc" "install with CODEX_JAILS_DIR in bashrc should still succeed" || return 1
-    assert_contains "WARNING" "$out" "should emit deprecation warning" || return 1
-    assert_contains "CODEX_JAILS_DIR" "$out" "warning should name the deprecated var" || return 1
-    # Count warnings — should be exactly one
-    local warn_count
-    warn_count="$(printf '%s\n' "$out" | grep -c 'WARNING' || true)"
-    [[ "$warn_count" -eq 1 ]] || {
-        printf '    expected 1 WARNING, got %d\n' "$warn_count" >&2; return 1
-    }
-    # AI_PODMAN_JAILS_DIR must be set correctly in env file
-    local ef="${h}/.bashrc.d/podbuilder.sh"
-    grep -q "AI_PODMAN_JAILS_DIR=\"${root}\"" "$ef" || {
-        printf '    AI_PODMAN_JAILS_DIR not correctly set in env file\n' >&2; return 1
-    }
-}
 
 # ── Run ────────────────────────────────────────────────────────────────────────
 
@@ -360,7 +334,7 @@ run_test "M2: managed set present (bin lib config etc)"            test_managed_
 run_test "M2: excluded dirs absent (lifecycle tests doc docs)"     test_excluded_dirs_absent
 run_test "M2: all installed bin/* and start-here.sh are +x"       test_executables
 run_test "M2: five commands resolve on PATH after source env-file" test_commands_on_path
-run_test "M3: env file exports AI_PODMAN_JAILS_DIR, no CODEX ref" test_env_file_content
+run_test "M3: env file exports AI_PODMAN_JAILS_DIR"               test_env_file_content
 run_test "M3: second run does not corrupt env file"               test_env_file_idempotent
 run_test "M3: bashrc guard is idempotent; profile/zshrc unwritten" test_bashrc_guard_idempotent
 run_test "M4: update preserves projects/ and user profiles/*.env"  test_update_preserves_user_data
@@ -369,6 +343,6 @@ run_test "M5: corrupt tarball (fresh) exits non-zero, no bin/"    test_corrupt_t
 run_test "M5: corrupt tarball (update) leaves prior install intact" test_corrupt_tarball_leaves_prior_install_intact
 run_test "M6: pipe invocation produces same layout as file run"    test_pipe_invocation
 run_test "M6: --help exits 0 with usage (both invocation forms)"  test_help_flag
-run_test "M6: CODEX_JAILS_DIR in bashrc triggers exactly one warn" test_codex_jails_deprecation_warning
+
 
 print_summary "test_install_script"

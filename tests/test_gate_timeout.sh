@@ -16,7 +16,7 @@ _gate_helper() {
 set -uo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 ${_script}
 SCRIPT
@@ -94,7 +94,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 set_status '${_proj}' 'quality-gate-timeout'
 echo OK
 SCRIPT
@@ -134,7 +134,7 @@ set -uo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='${_slug}'
 export SKIP_TRIAL_BUILD=0
 export AI_NEW_BUILD_TIMEOUT=3s

@@ -7,14 +7,14 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 test_codex_uses_positional_interactive_prompt() {
     local src
-    src="$(cat "${REPO_ROOT}/start-here.sh")"
+    src="$(cat "${REPO_ROOT}/lib/start-here.sh")"
     assert_contains "codex)" "$src" || return 1
     assert_contains '_LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")' "$src" || return 1
 }
 
 test_codex_uses_no_removed_flags() {
     local src
-    src="$(cat "${REPO_ROOT}/start-here.sh")"
+    src="$(cat "${REPO_ROOT}/lib/start-here.sh")"
     assert_not_contains '("$RESOLVED_COMMAND" --full-auto' "$src" || return 1
     assert_not_contains ' --full-auto -q ' "$src"
 }

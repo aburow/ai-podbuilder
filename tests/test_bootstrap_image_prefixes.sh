@@ -109,7 +109,7 @@ test_containerfile_uses_image_level_install_paths() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/bootstrap_image.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 _write_bootstrap_containerfile '${_TMPDIR}/Containerfile.bootstrap'
 SCRIPT
     bash "${_TMPDIR}/cf_check.sh" 2>/dev/null

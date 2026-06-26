@@ -90,7 +90,7 @@ WAS_UPDATE=0
 
 install_files() {
   local managed item
-  managed=(bin lib config templates prompts start-here.sh)
+  managed=(bin lib config templates prompts)
 
   # Stage final layout in $STAGE/out
   mkdir -p "${STAGE}/out"
@@ -133,7 +133,7 @@ install_files() {
       -exec cp -n {} "${INSTALL_ROOT}/profiles/" \;
   fi
 
-  chmod +x "${INSTALL_ROOT}"/bin/* "${INSTALL_ROOT}/start-here.sh"
+  chmod +x "${INSTALL_ROOT}"/bin/* "${INSTALL_ROOT}/lib/start-here.sh"
 }
 
 # ---------- milestone 5: owned, idempotent env file ----------
@@ -175,15 +175,8 @@ ensure_sourced() {
 migrate_legacy() {
   local bashrc="${HOME}/.bashrc"
 
-  # (b) Warn if old CODEX_JAILS_DIR export is still in ~/.bashrc
-  if grep -qE 'export[[:space:]]+CODEX_JAILS_DIR' "${bashrc}" 2>/dev/null; then
-    printf '\nWARNING: %s still exports CODEX_JAILS_DIR (deprecated).\n' "${bashrc}" >&2
-    printf '  The new env file sets AI_PODMAN_JAILS_DIR and takes precedence.\n' >&2
-    printf '  Remove the CODEX_JAILS_DIR line from %s to silence this warning.\n\n' "${bashrc}" >&2
-  fi
-
-  # (c) Offer to migrate old projects/ into the new root
-  local old_root="${CODEX_JAILS_DIR:-${HOME}/codex-jails}"
+  # Offer to migrate old projects/ into the new root
+  local old_root="${HOME}/codex-jails"
   if [[ -d "${old_root}/projects" && "${old_root}" != "${INSTALL_ROOT}" ]]; then
     # ponytail: interactive prompt only when stdin is a TTY; piped install prints the manual command instead of hanging.
     if [[ -t 0 ]]; then

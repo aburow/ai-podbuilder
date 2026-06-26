@@ -79,10 +79,10 @@ git clone <repo-url> "$HOME/codex-jails"
 
 # Or use a custom path:
 git clone <repo-url> /opt/codex-jails
-export CODEX_JAILS_DIR=/opt/codex-jails
+export AI_PODMAN_JAILS_DIR=/opt/codex-jails
 ```
 
-If `CODEX_JAILS_DIR` is not set, every command derives its own location from
+If `AI_PODMAN_JAILS_DIR` is not set, every command derives its own location from
 `BASH_SOURCE`, so the framework is self-hosting from any path — but setting the
 variable explicitly avoids surprises.
 
@@ -91,8 +91,8 @@ variable explicitly avoids surprises.
 Add these two lines to `~/.bashrc` (or `~/.zshrc`):
 
 ```bash
-export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"
-export PATH="${CODEX_JAILS_DIR}/bin:${PATH}"
+export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}"
+export PATH="${AI_PODMAN_JAILS_DIR}/bin:${PATH}"
 ```
 
 Reload your shell:
@@ -107,7 +107,7 @@ Verify the commands are on PATH:
 which ai-new ai-build ai-launch ai-terminal ai-list
 ```
 
-All five should resolve to `$CODEX_JAILS_DIR/bin/`.
+All five should resolve to `$AI_PODMAN_JAILS_DIR/bin/`.
 
 ---
 
@@ -133,7 +133,7 @@ once you have a profile and a `Containerfile`.
 
 `ai-new` is the easiest starting point. It:
 
-1. Creates a project directory under `$CODEX_JAILS_DIR/projects/<name>/`.
+1. Creates a project directory under `$AI_PODMAN_JAILS_DIR/projects/<name>/`.
 2. Launches a minimal **bootstrap container** with the chosen AI agent.
 3. Lets the agent interview you and generate a complete `Containerfile`,
    profile, launcher, and README.
@@ -148,10 +148,10 @@ ai-new my-project --agent codex
 Replace `my-project` with a short lowercase name (letters, digits, hyphens).
 Replace `codex` with `codex` or `gemini` if you use a different runtime.
 
-Available agents are the `.env` files in `$CODEX_JAILS_DIR/config/agents.d/`:
+Available agents are the `.env` files in `$AI_PODMAN_JAILS_DIR/config/agents.d/`:
 
 ```bash
-ls $CODEX_JAILS_DIR/config/agents.d/
+ls $AI_PODMAN_JAILS_DIR/config/agents.d/
 # codex.env  codex.env  gemini.env
 ```
 
@@ -165,13 +165,13 @@ Codex prompts you to log in the first time. No extra file is needed.
 
 **Option 2 — API key file:**
 
-Create `$CODEX_JAILS_DIR/projects/my-project/bootstrap/agent.env.local` with
+Create `$AI_PODMAN_JAILS_DIR/projects/my-project/bootstrap/agent.env.local` with
 your key:
 
 ```bash
 echo 'OPENAI_API_KEY=sk-...' \
-    > "$CODEX_JAILS_DIR/projects/my-project/bootstrap/agent.env.local"
-chmod 600 "$CODEX_JAILS_DIR/projects/my-project/bootstrap/agent.env.local"
+    > "$AI_PODMAN_JAILS_DIR/projects/my-project/bootstrap/agent.env.local"
+chmod 600 "$AI_PODMAN_JAILS_DIR/projects/my-project/bootstrap/agent.env.local"
 ```
 
 This file is gitignored automatically and never baked into any image.
@@ -206,7 +206,7 @@ When the build passes the session status is `complete`. The agent prints next
 steps and exits. You can now examine the generated scaffold:
 
 ```
-$CODEX_JAILS_DIR/projects/my-project/
+$AI_PODMAN_JAILS_DIR/projects/my-project/
 ├── workspace/            Your project files go here
 ├── image/
 │   └── Containerfile    The durable development image definition
@@ -219,11 +219,11 @@ $CODEX_JAILS_DIR/projects/my-project/
 
 Review `image/Containerfile` and `profile.env` before proceeding. The generated
 `profile.env` is already wired to the right paths — copy or symlink it into
-`$CODEX_JAILS_DIR/profiles/` so `ai-build` and `ai-launch` can find it:
+`$AI_PODMAN_JAILS_DIR/profiles/` so `ai-build` and `ai-launch` can find it:
 
 ```bash
-cp "$CODEX_JAILS_DIR/projects/my-project/profile.env" \
-   "$CODEX_JAILS_DIR/profiles/my-project.env"
+cp "$AI_PODMAN_JAILS_DIR/projects/my-project/profile.env" \
+   "$AI_PODMAN_JAILS_DIR/profiles/my-project.env"
 ```
 
 ### 5.6 Resuming an interrupted session
@@ -250,8 +250,8 @@ and just need to create the profile that wires everything together.
 Create a directory with your `Containerfile`:
 
 ```bash
-mkdir -p "$CODEX_JAILS_DIR/my-image"
-cat > "$CODEX_JAILS_DIR/my-image/Containerfile" <<'EOF'
+mkdir -p "$AI_PODMAN_JAILS_DIR/my-image"
+cat > "$AI_PODMAN_JAILS_DIR/my-image/Containerfile" <<'EOF'
 FROM fedora:latest
 RUN dnf install -y git vim python3 && dnf clean all
 EOF
@@ -262,8 +262,8 @@ EOF
 Copy the example profile and fill it in:
 
 ```bash
-cp "$CODEX_JAILS_DIR/profiles/esp32.env.example" \
-   "$CODEX_JAILS_DIR/profiles/my-project.env"
+cp "$AI_PODMAN_JAILS_DIR/profiles/esp32.env.example" \
+   "$AI_PODMAN_JAILS_DIR/profiles/my-project.env"
 ```
 
 Edit `profiles/my-project.env`:
@@ -272,9 +272,9 @@ Edit `profiles/my-project.env`:
 PROFILE_NAME="my-project"
 CONTAINER_NAME="my-project-container"
 IMAGE_NAME="my-project-image"
-IMAGE_DIR="${CODEX_JAILS_DIR}/my-image"
-WORKSPACE="${CODEX_JAILS_DIR}/my-workspace"
-CONTAINER_HOME="${CODEX_JAILS_DIR}/my-home"
+IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/my-image"
+WORKSPACE="${AI_PODMAN_JAILS_DIR}/my-workspace"
+CONTAINER_HOME="${AI_PODMAN_JAILS_DIR}/my-home"
 BASHRC="${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
@@ -294,14 +294,14 @@ Required fields:
 | `WORKDIR` | Working directory inside the container (typically `/workspace`). |
 | `BUILD_ARGS` | Extra `podman build` flags (use `""` for none). |
 
-All paths must use `$CODEX_JAILS_DIR` — **never hardcode usernames or
+All paths must use `$AI_PODMAN_JAILS_DIR` — **never hardcode usernames or
 `/var/home/` paths**.
 
 Optional extras (add to the profile as needed):
 
 ```bash
 # Inject secrets at launch time (file must be mode 600):
-ENV_FILE="${CODEX_JAILS_DIR}/my-project-secrets.env"
+ENV_FILE="${AI_PODMAN_JAILS_DIR}/my-project-secrets.env"
 
 # Pass through a USB device:
 EXTRA_DEVICES=("--device=/dev/ttyUSB0")
@@ -447,12 +447,12 @@ Create a secrets file (mode 600) and reference it in the profile:
 
 ```bash
 # Create the secrets file:
-echo 'OPENAI_API_KEY=sk-...' > "$CODEX_JAILS_DIR/my-secrets.env"
-chmod 600 "$CODEX_JAILS_DIR/my-secrets.env"
+echo 'OPENAI_API_KEY=sk-...' > "$AI_PODMAN_JAILS_DIR/my-secrets.env"
+chmod 600 "$AI_PODMAN_JAILS_DIR/my-secrets.env"
 
 # Add to the profile:
-echo 'ENV_FILE="${CODEX_JAILS_DIR}/my-secrets.env"' >> \
-    "$CODEX_JAILS_DIR/profiles/my-project.env"
+echo 'ENV_FILE="${AI_PODMAN_JAILS_DIR}/my-secrets.env"' >> \
+    "$AI_PODMAN_JAILS_DIR/profiles/my-project.env"
 ```
 
 The secrets file is injected at launch time via `--env-file` and is never
@@ -497,7 +497,7 @@ Create one per profile/mode combination you want to launch from the desktop.
 ### `.desktop` files (KDE / GNOME)
 
 Place the file in `~/.local/share/applications/`. Replace the path with your
-actual expanded `CODEX_JAILS_DIR`:
+actual expanded `AI_PODMAN_JAILS_DIR`:
 
 **KDE (Konsole):**
 
@@ -543,8 +543,8 @@ a new project from scratch.
 git clone <repo-url> "$HOME/codex-jails"
 
 # 2. Add bin/ to PATH — append to ~/.bashrc:
-echo 'export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"' >> ~/.bashrc
-echo 'export PATH="${CODEX_JAILS_DIR}/bin:${PATH}"' >> ~/.bashrc
+echo 'export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}"' >> ~/.bashrc
+echo 'export PATH="${AI_PODMAN_JAILS_DIR}/bin:${PATH}"' >> ~/.bashrc
 source ~/.bashrc
 
 # 3. Confirm Podman is rootless:
@@ -571,8 +571,8 @@ ai-new my-project --agent codex
 #    The agent prints next steps when done.
 
 # 6. Copy the generated profile into profiles/:
-cp "$CODEX_JAILS_DIR/projects/my-project/profile.env" \
-   "$CODEX_JAILS_DIR/profiles/my-project.env"
+cp "$AI_PODMAN_JAILS_DIR/projects/my-project/profile.env" \
+   "$AI_PODMAN_JAILS_DIR/profiles/my-project.env"
 
 # → Skip to Phase 3.
 ```
@@ -583,12 +583,12 @@ cp "$CODEX_JAILS_DIR/projects/my-project/profile.env" \
 
 ```bash
 # 5. Place your Containerfile:
-mkdir -p "$CODEX_JAILS_DIR/my-image"
+mkdir -p "$AI_PODMAN_JAILS_DIR/my-image"
 # ... write or copy your Containerfile into that directory ...
 
 # 6. Create the profile from the example:
-cp "$CODEX_JAILS_DIR/profiles/esp32.env.example" \
-   "$CODEX_JAILS_DIR/profiles/my-project.env"
+cp "$AI_PODMAN_JAILS_DIR/profiles/esp32.env.example" \
+   "$AI_PODMAN_JAILS_DIR/profiles/my-project.env"
 # Edit profiles/my-project.env — set PROFILE_NAME, IMAGE_DIR, WORKSPACE, etc.
 ```
 
@@ -650,7 +650,7 @@ ai-new my-project --resume
 
 All five framework commands (`ai-new`, `ai-build`, `ai-launch`, `ai-terminal`,
 `ai-list`) are host-side tools. They manage containers; they do not run inside
-them. Run them from any host terminal where `$CODEX_JAILS_DIR/bin` is on your
+them. Run them from any host terminal where `$AI_PODMAN_JAILS_DIR/bin` is on your
 `PATH`.
 
 ---

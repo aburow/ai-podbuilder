@@ -28,8 +28,8 @@ Every profile must define these fields:
 | `WORKDIR` | Working directory inside the container (typically `/workspace`). |
 | `BUILD_ARGS` | Extra `podman build` arguments (use `""` for none). |
 
-Use `$CODEX_JAILS_DIR` for all paths — **no hard-coded usernames or
-`/var/home/<user>` paths** (R12.2). `CODEX_JAILS_DIR` defaults to the
+Use `$AI_PODMAN_JAILS_DIR` for all paths — **no hard-coded usernames or
+`/var/home/<user>` paths** (R12.2). `AI_PODMAN_JAILS_DIR` defaults to the
 parent of the `bin/` directory if not set in the environment.
 
 ---
@@ -57,16 +57,16 @@ parent of the `bin/` directory if not set in the environment.
 PROFILE_NAME="esp32"
 CONTAINER_NAME="codex-esp32"
 IMAGE_NAME="codex-esp32-image"
-IMAGE_DIR="${CODEX_JAILS_DIR}/esp32-image"
-WORKSPACE="${CODEX_JAILS_DIR}/esp32-workspace"
-CONTAINER_HOME="${CODEX_JAILS_DIR}/esp32-home"
+IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/esp32-image"
+WORKSPACE="${AI_PODMAN_JAILS_DIR}/esp32-workspace"
+CONTAINER_HOME="${AI_PODMAN_JAILS_DIR}/esp32-home"
 BASHRC="${WORKSPACE}/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS="--no-cache"
 
 # Optional extras
 SELINUX_MODE="disable"
-ENV_FILE="${CODEX_JAILS_DIR}/esp32-secrets.env"
+ENV_FILE="${AI_PODMAN_JAILS_DIR}/esp32-secrets.env"
 EXTRA_DEVICES=("--device=/dev/ttyUSB0")
 POST_BUILD_CHECK="xtensa-esp32-elf-gcc --version && idf.py --version"
 ```
@@ -81,13 +81,13 @@ from any directory:
 
 ```bash
 # Add to ~/.bashrc or ~/.zshrc:
-export CODEX_JAILS_DIR="${CODEX_JAILS_DIR:-$HOME/codex-jails}"
-export PATH="${CODEX_JAILS_DIR}/bin:${PATH}"
+export AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-$HOME/codex-jails}"
+export PATH="${AI_PODMAN_JAILS_DIR}/bin:${PATH}"
 ```
 
-If `CODEX_JAILS_DIR` is unset, each command falls back to deriving the base
+If `AI_PODMAN_JAILS_DIR` is unset, each command falls back to deriving the base
 directory from its own path (`BASH_SOURCE`), so the framework is self-hosting
-from any location without requiring `CODEX_JAILS_DIR` to be set.
+from any location without requiring `AI_PODMAN_JAILS_DIR` to be set.
 
 ---
 
@@ -100,7 +100,7 @@ To author one manually:
 
 1. Create `projects/<name>/profile.env` (or copy
    `profiles/esp32.env.example` as a reference — see the header comment).
-2. Set all required fields. Use `$CODEX_JAILS_DIR`-based paths throughout.
+2. Set all required fields. Use `$AI_PODMAN_JAILS_DIR`-based paths throughout.
 3. Create the `IMAGE_DIR` directory with a `Containerfile`.
 4. Build the image: `ai-build <name>`.
 5. Launch: `ai-launch <name>`.

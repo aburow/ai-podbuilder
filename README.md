@@ -20,7 +20,7 @@ profiles/   Legacy/compatibility area — hand-authored examples and optional ov
 templates/  Files emitted by `ai-new`
 docs/       Operator and design documentation
 tests/      Shell test suite
-start-here.sh  Bootstrap entrypoint used inside ai-new containers
+lib/start-here.sh  Bootstrap entrypoint used inside ai-new containers
 ```
 
 ## Install

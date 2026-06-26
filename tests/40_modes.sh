@@ -9,7 +9,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 _dry_run() {
     local mode="$1"
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 "$mode" 2>/dev/null
 }
 
@@ -44,7 +44,7 @@ test_shell_mode_is_default() {
     local _fail=0
     # shell (default) and bash should produce identical policy output
     local out_shell out_bash
-    out_shell="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out_shell="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 2>/dev/null)"
     out_bash="$(_dry_run bash)"
     # Both should be normal-mode creates
@@ -56,7 +56,7 @@ test_shell_mode_is_default() {
 test_unknown_mode_exits_nonzero() {
     local _fail=0
     local out rc=0
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 totally_unknown_mode 2>&1)" || rc=$?
     assert_failure $rc "unknown mode should exit non-zero" || _fail=1
     assert_contains "totally_unknown_mode" "$out" "error names the bad mode" || _fail=1

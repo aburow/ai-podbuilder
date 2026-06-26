@@ -9,7 +9,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 _dry_run() {
     local prof="$1"
-    DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" "$prof" shell 2>/dev/null
 }
 
@@ -94,7 +94,7 @@ BUILD_ARGS=""
 EXTRA_RUN_ARGS=("--group-add=keep-groups")
 EOF
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir

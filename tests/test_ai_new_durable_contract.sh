@@ -79,7 +79,7 @@ source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/profile.sh'
 source '${LIB_DIR}/durable.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 reconcile_durable_project '${_proj}'
 EOF
     local rc=0
@@ -120,7 +120,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='badenv'
 export SKIP_TRIAL_BUILD=0
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' 'localhost/ai-new/badenv:trial' 'test' 0
@@ -162,7 +162,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='misshost'
 export SKIP_TRIAL_BUILD=0
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' 'localhost/ai-new/misshost:trial' 'test' 0
@@ -197,7 +197,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='alex'
 export SKIP_TRIAL_BUILD=0
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' 'localhost/ai-new/alex:trial' 'test' 0

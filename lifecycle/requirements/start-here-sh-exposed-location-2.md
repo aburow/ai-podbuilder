@@ -1,7 +1,7 @@
 ---
 title: Relocate start-here.sh out of the user-accessible host project tree
 type: requirement
-status: planning
+status: done
 lineage: start-here-sh-exposed-location
 parent: lifecycle/defects/start-here-sh-exposed-location.md
 assignees:

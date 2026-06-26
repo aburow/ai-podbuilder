@@ -18,7 +18,7 @@ test_valid_profile_loads() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile esp32
 # Print required vars so we can verify them
@@ -50,7 +50,7 @@ BUILD_ARGS=""
 EOF
     # Spin up a fresh shell to avoid contaminating current env
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir
@@ -64,7 +64,7 @@ EOF
 test_nonexistent_profile_exits_nonzero() {
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir
@@ -91,7 +91,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c '
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c '
         set -u
         source '"'"'${LIB_DIR}/common.sh'"'"'
         source '"'"'${LIB_DIR}/profile.sh'"'"'
@@ -111,7 +111,7 @@ EOF
 set -u
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile minimal
 echo "env=\${#EXTRA_ENV[@]}"
@@ -142,7 +142,7 @@ BUILD_ARGS=""
 EOF
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir
@@ -192,7 +192,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile p
 printf 'PROFILE_NAME=%s\n' "\$PROFILE_NAME"
@@ -224,7 +224,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile legacyonly
 printf 'PROFILE_NAME=%s\n' "\$PROFILE_NAME"
@@ -257,7 +257,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile 'My Proj'
 printf 'PROFILE_NAME=%s\n' "\$PROFILE_NAME"
@@ -272,7 +272,7 @@ SCRIPT
 test_missing_profile_names_both_paths() {
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir
@@ -298,7 +298,7 @@ BASHRC="${_TMPDIR}/projects/nowb/workspace/.bashrc"
 WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
-    CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         resolve_base_dir
@@ -336,7 +336,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile depr
 SCRIPT
@@ -371,7 +371,7 @@ EOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/profile.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 resolve_base_dir
 load_profile nodepr
 SCRIPT

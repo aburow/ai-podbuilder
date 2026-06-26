@@ -29,7 +29,7 @@ _setup_e2e_project() {
     mkdir -p "${_proj}/bootstrap/home/.npm-global/bin"
 
     # Copy start-here.sh into scaffold home.
-    cp "${REPO_ROOT}/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
+    cp "${REPO_ROOT}/lib/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
     chmod +x "${_proj}/bootstrap/home/start-here.sh"
 
     # Write agent.env.

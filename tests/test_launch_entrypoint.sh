@@ -18,7 +18,7 @@ _run_launch() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/launch.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='entrypoint'
 launch_bootstrap '${_project}' '${_resume}' '${_shell_on_exit}'
 SCRIPT

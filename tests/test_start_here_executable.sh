@@ -10,9 +10,10 @@ source "${SELF_DIR}/helpers/setup.bash"
 
 _run_create_scaffold_with_source_mode() {
     local _name="$1" _mode="$2"
-    # Place a start-here.sh stub with the given mode into CODEX_JAILS_DIR.
-    printf '#!/usr/bin/env bash\n# stub\n' > "${_TMPDIR}/start-here.sh"
-    chmod "$_mode" "${_TMPDIR}/start-here.sh"
+    # Place a start-here.sh stub with the given mode into AI_PODMAN_JAILS_DIR.
+    mkdir -p "${_TMPDIR}/lib"
+    printf '#!/usr/bin/env bash\n# stub\n' > "${_TMPDIR}/lib/start-here.sh"
+    chmod "$_mode" "${_TMPDIR}/lib/start-here.sh"
 
     mkdir -p "${_TMPDIR}/config/agents.d"
 
@@ -24,8 +25,8 @@ source '${LIB_DIR}/registry.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/scaffold.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 project_paths '${_name}'
 create_scaffold '${_name}'
 SCRIPT

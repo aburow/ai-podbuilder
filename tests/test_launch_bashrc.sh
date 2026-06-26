@@ -29,7 +29,7 @@ test_normal_container_uses_workspace_rcfile() {
     _write_profile "shellrc" "test-shellrc-img"
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'
@@ -50,7 +50,7 @@ test_builder_shell_uses_workspace_rcfile() {
     _write_profile "builderrc" "test-builderrc-img"
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" bash -c "
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'

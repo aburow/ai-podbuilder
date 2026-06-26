@@ -9,14 +9,14 @@ credentials) into the container at launch time:
 
 ```bash
 # In your profile .env file:
-ENV_FILE="${CODEX_JAILS_DIR}/esp32-secrets.env"
+ENV_FILE="${AI_PODMAN_JAILS_DIR}/esp32-secrets.env"
 ```
 
 The secrets file is passed to Podman via `--env-file`. **Required mode: `600`**
 (readable only by the owner):
 
 ```bash
-chmod 600 "$CODEX_JAILS_DIR/esp32-secrets.env"
+chmod 600 "$AI_PODMAN_JAILS_DIR/esp32-secrets.env"
 ```
 
 **Never commit the secrets file to Git.** Add it to `.gitignore`:

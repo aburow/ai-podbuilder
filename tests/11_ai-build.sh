@@ -11,7 +11,7 @@ source "${SELF_DIR}/helpers/setup.bash"
 test_missing_profile_exits_nonzero() {
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-build" no_such_profile 2>&1)" || rc=$?
     assert_failure $rc "missing profile → non-zero" || _fail=1
     assert_contains "no_such_profile" "$out" "error names the profile" || _fail=1
@@ -22,7 +22,7 @@ test_missing_image_dir_exits_nonzero() {
     # esp32 profile sets IMAGE_DIR to a path that doesn't exist in the temp dir
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-build" esp32 2>&1)" || rc=$?
     assert_failure $rc "missing IMAGE_DIR → non-zero" || _fail=1
     assert_contains "IMAGE_DIR" "$out" "error mentions IMAGE_DIR" || _fail=1
@@ -32,7 +32,7 @@ test_missing_image_dir_exits_nonzero() {
 test_ai_build_creates_no_container_or_state_file() {
     # Even a failed ai-build must leave no container and no state/ dir.
     local _fail=0
-    CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-build" esp32 2>/dev/null || true
     [[ ! -d "${_TMPDIR}/state" ]] \
         || { echo "    state/ directory was created" >&2; _fail=1; }
@@ -54,7 +54,7 @@ EOF
     sed -i '/^POST_BUILD_CHECK=/d' "${_TMPDIR}/profiles/esp32.env"
 
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-build" esp32 2>&1)" || rc=$?
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-build" esp32 2>&1)" || rc=$?
     assert_success $rc "ai-build esp32 should succeed" || _fail=1
     assert_contains "Build complete" "$out" || _fail=1
 
@@ -76,7 +76,7 @@ EOF
 
     mkdir -p "${_TMPDIR}/esp32-image"
     local out rc=0
-    out="$(EDITOR="$_editor" CODEX_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-build" esp32 --edit 2>&1)" || rc=$?
+    out="$(EDITOR="$_editor" AI_PODMAN_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-build" esp32 --edit 2>&1)" || rc=$?
     assert_success $rc "ai-build --edit should succeed" || _fail=1
     assert_contains "Opening Containerfile" "$out" || _fail=1
     [[ -f "${_TMPDIR}/esp32-image/Containerfile" ]] || { echo "    Containerfile was not created" >&2; _fail=1; }

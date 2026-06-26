@@ -11,7 +11,7 @@ test_ai_terminal_no_container_exits_nonzero() {
     # The stub podman returns "not running" for container_running checks.
     local _fail=0
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-terminal" esp32 2>&1)" || rc=$?
     assert_failure $rc "ai-terminal with no running container → non-zero" || _fail=1
     # Should mention the container name or profile

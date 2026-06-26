@@ -9,14 +9,15 @@ test_refresh_replaces_stale_entrypoint() {
     local _project="${_TMPDIR}/projects/refresh"
     mkdir -p "${_project}/bootstrap/home"
     printf '#!/bin/sh\necho stale\n' > "${_project}/bootstrap/home/start-here.sh"
-    cp "${REPO_ROOT}/start-here.sh" "${_TMPDIR}/start-here.sh"
-    chmod 0644 "${_TMPDIR}/start-here.sh"
+    mkdir -p "${_TMPDIR}/lib"
+    cp "${REPO_ROOT}/lib/start-here.sh" "${_TMPDIR}/lib/start-here.sh"
+    chmod 0644 "${_TMPDIR}/lib/start-here.sh"
 
     local _helper="${_TMPDIR}/refresh-helper.sh"
     cat > "$_helper" <<SCRIPT
 #!/usr/bin/env bash
 set -euo pipefail
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/scaffold.sh'

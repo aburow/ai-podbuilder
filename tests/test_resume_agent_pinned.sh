@@ -24,7 +24,7 @@ AEOF
 }
 
 _ai_new() {
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
 }
 
 _make_resumable_project() {
@@ -78,7 +78,7 @@ test_resume_reads_selected_agent_from_session_json() {
     # Run without $() — ai-new's heartbeat background job blocks command substitution.
     # Capture output via a temp file instead.
     local _outfile="${_TMPDIR}/resume_pinned1_out.txt"
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" pinned1 --resume >"$_outfile" 2>&1 || true
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" pinned1 --resume >"$_outfile" 2>&1 || true
     local out
     out="$(cat "$_outfile" 2>/dev/null || true)"
     # ai-new should attempt to resume (may fail at launch due to stub podman, which is ok).
@@ -147,7 +147,7 @@ AEOF
 
     local _patched="${_TMPDIR}/sh-pinned-patched.sh"
     sed "s|BOOTSTRAP_DIR=\"/project/bootstrap\"|BOOTSTRAP_DIR=\"${_bd}\"|g" \
-        "${REPO_ROOT}/start-here.sh" > "$_patched"
+        "${REPO_ROOT}/lib/start-here.sh" > "$_patched"
 
     local out rc=0
     out="$(bash "$_patched" --resume 2>&1)" || rc=$?
@@ -170,7 +170,7 @@ AEOF
 
     local _patched="${_TMPDIR}/sh-noprompt-patched.sh"
     sed "s|BOOTSTRAP_DIR=\"/project/bootstrap\"|BOOTSTRAP_DIR=\"${_bd}\"|g" \
-        "${REPO_ROOT}/start-here.sh" > "$_patched"
+        "${REPO_ROOT}/lib/start-here.sh" > "$_patched"
 
     local out rc=0
     out="$(bash "$_patched" --resume 2>&1)" || rc=$?

@@ -1,7 +1,7 @@
 ---
 title: 'Release installer URL returned 404 because install.sh was not uploaded as a release asset'
 type: defect
-status: clarifying
+status: done
 lineage: release-installer-asset-missing
 created: "2026-06-26T17:58:00+10:00"
 priority: high

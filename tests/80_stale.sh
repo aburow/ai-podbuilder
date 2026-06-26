@@ -15,7 +15,7 @@ test_yes_flag_produces_normal_create() {
     # The DRY_RUN output for a normal mode should be a create (not run).
     local _fail=0
     local out rc=0
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 --yes 2>/dev/null)" || rc=$?
     assert_success $rc "--yes with DRY_RUN should succeed" || _fail=1
     assert_contains "DRY_RUN:create" "$out" "--yes still uses normal (non-builder) create" || _fail=1
@@ -26,7 +26,7 @@ test_yes_flag_produces_normal_create() {
 test_non_interactive_flag_produces_normal_create() {
     local _fail=0
     local out
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 --non-interactive 2>/dev/null)"
     assert_contains "DRY_RUN:create" "$out" || _fail=1
     return $_fail
@@ -36,7 +36,7 @@ test_recreate_flag_produces_normal_create() {
     # --recreate rebuilds the container (still a normal create, not builder).
     local _fail=0
     local out
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" esp32 --recreate 2>/dev/null)"
     assert_contains "DRY_RUN:create" "$out" "--recreate still uses normal create" || _fail=1
     assert_not_contains "--privileged" "$out" || _fail=1
@@ -106,7 +106,7 @@ test_recreate_preserves_workspace_live() {
     _build_image_v2 "$img"
 
     # Simulate --recreate: remove and recreate
-    CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+    AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -c "
         source '${LIB_DIR}/common.sh'
         source '${LIB_DIR}/profile.sh'
         source '${LIB_DIR}/policy.sh'

@@ -22,8 +22,9 @@ AGENT_ENV_VARS=""
 AGENT_PROMPT_MODE="default"
 AGENT_AUTH_CHECK_ARGV="codex|--version"
 AEOF
-    # create_scaffold looks for CODEX_JAILS_DIR/start-here.sh and copies it.
-    cp "${REPO_ROOT}/start-here.sh" "${_TMPDIR}/start-here.sh"
+    # create_scaffold looks for AI_PODMAN_JAILS_DIR/lib/start-here.sh and copies it.
+    mkdir -p "${_TMPDIR}/lib"
+    cp "${REPO_ROOT}/lib/start-here.sh" "${_TMPDIR}/lib/start-here.sh"
 }
 
 _run_create_scaffold() {
@@ -36,8 +37,8 @@ source '${LIB_DIR}/registry.sh'
 source '${LIB_DIR}/slug.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/scaffold.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_TMPDIR}/config/agents.d'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_TMPDIR}/config/agents.d'
 project_paths '${_name}'
 create_scaffold '${_name}'
 SCRIPT

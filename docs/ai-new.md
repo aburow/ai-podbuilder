@@ -201,7 +201,7 @@ the single primary entrypoint the user runs after entering the container. It is
 All project artifacts live under a single base directory.
 
 ```
-$CODEX_JAILS_DIR/                         # Default: ~/codex-jails/
+$AI_PODMAN_JAILS_DIR/                         # Default: ~/codex-jails/
 ├── bin/
 │   └── ai-new                            # The ai-new command
 ├── lib/
@@ -217,7 +217,7 @@ $CODEX_JAILS_DIR/                         # Default: ~/codex-jails/
 Each project gets its own isolated tree:
 
 ```
-$CODEX_JAILS_DIR/projects/<name>/
+$AI_PODMAN_JAILS_DIR/projects/<name>/
 ├── workspace/                            # Project workspace (mounted at /project/workspace)
 ├── image/
 │   └── Containerfile                     # Durable project image definition (generated)
@@ -237,15 +237,15 @@ $CODEX_JAILS_DIR/projects/<name>/
     └── home/                             # Bootstrap container's $HOME (agent config, etc.)
 ```
 
-The host path `$CODEX_JAILS_DIR/projects/<name>/` is mounted into the bootstrap
+The host path `$AI_PODMAN_JAILS_DIR/projects/<name>/` is mounted into the bootstrap
 container as `/project`. The bootstrap workspace and the generated durable
 scaffold are the **same** mounted tree. Files written inside the container at
 `/project/...` appear immediately on the host.
 
-**Path derivation:** Every path is derived from `$HOME` or `$CODEX_JAILS_DIR`.
+**Path derivation:** Every path is derived from `$HOME` or `$AI_PODMAN_JAILS_DIR`.
 No usernames are hardcoded in any generated or framework file.
 
-**`CODEX_JAILS_DIR`:** Defaults to `~/codex-jails`. Override by exporting the
+**`AI_PODMAN_JAILS_DIR`:** Defaults to `~/codex-jails`. Override by exporting the
 variable before running `ai-new`.
 
 ---
@@ -272,7 +272,7 @@ container disposal.
 - `--userns=keep-id` — rootless UID mapping
 - `--network` enabled — required for agent API calls, authentication, and
   package metadata
-- A single writable bind mount: `$CODEX_JAILS_DIR/projects/<name>/` → `/project`
+- A single writable bind mount: `$AI_PODMAN_JAILS_DIR/projects/<name>/` → `/project`
 - `HOME=/project/bootstrap/home` — the bootstrap agent's config directories
   (`~/.codex`, `~/.codex`, etc.) persist there across bootstrap image rebuilds
   and resumes
@@ -296,7 +296,7 @@ inside the mounted project tree. This means:
 
 The runtime registry declares which AI agent runtimes `ai-new` supports. It is
 **extensible without editing framework scripts**: drop a new file in
-`$CODEX_JAILS_DIR/config/agents.d/` and it becomes a valid `--agent` value.
+`$AI_PODMAN_JAILS_DIR/config/agents.d/` and it becomes a valid `--agent` value.
 
 ### Registry file format
 
@@ -392,7 +392,7 @@ SHA-256. The same normalized file produces the same hash on any machine.
 
 ### Adding a new runtime
 
-1. Create `$CODEX_JAILS_DIR/config/agents.d/myruntime.env` with the required
+1. Create `$AI_PODMAN_JAILS_DIR/config/agents.d/myruntime.env` with the required
    keys (see above).
 2. Run `ai-new myproject --agent myruntime`.
 
@@ -794,7 +794,7 @@ Reconciliation notes are appended to `bootstrap/session.md`.
 | Property | Value |
 |----------|-------|
 | User namespace | `--userns=keep-id` (rootless) |
-| Mounted paths | `$CODEX_JAILS_DIR/projects/<name>/` → `/project` only |
+| Mounted paths | `$AI_PODMAN_JAILS_DIR/projects/<name>/` → `/project` only |
 | Host `~/.ssh` | Not mounted |
 | Host config dirs | Not mounted |
 | Host agent sockets | Not mounted |
@@ -846,7 +846,7 @@ podman build -t my-project ~/codex-jails/projects/my-project/image/
 
 **Conventions all generated files follow:**
 
-- Paths derived from `$HOME` / `$CODEX_JAILS_DIR`, never hardcoded usernames.
+- Paths derived from `$HOME` / `$AI_PODMAN_JAILS_DIR`, never hardcoded usernames.
 - Profile shape follows `ai-agent-podman-sandbox` conventions.
 - Secrets are not baked into the image or committed to version control.
 - `.env.example` provides placeholder variable names; the user populates a
@@ -909,7 +909,7 @@ No populated secret files are baked into the image or committed to version contr
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CODEX_JAILS_DIR` | `~/codex-jails` | Base directory for projects, bin, lib, and config |
+| `AI_PODMAN_JAILS_DIR` | `~/codex-jails` | Base directory for projects, bin, lib, and config |
 | `AI_NEW_SKIP_TRIAL_BUILD` | `0` | Set to `1` to skip the trial build (equivalent to `--skip-trial-build`) |
 | `AI_NEW_BUILD_TIMEOUT` | `30m` | Trial build timeout. GNU `timeout(1)` syntax: bare seconds or suffixed (`300`, `10m`, `1h`) |
 | `AI_NEW_MAX_REPAIR_ATTEMPTS` | `3` | Maximum agent repair iterations before declaring `quality-gate-failed` |
@@ -947,7 +947,7 @@ The following maps documentation sections to the requirements that drove them.
 | AC8 — Complete minimal scaffold at session end | §14 |
 | AC9 — `session.json` R11.3 fields; status vocabulary | §9 |
 | AC10 — Secret handling: `.env.example`/runtime-mount; gitignore | §15, §14 |
-| AC11 — No hardcoded usernames; paths from `$HOME`/`CODEX_JAILS_DIR` | §5, §14 |
+| AC11 — No hardcoded usernames; paths from `$HOME`/`AI_PODMAN_JAILS_DIR` | §5, §14 |
 | AC12 — Quality gate: static check, trial build, log capture, status | §10 |
 | AC13 — `--skip-trial-build` and timeout handling | §10, §16 |
 | AC14 — Generated files persist after bootstrap disposal | §6, §9 |

@@ -17,7 +17,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 ${_script}
 SCRIPT
@@ -76,7 +76,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 export SKIP_TRIAL_BUILD=1
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' \
@@ -104,7 +104,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 export SKIP_TRIAL_BUILD=1
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' \
@@ -133,7 +133,7 @@ source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
 source '${LIB_DIR}/coordination.sh'
 source '${LIB_DIR}/quality_gate.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 export SKIP_TRIAL_BUILD=1
 run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' \
@@ -156,7 +156,7 @@ test_ai_new_skip_trial_build_flag() {
     # Verify that --skip-trial-build sets SKIP_TRIAL_BUILD=1 via ai-new arg parsing.
     # We can check this by running ai-new -h and ensuring --skip-trial-build is in usage.
     local out rc=0
-    out="$(CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" -h 2>&1)" || rc=$?
+    out="$(AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" -h 2>&1)" || rc=$?
     assert_success $rc || _fail=1
     assert_contains "skip-trial-build" "$out" "--skip-trial-build should appear in help" || _fail=1
     return $_fail

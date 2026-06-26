@@ -28,7 +28,7 @@ REOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 parse_registry_file '${_reg}'
 printf 'NAME=%s\n' "\$REG_AGENT_NAME"
 SCRIPT
@@ -63,7 +63,7 @@ REOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 parse_registry_file '${_reg}'
 echo "parsed"
 SCRIPT
@@ -94,7 +94,7 @@ REOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 parse_registry_file '${_reg}'
 echo "parsed"
 SCRIPT
@@ -125,7 +125,7 @@ REOF
 
     local _patched="${_TMPDIR}/sh-patched.sh"
     sed "s|BOOTSTRAP_DIR=\"/project/bootstrap\"|BOOTSTRAP_DIR=\"${_tmpbootstrap}\"|g" \
-        "${REPO_ROOT}/start-here.sh" > "$_patched"
+        "${REPO_ROOT}/lib/start-here.sh" > "$_patched"
 
     # Run with -h so it exits immediately after parsing agent.env (which happens at top level).
     local out rc=0

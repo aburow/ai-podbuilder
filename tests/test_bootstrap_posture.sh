@@ -46,7 +46,7 @@ AEOF
 
     local _cname="ai-new-bootstrap-${_slug}"
     # Launch the container in detached mode and inspect it.
-    CODEX_JAILS_DIR="${_TMPDIR}" SLUG="${_slug}" \
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" SLUG="${_slug}" \
         podman run --rm --detach \
             --name "$_cname" \
             --userns=keep-id \

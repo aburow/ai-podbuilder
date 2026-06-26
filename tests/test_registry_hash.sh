@@ -15,7 +15,7 @@ _hash_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 registry_hash '${_path}'
 SCRIPT
     bash "${_TMPDIR}/hash_helper.sh" 2>&1
@@ -28,7 +28,7 @@ _normalize_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 normalize_registry '${_path}'
 SCRIPT
     bash "${_TMPDIR}/norm_helper.sh" 2>&1

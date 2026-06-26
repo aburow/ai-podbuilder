@@ -91,7 +91,7 @@ test_prompt_mentions_host_side_ai_commands() {
 
 test_start_here_places_prompt_in_bootstrap_dir() {
     # start-here.sh should copy the prompt from /start-here-prompts/ to bootstrap/.
-    local _sh="${REPO_ROOT}/start-here.sh"
+    local _sh="${REPO_ROOT}/lib/start-here.sh"
     [[ -f "$_sh" ]] || { printf '    start-here.sh not found\n' >&2; return 1; }
     if ! grep -q 'bootstrap-prompt.md' "$_sh"; then
         printf '    start-here.sh should reference bootstrap-prompt.md\n' >&2
@@ -102,7 +102,7 @@ test_start_here_places_prompt_in_bootstrap_dir() {
 
 test_no_hardcoded_questionnaire_in_start_here() {
     # start-here.sh should not contain a hardcoded Q&A questionnaire.
-    local _sh="${REPO_ROOT}/start-here.sh"
+    local _sh="${REPO_ROOT}/lib/start-here.sh"
     [[ -f "$_sh" ]] || { _SKIP_REASON="start-here.sh not found"; return 0; }
 
     local _q_count
@@ -129,7 +129,7 @@ AEOF
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/session.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 init_session '${_proj}' 'interviewtest' 'codex'
 cat '${_proj}/bootstrap/session.md'
 SCRIPT

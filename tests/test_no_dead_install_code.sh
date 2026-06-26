@@ -28,7 +28,7 @@ test_agent_is_installed_by_containerfile() {
 
 test_start_here_does_not_install_on_launch() {
     local src
-    src="$(cat "${REPO_ROOT}/start-here.sh")"
+    src="$(cat "${REPO_ROOT}/lib/start-here.sh")"
     assert_not_contains "run_install_adapter" "$src" || return 1
     assert_not_contains "npm install" "$src"
 }

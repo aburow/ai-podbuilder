@@ -34,7 +34,7 @@ test_env_file_present_adds_env_file_arg() {
     _make_secret_profile "$secret_file"
 
     local out rc=0
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" secret shell 2>/dev/null)" || rc=$?
     assert_success $rc "launch with present ENV_FILE should succeed" || _fail=1
     assert_contains "--env-file" "$out" "--env-file added when ENV_FILE present" || _fail=1
@@ -48,7 +48,7 @@ test_env_file_missing_warns_and_continues() {
     _make_secret_profile "$missing"
 
     local out rc=0
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" secret shell 2>&1)" || rc=$?
     assert_success $rc "launch with missing ENV_FILE should still succeed" || _fail=1
     assert_contains "WARN" "$out" "warning emitted when ENV_FILE missing" || _fail=1
@@ -62,7 +62,7 @@ test_env_file_undefined_no_secret_mount() {
     _make_secret_profile   # no ENV_FILE arg
 
     local out
-    out="$(DRY_RUN=1 CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(DRY_RUN=1 AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-launch" secret shell 2>/dev/null)"
     assert_not_contains "--env-file" "$out" "no --env-file when ENV_FILE unset" || _fail=1
     return $_fail

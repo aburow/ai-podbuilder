@@ -22,7 +22,7 @@ _ensure_image_or_skip() {
 _setup_project_with_start_here() {
     local _proj="$1"
     mkdir -p "${_proj}/bootstrap/home"
-    cp "${REPO_ROOT}/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
+    cp "${REPO_ROOT}/lib/start-here.sh" "${_proj}/bootstrap/home/start-here.sh"
     chmod +x "${_proj}/bootstrap/home/start-here.sh"
     cat > "${_proj}/bootstrap/agent.env" <<'AEOF'
 AGENT_REGISTRY_VERSION="1"

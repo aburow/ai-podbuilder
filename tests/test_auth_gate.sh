@@ -12,7 +12,7 @@ _patch_start_here() {
     local _bootstrap_dir="$1"
     local _out="${_TMPDIR}/start-here-auth-patched.sh"
     sed "s|BOOTSTRAP_DIR=\"/project/bootstrap\"|BOOTSTRAP_DIR=\"${_bootstrap_dir}\"|g" \
-        "${REPO_ROOT}/start-here.sh" > "$_out"
+        "${REPO_ROOT}/lib/start-here.sh" > "$_out"
     echo "$_out"
 }
 

@@ -86,18 +86,16 @@ _TMPDIR=""
 
 setup_test_env() {
     _TMPDIR="$(mktemp -d)"
-    export AI_PODMAN_JAILS_DIR="$_TMPDIR"  # canonical wins; CODEX_JAILS_DIR kept for compat
-    export CODEX_JAILS_DIR="$_TMPDIR"
+    export AI_PODMAN_JAILS_DIR="$_TMPDIR"
     mkdir -p "${_TMPDIR}/profiles"
 
-    # Seed reference profiles (expand CODEX_JAILS_DIR / AI_PODMAN_JAILS_DIR in example files)
+    # Seed reference profiles (expand AI_PODMAN_JAILS_DIR in example files)
     local f
     for f in "${PROFILES_SRC}"/*.env.example; do
         [[ -f "$f" ]] || continue
         local base
         base="$(basename "$f" .example)"
-        sed -e "s|\${CODEX_JAILS_DIR}|${_TMPDIR}|g" \
-            -e "s|\${AI_PODMAN_JAILS_DIR}|${_TMPDIR}|g" \
+        sed "s|\${AI_PODMAN_JAILS_DIR}|${_TMPDIR}|g" \
             "$f" > "${_TMPDIR}/profiles/${base}"
     done
 

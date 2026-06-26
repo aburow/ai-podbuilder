@@ -9,11 +9,11 @@ source "${SELF_DIR}/helpers/setup.bash"
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _ai_new() {
-    CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
+    AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" "$@" 2>&1
 }
 
 _start_here() {
-    bash "${REPO_ROOT}/start-here.sh" "$@" 2>&1
+    bash "${REPO_ROOT}/lib/start-here.sh" "$@" 2>&1
 }
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ test_podman_unavailable_exits_nonzero() {
         [[ -n "$_real" ]] && ln -sf "$_real" "${_no_podman_bin}/${_tool}" 2>/dev/null || true
     done
     local out rc=0
-    out="$(PATH="${_no_podman_bin}" CODEX_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" anything --agent codex 2>&1)" || rc=$?
+    out="$(PATH="${_no_podman_bin}" AI_PODMAN_JAILS_DIR="${_TMPDIR}" bash "${BIN_DIR}/ai-new" anything --agent codex 2>&1)" || rc=$?
     assert_failure $rc "missing podman should exit non-zero" || _fail=1
     # The error message should mention podman.
     local _found=0

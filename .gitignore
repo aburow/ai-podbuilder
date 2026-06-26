@@ -3,6 +3,23 @@ lifecycle/.kaos-control.db
 lifecycle/.kaos-control.db-shm
 lifecycle/.kaos-control.db-wal
 
+# Local kaos-control pipeline definitions — operational, not for remote
+lifecycle/devops/*.yaml
+
+# Runtime project data — never commit user projects or live secrets
+projects/
+*.env
+!*.env.example
+!config/agents.d/*.env
+
+# SSH keys and TLS material
+*.pem
+*.key
+id_rsa
+id_ed25519
+id_ecdsa
+known_hosts
+
 # OS artefacts
 .DS_Store
 Thumbs.db
