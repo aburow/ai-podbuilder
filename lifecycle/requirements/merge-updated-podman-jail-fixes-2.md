@@ -1,7 +1,7 @@
 ---
 title: Merge Updated podman-jail Bug Fixes
 type: requirement
-status: blocked
+status: approved
 lineage: merge-updated-podman-jail-fixes
 parent: lifecycle/ideas/merge-updated-podman-jail-fixes.md
 assignees:
@@ -137,19 +137,27 @@ verify intent against the originating fix:
       addressed defects/fix areas; hooks and signing intact.
 - [ ] `git status` shows no unintended staged paths.
 
-## Open Questions
+## Answers
 
 1. **Provenance of fixes** — there is no defect list or changelog in the
    updated tree. Which `lifecycle/defects/` entries (if any) should the commit
    messages reference, or do we describe fixes by area?
+
+answer: You will need to work against and update requirements as the user didn't provide full information. We do know that the code is operational and validated as best we can tell.
+
 2. **`updated-code/` disposition** — after a successful merge, should the
    staging directory be deleted in the same change, left untracked, or kept?
-3. **Excluded artifacts confirmation** — confirm `projects/`, the three extra
-   `profiles/*.env`, and `config/slug-index.tsv` are indeed developer runtime
-   output and not intended package content.
-4. **Large test deletions** — `test_install_*` and `test_no_dead_install_code.sh`
-   lose 90–160 lines each. Confirm these are intentional rewrites and that no
-   required coverage is dropped.
-5. **Repo-local divergence** — for any file changed in *both* the updated tree
-   and the repo root since the fork, how should conflicts be resolved (prefer
-   updated, prefer local, or manual merge)?
+
+answer: deleted - there is a backup that can be brought back in if required
+
+3. **Excluded artifacts confirmation** — confirm `projects/`, the three extra `profiles/*.env`, and `config/slug-index.tsv` are indeed developer runtime output and not intended package content.
+
+answer: they are runtime output. You will need to confirm details to ensure structures aren't fixed dependencies.
+   
+4. **Large test deletions** — `test_install_*` and `test_no_dead_install_code.sh` lose 90–160 lines each. Confirm these are intentional rewrites and that no required coverage is dropped.
+
+answer: they are intentional
+
+5. **Repo-local divergence** — for any file changed in *both* the updated tree and the repo root since the fork, how should conflicts be resolved (prefer updated, prefer local, or manual merge)?
+
+answer: updated should win as it has a higher level of testing
