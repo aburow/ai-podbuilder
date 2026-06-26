@@ -15,8 +15,8 @@ _list_helper() {
 set -euo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/registry.sh'
-export CODEX_JAILS_DIR='${_TMPDIR}'
-export CODEX_AGENTS_DIR='${_agents_dir}'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export AI_PODMAN_AGENTS_DIR='${_agents_dir}'
 list_registered_agents
 SCRIPT
     bash "${_TMPDIR}/list_helper.sh" 2>&1

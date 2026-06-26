@@ -42,7 +42,7 @@ test_launch_does_not_mount_host_install_library() {
 test_build_context_excludes_project_secrets() {
     local src
     src="$(cat "${REPO_ROOT}/lib/bootstrap_image.sh")"
-    assert_contains 'local _build_context="${CODEX_JAILS_DIR}/config"' "$src" || return 1
+    assert_contains 'local _build_context="${AI_PODMAN_JAILS_DIR}/config"' "$src" || return 1
     assert_not_contains '"$(dirname "$_cfile")"' "$src"
 }
 

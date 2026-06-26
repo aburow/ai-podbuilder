@@ -75,7 +75,7 @@ test_ai_list_empty_state_exits_zero() {
     local empty_dir="${_TMPDIR}/empty_root"
     mkdir -p "$empty_dir"
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$empty_dir" CODEX_JAILS_DIR="$empty_dir" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>&1)" || rc=$?
     assert_success $rc "no profiles anywhere → exit 0 (AC2)" || _fail=1
     assert_contains "No profiles found" "$out" "empty-state message should be printed" || _fail=1
@@ -219,7 +219,7 @@ WORKDIR="/workspace"
 BUILD_ARGS=""
 EOF
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_empty" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_empty" CODEX_JAILS_DIR="$_empty" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 with legacy-only profile (AC3)" || _fail=1
     assert_contains "legacyonly" "$out" "legacy-only profile should appear" || _fail=1
@@ -248,7 +248,7 @@ EXTRA_HOSTS=()
 EXTRA_RUN_ARGS=()
 EOF
     local out rc=0
-    out="$(CODEX_JAILS_DIR="$_noleg" PATH="${STUBS_DIR}:${PATH}" \
+    out="$(AI_PODMAN_JAILS_DIR="$_noleg" CODEX_JAILS_DIR="$_noleg" PATH="${STUBS_DIR}:${PATH}" \
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should exit 0 with no profiles/ dir (AC2)" || _fail=1
     assert_contains "onlyproj" "$out" "project should be listed without profiles/ dir" || _fail=1

@@ -86,16 +86,19 @@ _TMPDIR=""
 
 setup_test_env() {
     _TMPDIR="$(mktemp -d)"
+    export AI_PODMAN_JAILS_DIR="$_TMPDIR"  # canonical wins; CODEX_JAILS_DIR kept for compat
     export CODEX_JAILS_DIR="$_TMPDIR"
     mkdir -p "${_TMPDIR}/profiles"
 
-    # Seed reference profiles (expand CODEX_JAILS_DIR in the example files)
+    # Seed reference profiles (expand CODEX_JAILS_DIR / AI_PODMAN_JAILS_DIR in example files)
     local f
     for f in "${PROFILES_SRC}"/*.env.example; do
         [[ -f "$f" ]] || continue
         local base
         base="$(basename "$f" .example)"
-        sed "s|\${CODEX_JAILS_DIR}|${_TMPDIR}|g" "$f" > "${_TMPDIR}/profiles/${base}"
+        sed -e "s|\${CODEX_JAILS_DIR}|${_TMPDIR}|g" \
+            -e "s|\${AI_PODMAN_JAILS_DIR}|${_TMPDIR}|g" \
+            "$f" > "${_TMPDIR}/profiles/${base}"
     done
 
     # Ensure stubs directory precedes real commands so podman stub is found
