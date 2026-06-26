@@ -44,6 +44,11 @@ The bootstrap is complete. Here are the four recommended next steps:
    \`\`\`
    ${_proj}/launchers/launch-${_name}.sh
    \`\`\`
+
+5. **Verify host registration**
+   \`\`\`
+   ai-list
+   \`\`\`
 EOF
 
     # session.json with complete status.
@@ -127,6 +132,16 @@ test_next_steps_bootstrap_done_message() {
     return $_fail
 }
 
+test_next_steps_references_ai_list() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/nextstep7"
+    _build_mock_scaffold_with_next_steps "$_proj" "nextstep7"
+    local _content
+    _content="$(cat "${_proj}/bootstrap/next-steps.md")"
+    assert_contains "ai-list" "$_content" "next-steps.md should reference ai-list" || _fail=1
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "next-steps.md exists in bootstrap/"                 test_next_steps_file_exists
 run_test "next-steps.md references project name"              test_next_steps_references_project_name
@@ -134,5 +149,6 @@ run_test "next-steps.md references Containerfile path"        test_next_steps_re
 run_test "next-steps.md references launcher"                  test_next_steps_references_launcher
 run_test "next-steps.md has at least four steps"              test_next_steps_has_four_steps
 run_test "next-steps.md indicates bootstrap is complete"      test_next_steps_bootstrap_done_message
+run_test "next-steps.md references ai-list"                   test_next_steps_references_ai_list
 
 print_summary "test_next_steps"

@@ -50,17 +50,16 @@ test_container_home_env_present() {
     return $_fail
 }
 
-test_exactly_one_workspace_bind_mount() {
+test_workspace_and_home_bind_mounts_present() {
     local _fail=0
     local out; out="$(_dry_run_esp32)"
-    local count
-    count="$(printf '%s\n' "$out" | grep -c '/workspace' || true)"
-    # Workspace path appears in the -v arg AND in --workdir; allow 1-2 occurrences
-    # but assert the bind-mount line itself is present exactly once.
-    local bind_count
-    bind_count="$(printf '%s\n' "$out" | grep -cE ':/workspace' || true)"
-    [[ "$bind_count" -eq 1 ]] \
-        || { printf '    expected exactly 1 workspace bind mount, got %d\n' "$bind_count" >&2; _fail=1; }
+    local workspace_bind_count home_bind_count
+    workspace_bind_count="$(printf '%s\n' "$out" | grep -cE ':/workspace' || true)"
+    home_bind_count="$(printf '%s\n' "$out" | grep -cF '/home/builder:/home/builder:Z' || true)"
+    [[ "$workspace_bind_count" -eq 1 ]] \
+        || { printf '    expected exactly 1 workspace bind mount, got %d\n' "$workspace_bind_count" >&2; _fail=1; }
+    [[ "$home_bind_count" -ge 1 ]] \
+        || { printf '    expected container home bind mount to be present\n' >&2; _fail=1; }
     return $_fail
 }
 
@@ -106,7 +105,7 @@ run_test "normal mode: --group-add keep-groups present" test_group_add_keep_grou
 run_test "normal mode: no-new-privileges present"       test_no_new_privileges_present
 run_test "normal mode: label=disable present by default" test_selinux_default_label_disable_present
 run_test "normal mode: HOME env override present"       test_container_home_env_present
-run_test "normal mode: exactly one workspace bind mount" test_exactly_one_workspace_bind_mount
+run_test "normal mode: workspace and home bind mounts present" test_workspace_and_home_bind_mounts_present
 run_test "normal mode: no --privileged"                 test_no_privileged_in_normal_mode
 run_test "normal mode: no host \$HOME mount"            test_no_host_home_mount
 run_test "normal mode: no Docker/Podman socket"         test_no_docker_or_podman_socket

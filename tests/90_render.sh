@@ -32,6 +32,9 @@ test_ai_build_help_exits_zero() {
     local rc=0
     "${BIN_DIR}/ai-build" --help 2>/dev/null || rc=$?
     assert_success $rc "ai-build --help exits 0" || _fail=1
+    local out
+    out="$("${BIN_DIR}/ai-build" --help 2>&1)"
+    assert_contains "--edit" "$out" "ai-build help should mention edit mode" || _fail=1
     return $_fail
 }
 

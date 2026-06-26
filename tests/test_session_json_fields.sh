@@ -68,6 +68,8 @@ test_session_json_has_required_r11_fields() {
         project_name selected_agent status last_updated generated_files \
         containerfile_path quality_gate_status last_error resume_command \
         build_log_path trial_image_tag static_check_status \
+        final_runtime enabled_optional_features rejected_optional_features \
+        durable_reconciliation_status durable_spec_path \
         pinned_agent_env pinned_agent_hash
     do
         assert_contains "\"${_field}\"" "$_content" "session.json should have field: ${_field}" || _fail=1

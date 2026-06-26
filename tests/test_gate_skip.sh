@@ -146,7 +146,8 @@ SCRIPT
     }
     local _content
     _content="$(cat "${_proj}/bootstrap/build.result.1.json" 2>/dev/null || true)"
-    assert_contains "generated-unvalidated" "$_content" "result file should reflect skip status" || _fail=1
+    assert_contains '"status": "skipped"' "$_content" \
+        "protocol result should use the agent-facing skipped status" || _fail=1
     return $_fail
 }
 

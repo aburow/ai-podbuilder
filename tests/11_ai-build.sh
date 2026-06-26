@@ -63,10 +63,34 @@ EOF
     return $_fail
 }
 
+test_ai_build_edit_opens_containerfile_in_editor() {
+    local _fail=0
+    local _editor="${_TMPDIR}/fake-editor.sh"
+    local _log="${_TMPDIR}/editor.log"
+    cat > "$_editor" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$1" > "${_log}"
+exit 0
+EOF
+    chmod +x "$_editor"
+
+    mkdir -p "${_TMPDIR}/esp32-image"
+    local out rc=0
+    out="$(EDITOR="$_editor" CODEX_JAILS_DIR="$_TMPDIR" "${BIN_DIR}/ai-build" esp32 --edit 2>&1)" || rc=$?
+    assert_success $rc "ai-build --edit should succeed" || _fail=1
+    assert_contains "Opening Containerfile" "$out" || _fail=1
+    [[ -f "${_TMPDIR}/esp32-image/Containerfile" ]] || { echo "    Containerfile was not created" >&2; _fail=1; }
+    local _edited_path
+    _edited_path="$(cat "${_log}" 2>/dev/null || true)"
+    assert_eq "${_TMPDIR}/esp32-image/Containerfile" "$_edited_path" "editor should open the Containerfile path" || _fail=1
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "ai-build: missing profile → non-zero"        test_missing_profile_exits_nonzero
 run_test "ai-build: missing IMAGE_DIR → non-zero"      test_missing_image_dir_exits_nonzero
 run_test "ai-build: no container or state/ created"    test_ai_build_creates_no_container_or_state_file
 run_test "ai-build esp32 (Tier B — live build)"        test_ai_build_tier_b_esp32
+run_test "ai-build --edit opens Containerfile"         test_ai_build_edit_opens_containerfile_in_editor
 
 print_summary "11_ai-build"

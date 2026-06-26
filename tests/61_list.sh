@@ -5,6 +5,9 @@ set -uo pipefail
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=helpers/setup.bash
 source "${SELF_DIR}/helpers/setup.bash"
+source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/slug.sh"
+source "${LIB_DIR}/scaffold.sh"
 
 test_ai_list_prints_profiles() {
     local _fail=0
@@ -87,6 +90,72 @@ test_ai_list_help_exits_zero() {
     return $_fail
 }
 
+test_ai_list_sees_registered_generated_project() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/alex"
+    mkdir -p "$_proj"
+    cat > "${_proj}/profile.env" <<EOF
+PROFILE_NAME="alex"
+CONTAINER_NAME="alex"
+IMAGE_NAME="localhost/alex:latest"
+IMAGE_DIR="\${CODEX_JAILS_DIR}/projects/alex/image"
+WORKSPACE="\${CODEX_JAILS_DIR}/projects/alex/workspace"
+CONTAINER_HOME="\${CODEX_JAILS_DIR}/projects/alex/state/home"
+BASHRC="\${WORKSPACE}/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+NETWORK_MODE="bridge"
+EXTRA_ENV=()
+EXTRA_VOLUMES=()
+EXTRA_DEVICES=()
+EXTRA_HOSTS=()
+EXTRA_RUN_ARGS=()
+EOF
+
+    install_generated_profile "$_proj" "alex"
+
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
+    assert_success $rc "ai-list should succeed after generated profile registration" || _fail=1
+    assert_contains "alex" "$out" "registered generated project should be listed" || _fail=1
+    return $_fail
+}
+
+test_ai_list_syncs_project_profiles_automatically() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/alex-sync"
+    mkdir -p "$_proj"
+    cat > "${_proj}/profile.env" <<EOF
+PROFILE_NAME="alex-sync"
+CONTAINER_NAME="alex-sync"
+IMAGE_NAME="localhost/alex-sync:latest"
+IMAGE_DIR="\${CODEX_JAILS_DIR}/projects/alex-sync/image"
+WORKSPACE="\${CODEX_JAILS_DIR}/projects/alex-sync/workspace"
+CONTAINER_HOME="\${CODEX_JAILS_DIR}/projects/alex-sync/state/home"
+BASHRC="\${WORKSPACE}/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+NETWORK_MODE="bridge"
+EXTRA_ENV=()
+EXTRA_VOLUMES=()
+EXTRA_DEVICES=()
+EXTRA_HOSTS=()
+EXTRA_RUN_ARGS=()
+EOF
+
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
+    assert_success $rc "ai-list should succeed when syncing project profiles" || _fail=1
+    assert_contains "alex-sync" "$out" "project profile should be listed even before explicit registration" || _fail=1
+    [[ -f "${_TMPDIR}/profiles/alex-sync.env" ]] || {
+        printf '    ai-list did not sync project profile into profiles/\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "ai-list prints profile name, image, workspace, state"   test_ai_list_prints_profiles
 run_test "ai-list state column shows 'absent' with stub podman"   test_ai_list_state_column_absent
@@ -94,5 +163,7 @@ run_test "ai-list column alignment consistent across rows"         test_ai_list_
 run_test "ai-list emits no ANSI when piped"                       test_ai_list_no_ansi_when_piped
 run_test "ai-list: missing profiles dir → non-zero"               test_ai_list_missing_profiles_dir_exits_nonzero
 run_test "ai-list --help exits 0"                                  test_ai_list_help_exits_zero
+run_test "ai-list sees registered generated project"              test_ai_list_sees_registered_generated_project
+run_test "ai-list syncs project profiles automatically"           test_ai_list_syncs_project_profiles_automatically
 
 print_summary "61_list"

@@ -64,6 +64,31 @@ test_prompt_steers_secrets_to_runtime_mounting() {
     }
 }
 
+test_prompt_records_final_durable_runtime_fields() {
+    local _content
+    _content="$(_get_prompt)"
+    [[ -n "$_content" ]] || { _SKIP_REASON="bootstrap-prompt.md not present"; return 0; }
+    assert_contains "\"final_runtime\"" "$_content" "prompt should require final_runtime in session.json" || return 1
+    assert_contains "\"enabled_optional_features\"" "$_content" "prompt should require enabled_optional_features" || return 1
+    assert_contains "\"rejected_optional_features\"" "$_content" "prompt should require rejected_optional_features" || return 1
+}
+
+test_prompt_requires_podman_builder_output() {
+    local _content
+    _content="$(_get_prompt)"
+    [[ -n "$_content" ]] || { _SKIP_REASON="bootstrap-prompt.md not present"; return 0; }
+    assert_contains "PODMAN_BUILDER.md" "$_content" "prompt should require PODMAN_BUILDER.md" || return 1
+}
+
+test_prompt_mentions_host_side_ai_commands() {
+    local _content
+    _content="$(_get_prompt)"
+    [[ -n "$_content" ]] || { _SKIP_REASON="bootstrap-prompt.md not present"; return 0; }
+    assert_contains "ai-build" "$_content" || return 1
+    assert_contains "ai-launch" "$_content" || return 1
+    assert_contains "ai-list" "$_content" || return 1
+}
+
 test_start_here_places_prompt_in_bootstrap_dir() {
     # start-here.sh should copy the prompt from /start-here-prompts/ to bootstrap/.
     local _sh="${REPO_ROOT}/start-here.sh"
@@ -81,7 +106,8 @@ test_no_hardcoded_questionnaire_in_start_here() {
     [[ -f "$_sh" ]] || { _SKIP_REASON="start-here.sh not found"; return 0; }
 
     local _q_count
-    _q_count="$(grep -cE 'What (is|are) your|What (language|framework)|Which (language|framework)' "$_sh" 2>/dev/null || echo 0)"
+    _q_count="$(grep -cE 'What (is|are) your|What (language|framework)|Which (language|framework)' "$_sh" 2>/dev/null || true)"
+    _q_count="${_q_count:-0}"
     if [[ "$_q_count" -gt 3 ]]; then
         printf '    start-here.sh appears to have a hardcoded questionnaire (%d Q lines)\n' "$_q_count" >&2
         return 1
@@ -119,6 +145,9 @@ run_test "bootstrap-prompt.md present (or skip)"               test_bootstrap_pr
 run_test "prompt covers container base image topic"            test_prompt_covers_container_base_topic
 run_test "prompt covers language/runtime stack topic"          test_prompt_covers_language_runtime
 run_test "prompt steers secrets toward runtime mounting"        test_prompt_steers_secrets_to_runtime_mounting
+run_test "prompt records final durable runtime fields"         test_prompt_records_final_durable_runtime_fields
+run_test "prompt requires PODMAN_BUILDER.md output"            test_prompt_requires_podman_builder_output
+run_test "prompt mentions host-side ai commands"               test_prompt_mentions_host_side_ai_commands
 run_test "start-here.sh references bootstrap-prompt.md"        test_start_here_places_prompt_in_bootstrap_dir
 run_test "start-here.sh has no hardcoded questionnaire"        test_no_hardcoded_questionnaire_in_start_here
 run_test "session.md template has Interview Summary section"   test_session_md_records_interview_summary

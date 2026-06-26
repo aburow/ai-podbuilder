@@ -126,10 +126,43 @@ EOF
     return $_fail
 }
 
+test_load_profile_recovers_from_project_profile() {
+    local _fail=0
+    mkdir -p "${_TMPDIR}/projects/recoverme"
+    cat > "${_TMPDIR}/projects/recoverme/profile.env" <<EOF
+PROFILE_NAME="recoverme"
+CONTAINER_NAME="recoverme-ctr"
+IMAGE_NAME="recoverme-image"
+IMAGE_DIR="${_TMPDIR}/projects/recoverme/image"
+WORKSPACE="${_TMPDIR}/projects/recoverme/workspace"
+CONTAINER_HOME="${_TMPDIR}/projects/recoverme/state/home"
+BASHRC="${_TMPDIR}/projects/recoverme/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EOF
+
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+        source '${LIB_DIR}/common.sh'
+        source '${LIB_DIR}/profile.sh'
+        resolve_base_dir
+        load_profile recoverme
+        printf 'PROFILE_NAME=%s\n' \"\$PROFILE_NAME\"
+    " 2>&1)" || rc=$?
+    assert_success $rc "load_profile should recover a missing registered profile from projects/" || _fail=1
+    assert_contains "PROFILE_NAME=recoverme" "$out" || _fail=1
+    [[ -f "${_TMPDIR}/profiles/recoverme.env" ]] || {
+        printf '    recovered profile was not written into profiles/\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "valid profile loads without error"            test_valid_profile_loads
 run_test "missing required field → non-zero + field named" test_missing_required_field_exits_nonzero
 run_test "nonexistent profile → non-zero + path named"  test_nonexistent_profile_exits_nonzero
 run_test "optional arrays usable under set -u"          test_optional_arrays_defined_under_set_u
+run_test "load_profile recovers from project profile"   test_load_profile_recovers_from_project_profile
 
 print_summary "10_profile"

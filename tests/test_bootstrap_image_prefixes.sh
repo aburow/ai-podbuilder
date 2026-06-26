@@ -100,9 +100,9 @@ test_image_path_includes_local_bin() {
     return $_fail
 }
 
-test_containerfile_has_prefix_envs() {
-    # Static check: the Containerfile written by bootstrap_image.sh must contain the ENV lines.
-    # We verify the generator function, not a pre-built image.
+test_containerfile_uses_image_level_install_paths() {
+    # Baked agent binaries must not live under /project, which is replaced by
+    # the project bind mount when the container starts.
     local _fail=0
     cat > "${_TMPDIR}/cf_check.sh" <<SCRIPT
 #!/usr/bin/env bash
@@ -117,15 +117,17 @@ SCRIPT
     [[ -f "$_cf" ]] || { printf '    Containerfile not generated\n' >&2; return 1; }
     local _content
     _content="$(cat "$_cf")"
-    assert_contains "NPM_CONFIG_PREFIX" "$_content" "Containerfile must set NPM_CONFIG_PREFIX" || _fail=1
-    assert_contains "PIPX_HOME"         "$_content" "Containerfile must set PIPX_HOME"         || _fail=1
-    assert_contains "PIPX_BIN_DIR"      "$_content" "Containerfile must set PIPX_BIN_DIR"      || _fail=1
-    assert_contains "/project/bootstrap/home" "$_content" "prefixes must be under home path"   || _fail=1
+    assert_not_contains "NPM_CONFIG_PREFIX=/project" "$_content" \
+        "npm packages must not be baked beneath the project mount" || _fail=1
+    assert_not_contains "PIPX_HOME=/project" "$_content" \
+        "pipx packages must not be baked beneath the project mount" || _fail=1
+    assert_contains "ENV HOME=/project/bootstrap/home" "$_content" \
+        "runtime HOME must remain the persisted project home" || _fail=1
     return $_fail
 }
 
 # ── Run ───────────────────────────────────────────────────────────────────────
-run_test "Containerfile generator includes home-based prefix ENVs"   test_containerfile_has_prefix_envs
+run_test "Containerfile keeps baked installs outside project mount"  test_containerfile_uses_image_level_install_paths
 run_test "[slow] image ENV has NPM_CONFIG_PREFIX under home"         test_image_has_npm_config_prefix
 run_test "[slow] image ENV has PIPX_HOME under home"                 test_image_has_pipx_home
 run_test "[slow] image ENV has PIPX_BIN_DIR under home"              test_image_has_pipx_bin_dir

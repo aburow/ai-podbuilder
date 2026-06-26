@@ -60,6 +60,43 @@ Bootstrap project created by ai-new.
 4. Mount your workspace
 EOF
 
+    cat > "${_proj}/PODMAN_BUILDER.md" <<'EOF'
+# PODMAN_BUILDER — testproject
+
+## Project purpose
+Test durable build contract.
+
+## Final durable agent runtime
+none
+
+## Base image
+fedora:latest
+
+## Required packages and tools
+bash, coreutils
+
+## Workdir
+/workspace
+
+## Mounts and persistent state
+workspace, container home
+
+## Ports
+none
+
+## Environment variables
+none
+
+## Secrets policy
+runtime only
+
+## Enabled optional services
+none
+
+## Explicitly rejected features
+ssh
+EOF
+
     # Required: .env.example with placeholders.
     cat > "${_proj}/.env.example" <<'EOF'
 # API key placeholder — copy to .env and fill in real values.
@@ -70,6 +107,7 @@ EOF
     cat > "${_proj}/.gitignore" <<'EOF'
 bootstrap/agent.env.local
 bootstrap/home/
+state/
 .env
 *.env.local
 EOF
@@ -89,6 +127,11 @@ EOF
   "build_log_path": "${_proj}/bootstrap/build.log",
   "trial_image_tag": "localhost/ai-new/testproject:trial",
   "static_check_status": "passed",
+  "final_runtime": "none",
+  "enabled_optional_features": [],
+  "rejected_optional_features": ["ssh"],
+  "durable_reconciliation_status": "passed",
+  "durable_spec_path": "${_proj}/PODMAN_BUILDER.md",
   "pinned_agent_env": "${_proj}/bootstrap/agent.env",
   "pinned_agent_hash": "abc123"
 }
@@ -113,7 +156,7 @@ EOF
 
 1. ai-build testproject
 2. ai-launch testproject
-3. ...
+3. ai-list
 EOF
 }
 
@@ -197,6 +240,7 @@ test_gitignore_excludes_secrets() {
     _content="$(cat "${_proj}/.gitignore")"
     assert_contains "agent.env.local" "$_content" ".gitignore should exclude agent.env.local" || _fail=1
     assert_contains "bootstrap/home" "$_content" ".gitignore should exclude bootstrap/home/" || _fail=1
+    assert_contains "state/" "$_content" ".gitignore should exclude state/" || _fail=1
     return $_fail
 }
 
@@ -225,6 +269,30 @@ test_session_md_present() {
     return $_fail
 }
 
+test_podman_builder_present() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/testproject"
+    _build_mock_agent_scaffold "$_proj"
+    [[ -f "${_proj}/PODMAN_BUILDER.md" ]] || {
+        printf '    PODMAN_BUILDER.md missing\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
+test_session_json_contains_durable_fields() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/testproject"
+    _build_mock_agent_scaffold "$_proj"
+    local _content
+    _content="$(cat "${_proj}/bootstrap/session.json")"
+    assert_contains "\"final_runtime\"" "$_content" || _fail=1
+    assert_contains "\"enabled_optional_features\"" "$_content" || _fail=1
+    assert_contains "\"rejected_optional_features\"" "$_content" || _fail=1
+    assert_contains "\"durable_spec_path\"" "$_content" || _fail=1
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "image/Containerfile present"                  test_containerfile_present_in_image_dir
 run_test "profile.env present"                          test_profile_env_present
@@ -234,5 +302,7 @@ run_test ".env.example with placeholders only"          test_env_example_with_pl
 run_test ".gitignore excludes secrets and home dir"     test_gitignore_excludes_secrets
 run_test "session.json present with generated_files"    test_session_json_present_with_generated_files
 run_test "session.md present"                           test_session_md_present
+run_test "PODMAN_BUILDER.md present"                    test_podman_builder_present
+run_test "session.json contains durable fields"         test_session_json_contains_durable_fields
 
 print_summary "test_generated_scaffold"

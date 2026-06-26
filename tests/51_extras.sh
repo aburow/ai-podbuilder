@@ -79,10 +79,37 @@ test_extras_absent_from_non_declaring_profile() {
     return $_fail
 }
 
+test_framework_owned_keep_groups_rejected_in_profile() {
+    local _fail=0
+    cat > "${_TMPDIR}/profiles/badkeep.env" <<EOF
+PROFILE_NAME="badkeep"
+CONTAINER_NAME="badkeep-ctr"
+IMAGE_NAME="badkeep-img"
+IMAGE_DIR="${_TMPDIR}/badkeep-image"
+WORKSPACE="${_TMPDIR}/badkeep-ws"
+CONTAINER_HOME="${_TMPDIR}/badkeep-home"
+BASHRC="${_TMPDIR}/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EXTRA_RUN_ARGS=("--group-add=keep-groups")
+EOF
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_TMPDIR" bash -c "
+        source '${LIB_DIR}/common.sh'
+        source '${LIB_DIR}/profile.sh'
+        resolve_base_dir
+        load_profile badkeep
+    " 2>&1)" || rc=$?
+    assert_failure $rc "framework-owned keep-groups duplication should fail profile validation" || _fail=1
+    assert_contains "keep-groups" "$out" "error should mention keep-groups duplication" || _fail=1
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "EXTRA_DEVICES appears verbatim in assembled args"       test_extra_device_appears_in_args
 run_test "EXTRA_HOSTS appears verbatim in assembled args"         test_extra_host_appears_in_args
 run_test "EXTRA_ENV appears verbatim in assembled args"           test_extra_env_appears_in_args
 run_test "extras absent from non-declaring profile's args"        test_extras_absent_from_non_declaring_profile
+run_test "framework-owned keep-groups rejected in profiles"       test_framework_owned_keep_groups_rejected_in_profile
 
 print_summary "51_extras"

@@ -127,6 +127,17 @@ test_start_here_unknown_flag_exits_nonzero() {
     return $_fail
 }
 
+test_shell_on_exit_documented() {
+    local out rc=0
+    out="$(_ai_new --help)" || rc=$?
+    assert_success "$rc" || return 1
+    assert_contains "--shell-on-exit" "$out" || return 1
+    assert_contains "--boost" "$out" || return 1
+
+    out="$(_start_here --help)" || rc=$?
+    assert_contains "--shell-on-exit" "$out"
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "ai-new -h exits 0 and prints usage"             test_ai_new_help_exits_zero
 run_test "ai-new --help exits 0 and prints usage"         test_ai_new_help_long_form_exits_zero
@@ -138,5 +149,6 @@ run_test "unknown flag exits non-zero"                    test_unknown_flag_exit
 run_test "no project name prints usage and exits non-zero" test_no_name_prints_usage_and_exits_nonzero
 run_test "podman unavailable exits non-zero with message" test_podman_unavailable_exits_nonzero
 run_test "start-here.sh unknown flag exits non-zero"      test_start_here_unknown_flag_exits_nonzero
+run_test "--shell-on-exit is documented by both commands" test_shell_on_exit_documented
 
 print_summary "test_help_and_flags"

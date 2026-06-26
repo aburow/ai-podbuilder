@@ -22,6 +22,7 @@ EOF
     cat > "${_proj}/.gitignore" <<'EOF'
 bootstrap/agent.env.local
 bootstrap/home/
+state/
 .env
 *.env.local
 secrets/
@@ -84,6 +85,17 @@ test_gitignore_excludes_bootstrap_home() {
     return $_fail
 }
 
+test_gitignore_excludes_state_home() {
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/sec3b"
+    _build_mock_scaffold_secrets "$_proj"
+    local _content
+    _content="$(cat "${_proj}/.gitignore")"
+    assert_contains "state/" "$_content" \
+        ".gitignore must exclude state/" || _fail=1
+    return $_fail
+}
+
 test_gitignore_excludes_project_env() {
     local _fail=0
     local _proj="${_TMPDIR}/projects/sec4"
@@ -129,6 +141,7 @@ test_agent_env_local_not_in_scaffold() {
 run_test ".env.example has no real API secrets"            test_env_example_has_no_real_secrets
 run_test ".gitignore excludes bootstrap/agent.env.local"   test_gitignore_excludes_agent_env_local
 run_test ".gitignore excludes bootstrap/home/"             test_gitignore_excludes_bootstrap_home
+run_test ".gitignore excludes state/"                      test_gitignore_excludes_state_home
 run_test ".gitignore excludes .env files"                  test_gitignore_excludes_project_env
 run_test "no populated secret files committed"             test_no_populated_secret_files_committed
 run_test "agent.env.local not baked into scaffold"         test_agent_env_local_not_in_scaffold

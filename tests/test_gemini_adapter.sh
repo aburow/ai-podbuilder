@@ -126,6 +126,14 @@ test_all_three_agents_use_real_adapters() {
     return $_fail
 }
 
+test_gemini_uses_explicit_interactive_prompt_mode() {
+    local _src
+    _src="$(cat "${REPO_ROOT}/start-here.sh")"
+    assert_contains "gemini)" "$_src" || return 1
+    assert_contains '--prompt-interactive "$_prompt_text"' "$_src" \
+        "Gemini must execute the bootstrap prompt and remain interactive"
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "gemini.env: AGENT_INSTALL_ADAPTER is npm-global"         test_gemini_env_adapter_is_npm_global
 run_test "gemini.env: AGENT_INSTALL_PACKAGE is @google/gemini-cli" test_gemini_env_package_is_gemini_cli
@@ -134,5 +142,6 @@ run_test "gemini.env: adapter is not manual"                       test_gemini_e
 run_test "pinned gemini agent.env carries npm-global + package"    test_pinned_gemini_env_has_npm_global
 run_test "manual adapter still valid in parser/validator"          test_manual_adapter_still_valid_in_parser
 run_test "all shipped agents use a real (non-manual) adapter"      test_all_three_agents_use_real_adapters
+run_test "gemini uses explicit interactive prompt mode"            test_gemini_uses_explicit_interactive_prompt_mode
 
 print_summary "test_gemini_adapter"

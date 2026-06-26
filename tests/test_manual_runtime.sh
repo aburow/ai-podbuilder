@@ -59,8 +59,10 @@ AEOF
     local out rc=0
     out="$(_run_patched "$_bd")" || rc=$?
     assert_failure $rc || _fail=1
-    assert_contains "manual" "$out" "error should mention manual adapter" || _fail=1
-    assert_contains "manually" "$out" "error should say install manually" || _fail=1
+    assert_contains "not installed in the bootstrap image" "$out" \
+        "error should identify the broken image invariant" || _fail=1
+    assert_contains "Containerfile.bootstrap" "$out" \
+        "error should identify where installation belongs" || _fail=1
     assert_not_contains "npm" "$out" "should not suggest auto-install" || _fail=1
     assert_not_contains "pip" "$out" "should not suggest pip install" || _fail=1
     return $_fail
