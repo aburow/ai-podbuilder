@@ -15,8 +15,8 @@ The repository now supports two related workflows:
 bin/        User-facing commands
 lib/        Shared Bash libraries used by the commands
 config/     Agent runtime registry (`config/agents.d/*.env`)
-profiles/   Hand-authored profile examples and local profiles
-projects/   Generated project scaffolds and sample projects
+projects/   Generated project scaffolds; each contains profile.env (canonical location)
+profiles/   Legacy/compatibility area — hand-authored examples and optional overrides
 templates/  Files emitted by `ai-new`
 docs/       Operator and design documentation
 tests/      Shell test suite
@@ -54,8 +54,10 @@ Full details: [docs/ai-new.md](docs/ai-new.md)
 
 ### 2. Run a durable sandbox from a profile
 
-Use the profile commands when you already have a project profile, whether it
-was created by `ai-new` or authored manually.
+Use the profile commands when you already have a project profile. `ai-new`
+writes `projects/<name>/profile.env` — that is the canonical location.
+Hand-authored profiles in `profiles/` are also supported as a legacy/compatibility
+area, but `ai-new` and normal resume flows manage only the project-local file.
 
 ```sh
 ai-build <profile>

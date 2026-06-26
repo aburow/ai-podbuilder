@@ -1,8 +1,14 @@
 # Profiles
 
-A profile is a `.env` file in the `profiles/` directory that configures one
-sandbox environment. The filename (without `.env`) is the profile name passed
-to `ai-build`, `ai-launch`, `ai-terminal`, etc.
+A profile is a `.env` file that configures one sandbox environment. The
+canonical, authoritative location is `projects/<name>/profile.env` — this is
+where `ai-new` writes the profile and where `ai-build`, `ai-launch`,
+`ai-terminal`, and `ai-list` look first.
+
+The `profiles/` directory is an optional legacy/compatibility area. Files
+placed there (`profiles/<slug>.env`) are still recognized as a fallback when
+no project-local profile exists, but `ai-new` and normal resume flows never
+write there. New profiles should be created under `projects/<name>/profile.env`.
 
 ---
 
@@ -47,7 +53,7 @@ parent of the `bin/` directory if not set in the environment.
 ## Example profile
 
 ```bash
-# profiles/esp32.env
+# projects/esp32/profile.env  (canonical location)
 PROFILE_NAME="esp32"
 CONTAINER_NAME="codex-esp32"
 IMAGE_NAME="codex-esp32-image"
@@ -87,8 +93,18 @@ from any location without requiring `CODEX_JAILS_DIR` to be set.
 
 ## Creating a new profile
 
-1. Copy `profiles/esp32.env.example` to `profiles/<name>.env`.
+The recommended way is `ai-new <name>`, which generates
+`projects/<name>/profile.env` automatically.
+
+To author one manually:
+
+1. Create `projects/<name>/profile.env` (or copy
+   `profiles/esp32.env.example` as a reference — see the header comment).
 2. Set all required fields. Use `$CODEX_JAILS_DIR`-based paths throughout.
 3. Create the `IMAGE_DIR` directory with a `Containerfile`.
 4. Build the image: `ai-build <name>`.
 5. Launch: `ai-launch <name>`.
+
+Placing a file in `profiles/<slug>.env` instead is also supported as a
+legacy/compatibility path. `ai-list` will find it, but project-local profiles
+take precedence when both exist for the same slug.
