@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization
 type: idea
-status: draft
+status: approved
 lineage: project-local-profiles
 created: "2026-06-26T13:04:14+10:00"
 priority: normal
