@@ -30,8 +30,8 @@ see when they scaffold a project or read generated output.
   `templates/profile.env.tmpl`
 
 **Acceptance criteria:**
-- [ ] Each file byte-identical to the updated tree.
-- [ ] No keep-local template/launcher content lost (cross-check against
+- [x] Each file byte-identical to the updated tree.
+- [x] No keep-local template/launcher content lost (cross-check against
       `launchers/` which stays untouched).
 
 ## M2 — Verify rendered CLI output is coherent
@@ -50,11 +50,11 @@ tests/run_tests.sh tests/53_gui.sh      # GUI-forwarding user path
 ```
 
 **Acceptance criteria:**
-- [ ] `90_render.sh` passes; generated scaffold contains the expected
+- [x] `90_render.sh` passes; generated scaffold contains the expected
       `.env.example` and `.gitignore`.
-- [ ] `--help` / usage output for `ai-new`, `ai-build`, `ai-launch`, `ai-list`
+- [x] `--help` / usage output for `ai-new`, `ai-build`, `ai-launch`, `ai-list`
       runs without error and reflects merged flags (e.g. GUI forwarding).
-- [ ] README references no excluded runtime artifact (`projects/`, the three
+- [x] README references no excluded runtime artifact (`projects/`, the three
       `profiles/*.env`, `slug-index.tsv`) as if it were shipped content.
 
 ## M3 — Documentation consistency pass
