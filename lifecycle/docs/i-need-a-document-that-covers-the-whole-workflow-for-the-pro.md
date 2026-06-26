@@ -1,7 +1,7 @@
 ---
 title: I need a document that covers the whole workflow for the project from ai-new -> build -> launch -> etc
 type: doc
-status: done
+status: approved
 lineage: i-need-a-document-that-covers-the-whole-workflow-for-the-pro
 created: "2026-06-23T12:53:40+10:00"
 completed: "2026-06-23"
