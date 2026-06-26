@@ -166,6 +166,36 @@ ensure_sourced() {
   info "Added source line to ${bashrc}"
 }
 
+# ---------- milestone 7: legacy-install migration ----------
+migrate_legacy() {
+  local bashrc="${HOME}/.bashrc"
+
+  # (b) Warn if old CODEX_JAILS_DIR export is still in ~/.bashrc
+  if grep -qE 'export[[:space:]]+CODEX_JAILS_DIR' "${bashrc}" 2>/dev/null; then
+    printf '\nWARNING: %s still exports CODEX_JAILS_DIR (deprecated).\n' "${bashrc}" >&2
+    printf '  The new env file sets AI_PODMAN_JAILS_DIR and takes precedence.\n' >&2
+    printf '  Remove the CODEX_JAILS_DIR line from %s to silence this warning.\n\n' "${bashrc}" >&2
+  fi
+
+  # (c) Offer to migrate old projects/ into the new root
+  local old_root="${CODEX_JAILS_DIR:-${HOME}/codex-jails}"
+  if [[ -d "${old_root}/projects" && "${old_root}" != "${INSTALL_ROOT}" ]]; then
+    # ponytail: interactive prompt only when stdin is a TTY; piped install prints the manual command instead of hanging.
+    if [[ -t 0 ]]; then
+      local ans
+      read -rp "Migrate projects from ${old_root} to ${INSTALL_ROOT}? [y/N] " ans
+      case "${ans:-N}" in
+        y|Y) cp -a "${old_root}/projects" "${INSTALL_ROOT}/" && info "Migrated projects/" ;;
+        *)   printf 'Skipped. To migrate manually:\n  cp -a "%s/projects" "%s/"\n' \
+               "${old_root}" "${INSTALL_ROOT}" ;;
+      esac
+    else
+      printf 'piped install: skipping legacy migration.\nTo migrate manually:\n  cp -a "%s/projects" "%s/"\n' \
+        "${old_root}" "${INSTALL_ROOT}"
+    fi
+  fi
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
@@ -177,3 +207,4 @@ fetch_release
 install_files
 write_env_file
 ensure_sourced
+migrate_legacy
