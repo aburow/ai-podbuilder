@@ -27,9 +27,23 @@ info() {
   printf '==> %s\n' "${*}"
 }
 
+# ---------- milestone 2: prerequisite checks ----------
+check_prereqs() {
+  local cmd missing
+  missing=""
+  for cmd in bash curl podman; do
+    command -v "${cmd}" >/dev/null 2>&1 || missing="${missing} ${cmd}"
+  done
+  [[ -z "${missing}" ]] || die "check_prereqs" "Missing prerequisites:${missing}"
+  podman info >/dev/null 2>&1 \
+    || die "check_prereqs" "Rootless podman not working — run: podman info"
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
 esac
 # shellcheck disable=SC2034
 INSTALL_ROOT="${1:-${HOME}/ai-podman-jails}"
+
+check_prereqs
