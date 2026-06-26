@@ -1,7 +1,7 @@
 ---
 title: Curl-Driven Install Script for ai-podbuilder
 type: requirement
-status: blocked
+status: draft
 lineage: curl-install-script
 parent: lifecycle/ideas/curl-install-script.md
 assignees:
@@ -174,7 +174,7 @@ or set the variable the commands actually honour. See Open Questions Q1.
 - **AC9** `lifecycle/`, `tests/`, `doc(s)/`, and example `projects/` are NOT
   present in the install root after a normal install.
 
-## Open Questions
+## Answers
 
 - **Q1 (base-dir name & default).** The idea says default root `~/podman-jails`
   and tool name "ai-podbuilder", but the commands read `CODEX_JAILS_DIR`
