@@ -1,7 +1,7 @@
 ---
 title: AI Agent Podman Sandbox
 type: idea
-status: in-development
+status: done
 lineage: ai-agent-podman-sandbox
 created: "2026-06-22T14:54:11+10:00"
 priority: normal
