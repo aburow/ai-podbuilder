@@ -5,7 +5,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../lib/common.sh
 source "${SCRIPT_DIR}/../lib/common.sh"
 source "${SCRIPT_DIR}/../lib/slug.sh"
-source "${SCRIPT_DIR}/../lib/scaffold.sh"
 # shellcheck source=../lib/container.sh
 source "${SCRIPT_DIR}/../lib/container.sh"
 # shellcheck source=../lib/usage.sh
@@ -21,30 +20,41 @@ esac
 resolve_base_dir
 require_cmd podman
 
-PDIR="$(profiles_dir)"
-[[ -d "$PDIR" ]] || _die "Profiles directory not found: ${PDIR}"
+# Build a de-duplicated list of profile files, keyed by slug.
+# Project-tree entries take precedence; legacy profiles/ entries fill gaps.
+declare -A seen_slugs   # slug → 1
+profile_files=()
 
 shopt -s nullglob
 for project_profile in "${CODEX_JAILS_DIR}"/projects/*/profile.env; do
-    project_root="$(dirname "$project_profile")"
-    project_name="$(basename "$project_root")"
-    install_generated_profile "$project_root" "$project_name"
+    project_name="$(basename "$(dirname "$project_profile")")"
+    slug="$(sanitize_slug "$project_name")"
+    if [[ -z "${seen_slugs[$slug]+x}" ]]; then
+        seen_slugs[$slug]=1
+        profile_files+=("$project_profile")
+    fi
 done
+
+PDIR="$(profiles_dir)"
+if [[ -d "$PDIR" ]]; then
+    for legacy_profile in "${PDIR}"/*.env; do
+        slug="$(basename "$legacy_profile" .env)"
+        if [[ -z "${seen_slugs[$slug]+x}" ]]; then
+            seen_slugs[$slug]=1
+            profile_files+=("$legacy_profile")
+        fi
+    done
+fi
 shopt -u nullglob
 
-# Collect .env files (strip .example entries — those are templates, not profiles).
-shopt -s nullglob
-profiles=("${PDIR}"/*.env)
-shopt -u nullglob
-
-if [[ ${#profiles[@]} -eq 0 ]]; then
-    _info "No profiles found in ${PDIR}"
+if [[ ${#profile_files[@]} -eq 0 ]]; then
+    _info "No profiles found"
     exit 0
 fi
 
 # Gather tab-delimited rows: name\timage\tworkspace\tstate
 rows=()
-for pfile in "${profiles[@]}"; do
+for pfile in "${profile_files[@]}"; do
     row="$(
         # shellcheck source=/dev/null
         source "$pfile"
