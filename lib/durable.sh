@@ -390,7 +390,7 @@ source '${CODEX_JAILS_DIR}/lib/profile.sh'
 source '${CODEX_JAILS_DIR}/lib/policy.sh'
 export CODEX_JAILS_DIR='${CODEX_JAILS_DIR}'
 resolve_base_dir
-load_profile '$(sanitize_slug "$(basename "$_proj")")'
+load_profile '$(basename "$_proj")'
 build_normal_run_args
 printf '%s\n' "\${_NORMAL_RUN_ARGS[@]}"
 EOF
