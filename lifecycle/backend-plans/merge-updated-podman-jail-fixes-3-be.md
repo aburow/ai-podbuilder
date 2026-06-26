@@ -140,3 +140,80 @@ signing intact.
 **Acceptance criteria:**
 - [ ] `updated-code/` removed and the removal committed separately.
 - [ ] Suite still green after removal (no script depended on the staging path).
+
+## Inventory
+
+Frozen from `diff -rq updated-code/podman-jails . -x .git -x lifecycle -x kaos -x doc -x docs -x updated-code -x .codex` on 2026-06-26.
+
+| Path | Classification | Notes |
+|---|---|---|
+| `CODEX.md` | ignore (identical) | byte-for-byte match |
+| `LICENSE` | ignore (identical) | byte-for-byte match |
+| `devops/` | ignore (identical) | only `sample.yaml`, byte-for-byte match |
+| `README.md` | merge (updated wins) | |
+| `bin/ai-build` | merge (updated wins) | |
+| `bin/ai-launch` | merge (updated wins) | |
+| `bin/ai-list` | merge (updated wins) | |
+| `bin/ai-new` | merge (updated wins) | |
+| `bin/extra-terminal` | keep-local | root-only launcher |
+| `bin/launch-esp32-workspace` | keep-local | root-only launcher |
+| `bin/launch-uxplay-builder` | keep-local | root-only launcher |
+| `bin/launch-uxplay-workspace` | keep-local | root-only launcher |
+| `bin/short-launch-esp32-workspace` | keep-local | root-only launcher |
+| `bin/update-codex-esp32-image` | keep-local | root-only launcher |
+| `bin/update-codex-uxplay-image` | keep-local | root-only launcher |
+| `launchers/` | keep-local | root-only dir |
+| `.gitignore` | keep-local | root-only |
+| `config/slug-index.tsv` | exclude (runtime artifact) | generated at runtime, not committed |
+| `lib/bootstrap_image.sh` | merge (updated wins) | |
+| `lib/common.sh` | merge (updated wins) | |
+| `lib/container.sh` | merge (updated wins) | |
+| `lib/coordination.sh` | merge (updated wins) | |
+| `lib/durable.sh` | add (new in updated) | new lib for ai-new durable projects |
+| `lib/launch.sh` | merge (updated wins) | |
+| `lib/policy.sh` | merge (updated wins) | adds gui_args/GUI_FORWARD |
+| `lib/profile.sh` | merge (updated wins) | |
+| `lib/quality_gate.sh` | merge (updated wins) | |
+| `lib/reconcile.sh` | merge (updated wins) | |
+| `lib/scaffold.sh` | merge (updated wins) | adds .env.example/.gitignore scaffold |
+| `lib/session.sh` | merge (updated wins) | |
+| `lib/usage.sh` | merge (updated wins) | |
+| `profiles/alex.env` | exclude (runtime artifact) | developer-local profile |
+| `profiles/dotnet2.env` | exclude (runtime artifact) | developer-local profile |
+| `profiles/tester.env` | exclude (runtime artifact) | developer-local profile |
+| `projects/` | exclude (runtime artifact) | developer runtime output dir |
+| `prompts/bootstrap-prompt.md` | merge (updated wins) | |
+| `start-here.sh` | merge (updated wins) | |
+| `templates/README.tmpl` | merge (updated wins) | |
+| `templates/launcher.tmpl` | merge (updated wins) | |
+| `templates/profile.env.tmpl` | merge (updated wins) | |
+| `tests/10_profile.sh` | merge (updated wins) | |
+| `tests/11_ai-build.sh` | merge (updated wins) | |
+| `tests/20_safety_policy.sh` | merge (updated wins) | |
+| `tests/51_extras.sh` | merge (updated wins) | |
+| `tests/53_gui.sh` | add (new in updated) | |
+| `tests/61_list.sh` | merge (updated wins) | |
+| `tests/90_render.sh` | merge (updated wins) | |
+| `tests/test_ai_new_boost.sh` | add (new in updated) | |
+| `tests/test_ai_new_durable_contract.sh` | add (new in updated) | |
+| `tests/test_bootstrap_image_prefixes.sh` | merge (updated wins) | |
+| `tests/test_codex_adapter.sh` | add (new in updated) | |
+| `tests/test_coordination_relative_paths.sh` | add (new in updated) | |
+| `tests/test_gate_skip.sh` | merge (updated wins) | |
+| `tests/test_gemini_adapter.sh` | merge (updated wins) | |
+| `tests/test_generated_scaffold.sh` | merge (updated wins) | |
+| `tests/test_help_and_flags.sh` | merge (updated wins) | |
+| `tests/test_install_failure_message.sh` | merge (updated wins) | |
+| `tests/test_install_idempotent_resume.sh` | merge (updated wins) | |
+| `tests/test_interview_coverage.sh` | merge (updated wins) | |
+| `tests/test_launch_bashrc.sh` | add (new in updated) | |
+| `tests/test_launch_entrypoint.sh` | add (new in updated) | |
+| `tests/test_manual_runtime.sh` | merge (updated wins) | |
+| `tests/test_next_steps.sh` | merge (updated wins) | |
+| `tests/test_no_dead_install_code.sh` | merge (updated wins) | |
+| `tests/test_prompt_timeout_semantics.sh` | add (new in updated) | |
+| `tests/test_resume_refreshes_entrypoint.sh` | add (new in updated) | |
+| `tests/test_secret_handling.sh` | merge (updated wins) | |
+| `tests/test_session_json_fields.sh` | merge (updated wins) | |
+| `tests/test_shell_on_exit.sh` | add (new in updated) | |
+| `tests/test_supervisor_cleanup.sh` | add (new in updated) | |
