@@ -144,6 +144,28 @@ EOF
   info "Env file: ${env_file}"
 }
 
+# ---------- milestone 6: guarded bashrc source line ----------
+ensure_sourced() {
+  local bashrc="${HOME}/.bashrc"
+  local marker="# ai-podbuilder: source bashrc.d"
+  local env_file="${HOME}/.bashrc.d/podbuilder.sh"
+
+  [[ -f "${bashrc}" ]] || touch "${bashrc}"
+
+  # Skip if .bashrc.d is already sourced (any form)
+  if grep -q 'bashrc\.d' "${bashrc}" 2>/dev/null; then
+    return
+  fi
+  # Skip if our marker is already present (idempotent)
+  if grep -qF "${marker}" "${bashrc}" 2>/dev/null; then
+    return
+  fi
+
+  printf '\n%s\n[ -f "%s" ] && . "%s"\n' \
+    "${marker}" "${env_file}" "${env_file}" >>"${bashrc}"
+  info "Added source line to ${bashrc}"
+}
+
 # ---------- main ----------
 case "${1:-}" in
   -h|--help) usage; exit 0 ;;
@@ -154,3 +176,4 @@ check_prereqs
 fetch_release
 install_files
 write_env_file
+ensure_sourced
