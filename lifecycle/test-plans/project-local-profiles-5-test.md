@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization — Test Plan
 type: plan-test
-status: approved
+status: in-development
 lineage: project-local-profiles
 parent: lifecycle/frontend-plans/project-local-profiles-4-fe.md
 ---
