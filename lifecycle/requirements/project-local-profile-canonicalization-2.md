@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization
 type: requirement
-status: blocked
+status: abandoned
 lineage: project-local-profile-canonicalization
 parent: lifecycle/ideas/project-local-profile-canonicalization.md
 assignees:
@@ -114,7 +114,7 @@ directory as the discovery location MUST be removed or corrected.
 6. `shellcheck` / the repo's build+vet gate passes; `docs/profiles.md`,
    `README.md`, and `docs/ai-new.md` reference only the project-local path.
 
-## Open Questions
+## answers
 
 1. **Hand-authored / non-project profiles.** `profiles/esp32.env.example`
    (referenced in `docs/profiles.md:50,90`) is a hand-authored template not
