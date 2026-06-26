@@ -1,7 +1,7 @@
 ---
 title: Reliable release process that publishes and verifies the install.sh asset
 type: requirement
-status: blocked
+status: draft
 lineage: release-installer-asset-missing
 created: "2026-06-26T18:30:00+10:00"
 priority: high
@@ -164,7 +164,7 @@ install one-liner MUST remain the canonical, tested path.
 7. A regression test exists in `tests/` that would have caught the original
    `0.51` failure (empty assets → 404 on the public URL).
 
-## Open Questions
+## Answers
 
 1. **Automation surface:** Should the release flow be a GitHub Actions workflow triggered on tag push, a local script invoked by the releaser, or both? There is currently no `.github/` workflow directory in the repo.
 
