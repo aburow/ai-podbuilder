@@ -293,6 +293,18 @@ test_session_json_contains_durable_fields() {
     return $_fail
 }
 
+test_no_profiles_mirror_created() {
+    # AC4: scaffold must not create profiles/<slug>.env
+    local _fail=0
+    local _proj="${_TMPDIR}/projects/testproject"
+    _build_mock_agent_scaffold "$_proj"
+    [[ ! -f "${_TMPDIR}/profiles/testproject.env" ]] || {
+        printf '    profiles/testproject.env was created (mirror must not happen, AC4)\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "image/Containerfile present"                  test_containerfile_present_in_image_dir
 run_test "profile.env present"                          test_profile_env_present
@@ -304,5 +316,6 @@ run_test "session.json present with generated_files"    test_session_json_presen
 run_test "session.md present"                           test_session_md_present
 run_test "PODMAN_BUILDER.md present"                    test_podman_builder_present
 run_test "session.json contains durable fields"         test_session_json_contains_durable_fields
+run_test "scaffold does not create profiles/ mirror (AC4)" test_no_profiles_mirror_created
 
 print_summary "test_generated_scaffold"

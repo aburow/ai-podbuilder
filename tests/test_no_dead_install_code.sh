@@ -53,10 +53,21 @@ test_ai_new_builds_before_launch() {
     [[ -n "$build_line" && -n "$launch_line" && "$build_line" -lt "$launch_line" ]]
 }
 
+test_install_generated_profile_absent() {
+    # R3.3: install_generated_profile must not exist in lib/ or bin/
+    local _found
+    _found="$(grep -rl 'install_generated_profile' "${REPO_ROOT}/lib" "${REPO_ROOT}/bin" 2>/dev/null || true)"
+    [[ -z "$_found" ]] || {
+        printf '    install_generated_profile still present in:\n%s\n' "$_found" >&2
+        return 1
+    }
+}
+
 run_test "Containerfile installs selected agent"                  test_agent_is_installed_by_containerfile
 run_test "start-here performs no runtime installation"            test_start_here_does_not_install_on_launch
 run_test "launch exposes no host-side install library"             test_launch_does_not_mount_host_install_library
 run_test "image build context excludes project secrets"            test_build_context_excludes_project_secrets
 run_test "ai-new builds agent image before launch"                 test_ai_new_builds_before_launch
+run_test "install_generated_profile absent from lib/ and bin/ (R3.3)" test_install_generated_profile_absent
 
 print_summary "test_no_dead_install_code"

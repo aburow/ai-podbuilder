@@ -154,9 +154,45 @@ SCRIPT
     return $_fail
 }
 
+test_gate_does_not_create_profile_mirror() {
+    # AC7: quality-gate run must not write profiles/<slug>.env
+    if skip_unless_live; then return 0; fi
+    local _fail=0
+    local _slug="gate-mirror-$(printf '%s' "$$" | sha256sum | cut -c1-6)"
+    local _proj
+    _proj="$(_make_proj "$_slug")"
+
+    cat > "${_proj}/image/Containerfile" <<'EOF'
+FROM scratch
+LABEL mirror=false
+EOF
+
+    cat > "${_TMPDIR}/gate_mirror_helper.sh" <<SCRIPT
+#!/usr/bin/env bash
+set -euo pipefail
+source '${LIB_DIR}/common.sh'
+source '${LIB_DIR}/session.sh'
+source '${LIB_DIR}/quality_gate.sh'
+export CODEX_JAILS_DIR='${_TMPDIR}'
+export SLUG='${_slug}'
+export SKIP_TRIAL_BUILD=0
+run_quality_gate '${_proj}' 1 '${_proj}/image/Containerfile' '${_proj}/image' \
+    "localhost/ai-new/${_slug}:trial" 'test' 0
+SCRIPT
+    bash "${_TMPDIR}/gate_mirror_helper.sh" >/dev/null 2>&1 || true
+    podman rmi "localhost/ai-new/${_slug}:trial" >/dev/null 2>&1 || true
+
+    [[ ! -f "${_TMPDIR}/profiles/${_slug}.env" ]] || {
+        printf '    profiles/%s.env was created by quality gate (AC7)\n' "$_slug" >&2
+        _fail=1
+    }
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "[slow] valid Containerfile builds → status complete" test_valid_containerfile_builds_and_sets_complete
 run_test "[slow] build.log captured after build"               test_build_log_captured
 run_test "[slow] trial_image_tag recorded in session.json"     test_trial_image_tag_recorded_in_session
+run_test "[slow] gate does not create profiles/ mirror (AC7)"  test_gate_does_not_create_profile_mirror
 
 print_summary "test_gate_pass"

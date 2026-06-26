@@ -147,6 +147,111 @@ EOF
         "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
     assert_success $rc "ai-list should succeed with project-local profile" || _fail=1
     assert_contains "alex-sync" "$out" "project-local profile should appear in listing" || _fail=1
+    # No mirror should have been written to profiles/
+    [[ ! -f "${_TMPDIR}/profiles/alex-sync.env" ]] || {
+        printf '    profiles/alex-sync.env was created (mirror must not happen)\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
+# ── Milestone 3: dual-discovery / dedup ───────────────────────────────────────
+
+test_list_dedupes_by_slug() {
+    local _fail=0
+    # Both a project tree and a legacy file for the same slug — list must show exactly one row.
+    mkdir -p "${_TMPDIR}/projects/dup"
+    cat > "${_TMPDIR}/projects/dup/profile.env" <<EOF
+PROFILE_NAME="dup"
+CONTAINER_NAME="dup-ctr"
+IMAGE_NAME="localhost/dup:latest"
+IMAGE_DIR="${_TMPDIR}/projects/dup/image"
+WORKSPACE="${_TMPDIR}/projects/dup/workspace"
+CONTAINER_HOME="${_TMPDIR}/projects/dup/state/home"
+BASHRC="${_TMPDIR}/projects/dup/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EXTRA_ENV=()
+EXTRA_VOLUMES=()
+EXTRA_DEVICES=()
+EXTRA_HOSTS=()
+EXTRA_RUN_ARGS=()
+EOF
+    cat > "${_TMPDIR}/profiles/dup.env" <<EOF
+PROFILE_NAME="dup"
+CONTAINER_NAME="dup-legacy"
+IMAGE_NAME="localhost/dup-legacy:latest"
+IMAGE_DIR="${_TMPDIR}/image"
+WORKSPACE="${_TMPDIR}/workspace"
+CONTAINER_HOME="/home/builder"
+BASHRC="${_TMPDIR}/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EOF
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
+    assert_success $rc "ai-list should exit 0 with both sources for same slug" || _fail=1
+    local _dup_count
+    _dup_count="$(echo "$out" | grep -c '\bdup\b' || true)"
+    # Header counts as 0 (it says PROFILE not 'dup'); only data rows with 'dup' should appear once
+    [[ "$_dup_count" -le 1 ]] || {
+        printf '    dup slug listed %d times (expected 1)\n' "$_dup_count" >&2
+        _fail=1
+    }
+    return $_fail
+}
+
+test_list_shows_legacy_only() {
+    local _fail=0
+    # Legacy-only profile with no project tree must still appear.
+    local _empty="${_TMPDIR}/legacy_only_root"
+    mkdir -p "${_empty}/profiles"
+    cat > "${_empty}/profiles/legacyonly.env" <<EOF
+PROFILE_NAME="legacyonly"
+CONTAINER_NAME="legacyonly-ctr"
+IMAGE_NAME="localhost/legacyonly:latest"
+IMAGE_DIR="${_empty}/image"
+WORKSPACE="${_empty}/workspace"
+CONTAINER_HOME="/home/builder"
+BASHRC="${_empty}/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EOF
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_empty" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
+    assert_success $rc "ai-list should exit 0 with legacy-only profile (AC3)" || _fail=1
+    assert_contains "legacyonly" "$out" "legacy-only profile should appear" || _fail=1
+    return $_fail
+}
+
+test_list_works_without_profiles_dir() {
+    local _fail=0
+    # profiles/ absent; only a projects/ entry — must still list and exit 0 (AC2).
+    local _noleg="${_TMPDIR}/no_profiles_dir"
+    mkdir -p "${_noleg}/projects/onlyproj"
+    cat > "${_noleg}/projects/onlyproj/profile.env" <<EOF
+PROFILE_NAME="onlyproj"
+CONTAINER_NAME="onlyproj-ctr"
+IMAGE_NAME="localhost/onlyproj:latest"
+IMAGE_DIR="${_noleg}/projects/onlyproj/image"
+WORKSPACE="${_noleg}/projects/onlyproj/workspace"
+CONTAINER_HOME="${_noleg}/projects/onlyproj/state/home"
+BASHRC="${_noleg}/projects/onlyproj/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+EXTRA_ENV=()
+EXTRA_VOLUMES=()
+EXTRA_DEVICES=()
+EXTRA_HOSTS=()
+EXTRA_RUN_ARGS=()
+EOF
+    local out rc=0
+    out="$(CODEX_JAILS_DIR="$_noleg" PATH="${STUBS_DIR}:${PATH}" \
+        "${BIN_DIR}/ai-list" 2>/dev/null)" || rc=$?
+    assert_success $rc "ai-list should exit 0 with no profiles/ dir (AC2)" || _fail=1
+    assert_contains "onlyproj" "$out" "project should be listed without profiles/ dir" || _fail=1
     return $_fail
 }
 
@@ -159,5 +264,8 @@ run_test "ai-list: no profiles anywhere → exit 0 with message"    test_ai_list
 run_test "ai-list --help exits 0"                                  test_ai_list_help_exits_zero
 run_test "ai-list sees registered generated project"              test_ai_list_sees_registered_generated_project
 run_test "ai-list syncs project profiles automatically"           test_ai_list_syncs_project_profiles_automatically
+run_test "ai-list dedupes project + legacy with same slug (R2.3)" test_list_dedupes_by_slug
+run_test "ai-list shows legacy-only profile (AC3)"                test_list_shows_legacy_only
+run_test "ai-list works without profiles/ dir (AC2)"              test_list_works_without_profiles_dir
 
 print_summary "61_list"

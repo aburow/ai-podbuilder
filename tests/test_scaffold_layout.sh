@@ -142,6 +142,25 @@ test_scaffold_slug_index_registered() {
     return $_fail
 }
 
+test_scaffold_does_not_create_profiles_mirror() {
+    local _fail=0
+    _setup_agents
+    _scaffold_layout_helper "${_TMPDIR}/projects/myproject" >/dev/null 2>&1 || true
+    # Scaffold must not write a profiles/<slug>.env mirror (R2.4)
+    local _mirror
+    shopt -s nullglob
+    for _mirror in "${_TMPDIR}/profiles"/*.env; do
+        # Seed profiles are already in place from setup; only flag new ones.
+        case "$(basename "$_mirror")" in
+            esp32.env|uxplay.env) continue ;;
+        esac
+        printf '    Unexpected mirror created: %s\n' "$_mirror" >&2
+        _fail=1
+    done
+    shopt -u nullglob
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "scaffold directories all created"              test_scaffold_directories_created
 run_test "profile.env created by scaffold"               test_scaffold_profile_env_created
@@ -149,5 +168,6 @@ run_test "README.md created by scaffold"                 test_scaffold_readme_cr
 run_test "ai-new creates correct layout under CODEX_JAILS_DIR" test_scaffold_layout_via_ai_new
 run_test "project placed under CODEX_JAILS_DIR/projects/" test_scaffold_under_correct_jails_dir
 run_test "slug registered in slug-index.tsv"             test_scaffold_slug_index_registered
+run_test "scaffold does not create profiles/ mirror (R2.4)" test_scaffold_does_not_create_profiles_mirror
 
 print_summary "test_scaffold_layout"

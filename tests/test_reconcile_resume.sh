@@ -163,6 +163,21 @@ test_resumable_statuses_not_changed() {
     return $_fail
 }
 
+test_reconcile_does_not_create_profile_mirror() {
+    # AC7: reconcile must not write profiles/<slug>.env
+    local _fail=0
+    local _proj
+    _proj="$(_make_proj_with_status "reconmirror" "interviewing")"
+
+    _recon_helper "reconcile_on_resume '${_proj}' || true" >/dev/null 2>&1 || true
+
+    [[ ! -f "${_TMPDIR}/profiles/reconmirror.env" ]] || {
+        printf '    profiles/reconmirror.env was created by reconcile (AC7)\n' >&2
+        _fail=1
+    }
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "interviewing + no lock → interrupted"                      test_interviewing_without_lock_becomes_interrupted
 run_test "quality-gate-running + no lock + no log → interrupted"     test_quality_gate_running_without_lock_no_log_becomes_interrupted
@@ -170,5 +185,6 @@ run_test "quality-gate-running + success marker → complete"          test_qual
 run_test "quality-gate-running + recent log → quality-gate-failed"   test_quality_gate_running_with_log_and_no_timeout_becomes_failed
 run_test "reconcile appends note to session.md"                      test_reconcile_notes_appended_to_session_md
 run_test "resumable statuses not changed by reconcile"               test_resumable_statuses_not_changed
+run_test "reconcile does not create profiles/ mirror (AC7)"          test_reconcile_does_not_create_profile_mirror
 
 print_summary "test_reconcile_resume"
