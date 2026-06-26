@@ -153,17 +153,21 @@ self-contained, shippable increment.
 - **Q1 (resolution key).** The project tree is keyed by raw `<name>` while the
   legacy registry is keyed by `sanitize_slug(<name>)`. Should project-local
   resolution look up `projects/<name>/` by the raw name, by the slug, or should
-  project directories be standardized on the slug? This must be pinned before
-  R1.1 to avoid resurfacing the latent name↔slug bug.
+  project directories be standardized on the slug? This must be pinned before R1.1 to avoid resurfacing the latent name↔slug bug.
+
+Answer: By the raw name
+
 - **Q2 (phasing vs. single PR).** The idea frames three phases as a
-  *compatibility timeline*. Should they ship as three separate releases (with a
-  deprecation window between Phase 2 and Phase 3), or land together since the
-  fallback in R1.1 already preserves legacy support? Phase 3's `_info`
-  deprecation notice (R3.2) only matters if there is a real window.
+  *compatibility timeline*. Should they ship as three separate releases (with a deprecation window between Phase 2 and Phase 3), or land together since the fallback in R1.1 already preserves legacy support? Phase 3's `_info` deprecation notice (R3.2) only matters if there is a real window.
+
+Answer: Land together
+
 - **Q3 (dedup identity).** For R2.2, what defines "the same profile" when
   de-duplicating list rows — `PROFILE_NAME`, the slug/basename, or
-  `CONTAINER_NAME`? Sourcing every legacy `.env` to compare `PROFILE_NAME` is
-  heavier than matching on filename.
-- **Q4 (legacy authoring).** Is hand-authoring new `profiles/<slug>.env` files
-  still a supported workflow going forward, or is the registry strictly a
-  read-only compatibility shim for files that already exist?
+  `CONTAINER_NAME`? Sourcing every legacy `.env` to compare `PROFILE_NAME` is heavier than matching on filename.
+
+Answer: slug
+
+- **Q4 (legacy authoring).** Is hand-authoring new `profiles/<slug>.env` files still a supported workflow going forward, or is the registry strictly a read-only compatibility shim for files that already exist?
+
+Answer: Hand editing should be allowed - but the tooling should be able to manage most change processes.
