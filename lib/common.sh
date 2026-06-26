@@ -67,20 +67,26 @@ resolve_jails_dir() {
 }
 
 # project_paths <name>
-# Sets/exports all per-project path variables derived from CODEX_JAILS_DIR.
+# Sets/exports all per-project path variables derived from AI_PODMAN_JAILS_DIR.
 # resolve_jails_dir (or resolve_base_dir) must be called first (R2.2, R2.3).
 project_paths() {
     local _name="$1"
-    PROJECT_ROOT="${CODEX_JAILS_DIR}/projects/${_name}"
+    PROJECT_ROOT="${AI_PODMAN_JAILS_DIR}/projects/${_name}"
     PROJECT_WORKSPACE="${PROJECT_ROOT}/workspace"
     PROJECT_IMAGE_DIR="${PROJECT_ROOT}/image"
     PROJECT_LAUNCHERS="${PROJECT_ROOT}/launchers"
     PROJECT_BOOTSTRAP="${PROJECT_ROOT}/bootstrap"
     PROJECT_BOOTSTRAP_HOME="${PROJECT_ROOT}/bootstrap/home"
     PROJECT_STATE_HOME="${PROJECT_ROOT}/state/home"
-    CODEX_BIN="${CODEX_JAILS_DIR}/bin"
-    CODEX_AGENTS_DIR="${CODEX_JAILS_DIR}/config/agents.d"
+    _prefer_canonical AI_PODMAN_BIN CODEX_BIN
+    AI_PODMAN_BIN="${AI_PODMAN_BIN:-${AI_PODMAN_JAILS_DIR}/bin}"
+    _prefer_canonical AI_PODMAN_AGENTS_DIR CODEX_AGENTS_DIR
+    AI_PODMAN_AGENTS_DIR="${AI_PODMAN_AGENTS_DIR:-${AI_PODMAN_JAILS_DIR}/config/agents.d}"
     export PROJECT_ROOT PROJECT_WORKSPACE PROJECT_IMAGE_DIR PROJECT_LAUNCHERS
     export PROJECT_BOOTSTRAP PROJECT_BOOTSTRAP_HOME PROJECT_STATE_HOME
+    export AI_PODMAN_BIN AI_PODMAN_AGENTS_DIR
+    # ponytail: compat mirrors — remove once all consumers read AI_PODMAN_*
+    CODEX_BIN="$AI_PODMAN_BIN"
+    CODEX_AGENTS_DIR="$AI_PODMAN_AGENTS_DIR"
     export CODEX_BIN CODEX_AGENTS_DIR
 }
