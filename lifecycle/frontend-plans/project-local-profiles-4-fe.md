@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization — Frontend Plan
 type: plan-frontend
-status: planning
+status: approved
 lineage: project-local-profiles
 parent: lifecycle/backend-plans/project-local-profiles-3-be.md
 ---
