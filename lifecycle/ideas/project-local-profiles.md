@@ -1,7 +1,7 @@
 ---
 title: Project-Local Profile Canonicalization
 type: idea
-status: clarifying
+status: abandoned
 lineage: project-local-profiles
 created: "2026-06-26T13:04:14+10:00"
 priority: normal
