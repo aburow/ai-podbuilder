@@ -87,7 +87,7 @@ Usage: ai-new <name> [--agent <agent>] [--boost <auth.json>] [--resume]
 Bootstrap a new agent-primed container project, or resume an incomplete one.
 
 Arguments:
-  <name>                   Project name (used as directory slug under CODEX_JAILS_DIR/projects/).
+  <name>                   Project name (used as directory slug under AI_PODMAN_JAILS_DIR/projects/).
 
 Options:
   --agent <agent>          Select the AI agent runtime (e.g. codex, codex, gemini).
@@ -103,7 +103,14 @@ Options:
   -h, --help               Show this help and exit.
 
 Environment:
-  CODEX_JAILS_DIR          Base directory for all projects (default: $HOME/codex-jails).
+  AI_PODMAN_JAILS_DIR      Base directory for all projects (default: $HOME/codex-jails).
+  AI_PODMAN_BIN            Path to bin directory (default: AI_PODMAN_JAILS_DIR/bin).
+  AI_PODMAN_AGENTS_DIR     Path to agents config directory
+                           (default: AI_PODMAN_JAILS_DIR/config/agents.d).
+  CODEX_JAILS_DIR, CODEX_BIN, CODEX_AGENTS_DIR
+                           Deprecated aliases of the AI_PODMAN_* variables; still honoured.
+  AI_PODMAN_NO_DEPRECATION_WARN
+                           Set non-empty to suppress deprecation warnings for CODEX_* vars.
 
 Notes:
   --force and --refresh-agent-registry are deferred beyond v1.
