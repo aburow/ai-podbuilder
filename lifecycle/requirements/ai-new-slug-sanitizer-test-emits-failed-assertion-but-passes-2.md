@@ -1,7 +1,7 @@
 ---
 title: 'Fix slug-sanitizer test: remove masking fallback and correct expected value'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-new
 parent: lifecycle/defects/ai-new-slug-sanitizer-test-emits-failed-assertion-but-passes.md
 assignees:
@@ -91,7 +91,7 @@ requirement. After the fix, a deliberately broken expectation (e.g. expected
 | AC4 | No other test case changes pass/fail status compared to the pre-fix baseline. |
 | AC5 | The `|| { … }` fallback block no longer exists anywhere in `test_illegal_chars_become_dash`. |
 
-## Open Questions
+## Answers
 
 1. **Other tests for similar fallback pattern.** Are there other test cases in
    the suite that use a `|| { … }` recovery block instead of `|| _fail=1`? If
