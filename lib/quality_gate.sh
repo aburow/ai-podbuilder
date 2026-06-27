@@ -24,15 +24,15 @@ static_check() {
     local _log="$2"
     STATIC_CHECK_STATUS="skipped"
 
-    if podman manifest inspect --help >/dev/null 2>&1 && \
-       podman build --dry-run -f "$_cfile" /dev/null >/dev/null 2>&1; then
-        # Podman-native parse succeeded.
-        STATIC_CHECK_STATUS="passed"
-        return 0
+    local _hadolint=""
+    if command -v hadolint >/dev/null 2>&1; then
+        _hadolint="hadolint"
+    elif [[ -x "${_QUALITY_GATE_LIB_DIR}/hadolint" ]]; then
+        _hadolint="${_QUALITY_GATE_LIB_DIR}/hadolint"
     fi
 
-    if command -v hadolint >/dev/null 2>&1; then
-        if hadolint "$_cfile" > "$_log" 2>&1; then
+    if [[ -n "$_hadolint" ]]; then
+        if "$_hadolint" "$_cfile" > "$_log" 2>&1; then
             STATIC_CHECK_STATUS="passed"
         else
             STATIC_CHECK_STATUS="failed"
@@ -41,7 +41,8 @@ static_check() {
         return 0
     fi
 
-    # No tool available.
+    # No static-check tool available; skipping (install hadolint for lint coverage).
+    _info "static_check: hadolint not found — static_check_status=skipped"
     STATIC_CHECK_STATUS="skipped"
     return 0
 }
@@ -148,31 +149,42 @@ run_quality_gate() {
         _validation_rc=1
     fi
 
+    local _orig_build_rc="$_build_rc"
+
     # Map status.
     map_gate_status "$_static_rc" "$_build_rc" "$_skip_build"
-    if [[ "$_skip_build" -eq 0 && "$_build_rc" -eq 0 && "$_validation_rc" -ne 0 ]]; then
-        GATE_STATUS="quality-gate-failed"
+
+    # Detect supervisor-side inconsistency: image committed but post-build
+    # validation rejected the project contract (D-003, D-009).
+    local _validation_error_summary=""
+    if [[ "$_skip_build" -eq 0 && "$_orig_build_rc" -eq 0 && "$_validation_rc" -ne 0 ]]; then
+        GATE_STATUS="quality-gate-inconsistent"
         _build_rc=1
+        _validation_error_summary="Image built and committed successfully but durable-contract validation failed. Review profile.env and PODMAN_BUILDER.md for missing or mismatched fields."
+        _warn "Quality gate inconsistent: podman build succeeded but post-build validation failed."
     fi
 
-    # Tag image if built successfully.
-    if [[ "$_skip_build" -eq 0 && "$_build_rc" -eq 0 ]]; then
-        tag_trial_image "$_slug" "$_build_rc"
+    # Tag image if the build itself succeeded (even if validation failed).
+    if [[ "$_skip_build" -eq 0 && "$_orig_build_rc" -eq 0 ]]; then
+        tag_trial_image "$_slug" 0
         write_session_field "$_proj" "trial_image_tag" "$_trial_tag"
     fi
 
-    # Derive error summary.
+    # Derive error summary — only include failure-relevant content (D-004).
     local _error_summary=""
-    if [[ "$_build_rc" -ne 0 ]]; then
+    if [[ -n "$_validation_error_summary" ]]; then
+        _error_summary="$_validation_error_summary"
+    elif [[ "$_orig_build_rc" -ne 0 ]]; then
         _error_summary="$(tail -5 "$_log" 2>/dev/null | tr '\n' ' ')"
     fi
 
     local _result_status
     case "$GATE_STATUS" in
-        complete)             _result_status="passed" ;;
-        quality-gate-timeout) _result_status="timeout" ;;
-        generated-unvalidated) _result_status="skipped" ;;
-        *)                    _result_status="failed" ;;
+        complete)                  _result_status="passed" ;;
+        quality-gate-timeout)      _result_status="timeout" ;;
+        generated-unvalidated)     _result_status="skipped" ;;
+        quality-gate-inconsistent) _result_status="inconsistent" ;;
+        *)                         _result_status="failed" ;;
     esac
 
     # Write the protocol-level result status expected by the bootstrap agent.

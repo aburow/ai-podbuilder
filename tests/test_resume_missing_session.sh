@@ -37,7 +37,7 @@ test_resume_project_not_exist_fails() {
     out="$(_ai_new ghostproject --resume 2>&1)" || rc=$?
     assert_failure $rc "--resume on non-existent project should fail" || _fail=1
     assert_contains "ghostproject" "$out" "error should name the project" || _fail=1
-    assert_not_contains "--resume" "$out" "should not loop-suggest --resume" || true
+    assert_not_contains "--resume" "$out" "should not loop-suggest --resume" || _fail=1
     return $_fail
 }
 

@@ -32,9 +32,9 @@ profiles_dir() {
     echo "${AI_PODMAN_JAILS_DIR}/profiles"
 }
 
-# Sets AI_PODMAN_JAILS_DIR for ai-new, defaults to $HOME/codex-jails (R2.1).
+# Sets AI_PODMAN_JAILS_DIR for ai-new, defaults to $HOME/ai-podman-jails (R2.1).
 resolve_jails_dir() {
-    AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-${HOME}/codex-jails}"
+    AI_PODMAN_JAILS_DIR="${AI_PODMAN_JAILS_DIR:-${HOME}/ai-podman-jails}"
     export AI_PODMAN_JAILS_DIR
 }
 

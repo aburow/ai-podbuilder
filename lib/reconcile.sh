@@ -102,7 +102,7 @@ reconcile_on_resume() {
                 fi
             fi
             ;;
-        interrupted|quality-gate-failed|quality-gate-timeout)
+        interrupted|quality-gate-failed|quality-gate-timeout|quality-gate-inconsistent)
             # Resumable — no change needed.
             ;;
     esac

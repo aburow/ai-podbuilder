@@ -130,7 +130,10 @@ EOF
     bash "$helper" >/dev/null 2>&1 || true
     local _status
     _status="$(grep -oP '"status"\s*:\s*"\K[^"]+' "${_proj}/bootstrap/session.json" 2>/dev/null || true)"
-    assert_eq "quality-gate-failed" "$_status" "invalid EXTRA_ENV should block completion" || _fail=1
+    # Build may succeed (FROM scratch) or fail depending on environment; either way
+    # validation must block completion (quality-gate-failed or quality-gate-inconsistent).
+    [[ "$_status" == "quality-gate-failed" || "$_status" == "quality-gate-inconsistent" ]] \
+        || { printf '    ASSERT fail: expected gate-failed or gate-inconsistent, got: %s\n' "$_status" >&2; _fail=1; }
     return $_fail
 }
 
@@ -172,7 +175,8 @@ EOF
     bash "$helper" >/dev/null 2>&1 || true
     local _status
     _status="$(grep -oP '"status"\s*:\s*"\K[^"]+' "${_proj}/bootstrap/session.json" 2>/dev/null || true)"
-    assert_eq "quality-gate-failed" "$_status" "missing host path should block completion" || _fail=1
+    [[ "$_status" == "quality-gate-failed" || "$_status" == "quality-gate-inconsistent" ]] \
+        || { printf '    ASSERT fail: expected gate-failed or gate-inconsistent, got: %s\n' "$_status" >&2; _fail=1; }
     return $_fail
 }
 
@@ -207,7 +211,8 @@ EOF
     bash "$helper" >/dev/null 2>&1 || true
     local _status
     _status="$(grep -oP '"status"\s*:\s*"\K[^"]+' "${_proj}/bootstrap/session.json" 2>/dev/null || true)"
-    assert_eq "quality-gate-failed" "$_status" "contamination should block completion" || _fail=1
+    [[ "$_status" == "quality-gate-failed" || "$_status" == "quality-gate-inconsistent" ]] \
+        || { printf '    ASSERT fail: expected gate-failed or gate-inconsistent, got: %s\n' "$_status" >&2; _fail=1; }
     return $_fail
 }
 

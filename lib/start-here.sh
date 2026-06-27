@@ -294,14 +294,6 @@ _build_launch_argv() {
 
     case "$RESOLVED_AGENT" in
         codex)
-            # codex --print "<prompt>" --output-format text
-            if [[ -n "$_prompt_text" ]]; then
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --print "$_prompt_text" --output-format text)
-            else
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
-            fi
-            ;;
-        codex)
             if [[ -n "$_prompt_text" ]]; then
                 # Current Codex CLI accepts an initial prompt positionally and
                 # remains in the interactive TUI. Legacy --full-auto/-q flags

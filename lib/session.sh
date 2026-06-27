@@ -7,8 +7,8 @@
 # Valid status vocabulary (R11.4).
 _VALID_STATUSES=(
     started interviewing generated quality-gate-running
-    quality-gate-failed quality-gate-timeout generated-unvalidated
-    interrupted complete
+    quality-gate-failed quality-gate-timeout quality-gate-inconsistent
+    generated-unvalidated interrupted complete
 )
 
 # _valid_status <status>

@@ -149,9 +149,9 @@ test_reconcile_notes_appended_to_session_md() {
 
 test_resumable_statuses_not_changed() {
     local _fail=0
-    # interrupted, quality-gate-failed, quality-gate-timeout → no change needed.
+    # interrupted, quality-gate-failed, quality-gate-timeout, quality-gate-inconsistent → no change needed.
     local _status
-    for _status in interrupted quality-gate-failed quality-gate-timeout; do
+    for _status in interrupted quality-gate-failed quality-gate-timeout quality-gate-inconsistent; do
         local _proj
         _proj="$(_make_proj_with_status "recon_pass_${_status//[^a-z]/_}" "$_status")"
 

@@ -10,6 +10,6 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROFILE_NAME="{{PROJECT_SLUG}}"
 
 # Locate the ai-agent-podman-sandbox bin directory.
-CODEX_BIN="${CODEX_JAILS_DIR:-${HOME}/codex-jails}/bin"
+AI_PODMAN_BIN="${AI_PODMAN_BIN:-${AI_PODMAN_JAILS_DIR:-${HOME}/ai-podman-jails}/bin}"
 
-exec "${CODEX_BIN}/ai-launch" "${PROFILE_NAME}" "$@"
+exec "${AI_PODMAN_BIN}/ai-launch" "${PROFILE_NAME}" "$@"

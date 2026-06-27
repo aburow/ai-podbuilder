@@ -140,7 +140,7 @@ Generate **all** of the following under `/project/`:
 | Path | Description |
 |------|-------------|
 | `image/Containerfile` | **The primary output.** Real, buildable durable image definition. |
-| `profile.env` | Profile env vars (shape: `KEY=value`; derive paths from `$HOME`/`$CODEX_JAILS_DIR`). |
+| `profile.env` | Profile env vars (shape: `KEY=value`; derive paths from `$HOME`/`$AI_PODMAN_JAILS_DIR`). |
 | `launchers/<slug>` | Launch wrapper following `ai-agent-podman-sandbox` conventions. |
 | `launchers/build-<slug>.sh` | Build/update helper for the durable image. |
 | `README.md` | Project README with next steps (see Phase 4). |
@@ -152,7 +152,7 @@ Generate **all** of the following under `/project/`:
 
 ### Profile / launcher conventions (R6.4, AC11)
 
-- Derive all paths from `$HOME` and `$CODEX_JAILS_DIR` — **never hardcode usernames
+- Derive all paths from `$HOME` and `$AI_PODMAN_JAILS_DIR` — **never hardcode usernames
   or `/var/home/` paths**.
 - `profile.env` shape follows `ai-agent-podman-sandbox` conventions.  Use the
   template at `/start-here-prompts/../templates/profile.env.tmpl` as a reference
@@ -162,9 +162,9 @@ Generate **all** of the following under `/project/`:
   PROFILE_NAME="<slug>"
   CONTAINER_NAME="<slug>"
   IMAGE_NAME="localhost/<slug>:latest"
-  IMAGE_DIR="${CODEX_JAILS_DIR}/projects/<name>/image"
-  WORKSPACE="${CODEX_JAILS_DIR}/projects/<name>/workspace"
-  CONTAINER_HOME="${CODEX_JAILS_DIR}/projects/<name>/state/home"
+  IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/projects/<name>/image"
+  WORKSPACE="${AI_PODMAN_JAILS_DIR}/projects/<name>/workspace"
+  CONTAINER_HOME="${AI_PODMAN_JAILS_DIR}/projects/<name>/state/home"
   BASHRC="${WORKSPACE}/.bashrc"
   WORKDIR="/workspace"
   BUILD_ARGS=""
@@ -176,14 +176,14 @@ Generate **all** of the following under `/project/`:
   EXTRA_RUN_ARGS=()
   ```
 - The framework will register `/project/profile.env` into
-  `${CODEX_JAILS_DIR}/profiles/<slug>.env` on the host after bootstrap exit and
+  `${AI_PODMAN_JAILS_DIR}/profiles/<slug>.env` on the host after bootstrap exit and
   quality-gate transitions so `ai-build`, `ai-launch`, and `ai-list` can work
   immediately. The generated launcher may delegate directly to
   `ai-launch <profile-name>` and does not need to perform its own profile-copy
   step.
 - `launchers/<slug>` must be an executable shell script (`chmod +x`) that calls
-  `${CODEX_BIN}/ai-launch <profile-name>` where `CODEX_BIN` is derived from
-  `${CODEX_JAILS_DIR:-${HOME}/codex-jails}/bin`.
+  `${AI_PODMAN_BIN}/ai-launch <profile-name>` where `AI_PODMAN_BIN` is derived from
+  `${AI_PODMAN_JAILS_DIR:-${HOME}/ai-podman-jails}/bin`.
 - `launchers/build-<slug>.sh` must be executable and call `podman build` with
   `-f image/Containerfile -t <image-tag> image/`.
 - `PODMAN_BUILDER.md` must summarize the final durable contract, including:
@@ -202,6 +202,51 @@ Generate **all** of the following under `/project/`:
   values the user has approved to bake.
 - Use `WORKDIR` to set the default working directory.
 - Use `LABEL ai-agent-podman-sandbox.project=<slug>` for identification.
+
+### ⚠ POSIX shell requirement — RUN steps execute under /bin/sh
+
+**Every `RUN` step is executed by `/bin/sh`, not `/bin/bash`.**  Using
+bash-specific syntax in a `RUN` step is the most common cause of a first-build
+failure.  It wastes a repair-budget slot and forces an in-flight repair cycle.
+
+**Prohibited constructs in `RUN` steps:**
+
+| Prohibited | POSIX replacement |
+|------------|-------------------|
+| `[[ ]]` | `[ ]` or `test` |
+| `[[ -n x && y == z ]]` | `[ -n x ] && [ y = z ]` |
+| `(( n > 0 ))` | `[ "$n" -gt 0 ]` |
+| `bash` arrays | not available — use positional params or temp files |
+| `local var` outside a function | remove `local`; use unique var names |
+| `source file` | `. file` |
+| `$'...'` ANSI quoting | use printf or escape sequences |
+| `&>>`, `<<<` | `>> file 2>&1`, `echo x \| cmd` |
+| `function name()` | `name()` |
+
+**Do not add `SHELL ["/bin/bash", "-c"]`** — OCI runtimes ignore the `SHELL`
+instruction and it produces a build warning without changing execution behaviour.
+
+**Reference pattern — POSIX-safe account existence check** (replace
+bash `[[ ]]` conditionals that recur in user-provisioning blocks):
+
+```dockerfile
+RUN existing_grp="$(getent group "${USER_GID}" | cut -d: -f1 || true)" \
+    && if [ -z "${existing_grp}" ]; then \
+           groupadd --gid "${USER_GID}" "${USER_NAME}"; \
+       fi \
+    && existing_usr="$(getent passwd "${USER_UID}" | cut -d: -f1 || true)" \
+    && if [ -n "${existing_usr}" ] && [ "${existing_usr}" != "${USER_NAME}" ]; then \
+           usermod --login "${USER_NAME}" --home "/home/${USER_NAME}" \
+                   --move-home "${existing_usr}"; \
+       elif [ -z "${existing_usr}" ]; then \
+           useradd --uid "${USER_UID}" --gid "${USER_GID}" \
+                   --create-home --shell /bin/bash "${USER_NAME}"; \
+       fi
+```
+
+**Self-check before submitting the build request:** scan every `RUN` block for
+`[[`, `]]`, `((`, `))`, `function `, `local `, `source `, `<<<`, and `&>>`.
+Replace any found before writing the build request.
 
 ### Secret-handling rules (R6.5, AC10)
 
@@ -259,6 +304,7 @@ Update `session.json` status field at each phase transition:
 | Gate passed | `complete` |
 | Gate failed | `quality-gate-failed` |
 | Gate timed out | `quality-gate-timeout` |
+| Image built but validation rejected contract | `quality-gate-inconsistent` |
 | Skipped | `generated-unvalidated` |
 
 ---
@@ -313,7 +359,7 @@ periodically (every ~30 seconds) report to the user:
 ```
 [waiting] Quality gate running…
   Status:   quality-gate-running  (from bootstrap/session.json)
-  Log:      bootstrap/build.log   (check with: cat /project/bootstrap/build.log)
+  Log:      bootstrap/build.log   (review on host after exit — bwrap may block cat inside the container)
   Elapsed:  <elapsed>
   Timeout:  controlled by the host supervisor (default 30 min)
 ```
@@ -349,7 +395,40 @@ durable requirements:
 
 Update `session.json` status to `complete`.  Proceed to Phase 5.
 
+#### On `"inconsistent"` (supervisor-integrity failure)
+
+Status `"inconsistent"` means the image was built and committed successfully
+but the host-side post-build validation rejected the durable project contract.
+**Do not count this against the repair budget.**
+
+1. Report clearly:
+   > "The image built successfully but the host validator rejected the project
+   > contract.  This is a supervisor-side issue, not a Containerfile defect."
+2. Show the `error_summary` from the result file.
+3. Inspect `profile.env` — check that all path fields expand to non-empty values
+   using `AI_PODMAN_JAILS_DIR` (not `CODEX_JAILS_DIR`).  Correct any stale
+   variable references and re-emit the file.
+4. Write a new build request (same `repair_iteration` counter — do **not**
+   increment it) with `"reason": "supervisor-integrity retry"`.
+5. Repeat the wait/interpret cycle.
+6. If two consecutive inconsistent results occur without a clear fix, report
+   the inconsistency to the user and update `session.json` to
+   `quality-gate-inconsistent`.  A valid trial image already exists; tell the
+   user to run `podman images` to confirm and to re-enter with
+   `ai-new <name> --resume` once the contract issue is resolved.
+
 #### On `"failed"`
+
+**Before counting a repair iteration**, inspect the build log and the result
+file for a supervisor-integrity contradiction:
+
+- If `bootstrap/build.log` contains `COMMIT` and `Successfully tagged` for the
+  trial image **and** `error_summary` does not describe a real build error
+  (e.g. it contains success tail output instead), treat the result as
+  `"inconsistent"` and follow the `"inconsistent"` path above without
+  incrementing the repair budget.
+
+Otherwise:
 
 1. Report the failure: show `error_summary` and the log path.
 2. Read `bootstrap/build.log` (the full log is at the `build_log_path`).
@@ -386,7 +465,7 @@ or launch the durable image. The only next action is the exact resume command.
 ## PHASE 5 — Completion reporting, next steps & session.md narrative (R7, R11.2, AC9, AC16)
 
 When the session reaches a terminal state (build passed, skipped/
-`generated-unvalidated`, or failure after max repairs):
+`generated-unvalidated`, failure after max repairs, or `quality-gate-inconsistent`):
 
 ### 5.1 — Completion statement (R7.2)
 
@@ -400,6 +479,7 @@ Then state the quality-gate outcome:
 | Build passed | "Quality gate: **PASSED** — the Containerfile built successfully." |
 | Build skipped | "Quality gate: **SKIPPED** — the build was not run (see warning below)." |
 | Build failed after repairs | "Quality gate: **FAILED** — the build failed after repair attempts." |
+| Supervisor inconsistency | "Quality gate: **INCONSISTENT** — the image was built but the host validator rejected the project contract.  The trial image exists; see below." |
 
 ### 5.2 — Skipped-build warning (R8.3, AC13)
 
@@ -421,18 +501,7 @@ real values from the project.
 
 ---
 
-**Step 1 — Review the generated files**
-
-```bash
-# Inside the bootstrap container:
-ls -la /project/image/
-cat /project/image/Containerfile
-cat /project/PODMAN_BUILDER.md
-cat /project/README.md
-cat /project/profile.env
-```
-
-**Step 2 — Exit the bootstrap container**
+**Step 1 — Exit the bootstrap container**
 
 ```bash
 exit
@@ -440,11 +509,25 @@ exit
 
 After exiting, you will be back on the host.
 
+**Step 2 — Review the generated files** *(on the host)*
+
+> **Note:** File inspection commands run inside the bootstrap container may fail
+> with a `bwrap: Can't mount devpts` error when nested user namespaces are
+> unavailable.  Review files from the host after exiting.
+
+```bash
+cd ${AI_PODMAN_JAILS_DIR:-$HOME/ai-podman-jails}/projects/<name>
+ls -la image/
+cat image/Containerfile
+cat PODMAN_BUILDER.md
+cat README.md
+cat profile.env
+```
+
 **Step 3 — Build the durable image** *(skip if quality gate already passed)*
 
 ```bash
 # On the host, from the project directory:
-cd ${CODEX_JAILS_DIR:-$HOME/codex-jails}/projects/<name>
 ./launchers/build-<slug>.sh
 # or directly:
 podman build -f image/Containerfile -t <image-tag> image/

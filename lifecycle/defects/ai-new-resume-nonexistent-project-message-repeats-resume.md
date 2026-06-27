@@ -1,7 +1,7 @@
 ---
 title: Resume missing-project message repeats the resume flag
 type: defect
-status: draft
+status: done
 lineage: ai-new
 parent: lifecycle/tests/ai-new-13-tests.md
 labels: [defect]

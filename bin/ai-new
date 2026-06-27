@@ -127,7 +127,7 @@ _cleanup_session() {
 if [[ "$RESUME" -eq 1 ]]; then
     # Resume path — project must exist with a readable session.json.
     [[ -d "$PROJECT_ROOT" ]] \
-        || _die "Project '$NAME' does not exist. Run without --resume to create it."
+        || _die "Project '$NAME' does not exist. Run 'ai-new ${NAME}' to create it."
     [[ -f "$SESSION_JSON" ]] \
         || _die "Cannot resume '$NAME': session.json is missing or unreadable (${SESSION_JSON})."
 

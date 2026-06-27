@@ -98,8 +98,8 @@ test_set_status_valid_values() {
 
     local _status
     for _status in started interviewing generated quality-gate-running \
-        quality-gate-failed quality-gate-timeout generated-unvalidated \
-        interrupted complete; do
+        quality-gate-failed quality-gate-timeout quality-gate-inconsistent \
+        generated-unvalidated interrupted complete; do
 
         local out rc=0
         out="$(_session_helper "

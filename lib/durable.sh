@@ -220,24 +220,79 @@ generate_durable_build_spec() {
     local _name
     _name="$(basename "$_proj")"
     local _spec="${_proj}/PODMAN_BUILDER.md"
+    local _cfile="${_proj}/image/Containerfile"
+    local _profile="${_proj}/profile.env"
     local _runtime
     _runtime="$(infer_final_runtime "$_proj")"
-    local _base_image=""
-    [[ -f "${_proj}/image/Containerfile" ]] && \
-        _base_image="$(grep -m1 '^FROM ' "${_proj}/image/Containerfile" | awk '{print $2}')"
+
+    local _base_image="unknown"
+    [[ -f "$_cfile" ]] && \
+        _base_image="$(grep -m1 '^FROM ' "$_cfile" | awk '{print $2}')"
 
     local _workdir=""
-    [[ -f "${_proj}/profile.env" ]] && \
-        _workdir="$(grep -m1 '^WORKDIR=' "${_proj}/profile.env" | cut -d= -f2-)"
-    local _env_file_content=""
-    if [[ -f "${_proj}/profile.env" ]]; then
-        _env_file_content="$(grep -E '^(ENV_FILE|EXTRA_ENV|EXTRA_VOLUMES|EXTRA_RUN_ARGS|NETWORK_MODE|CONTAINER_HOME|WORKSPACE)=' "${_proj}/profile.env" || true)"
+    [[ -f "$_profile" ]] && \
+        _workdir="$(grep -m1 '^WORKDIR=' "$_profile" | cut -d= -f2-)"
+    if [[ -z "$_workdir" && -f "$_cfile" ]]; then
+        _workdir="$(grep -m1 '^WORKDIR ' "$_cfile" | awk '{print $2}')"
     fi
+    [[ -n "$_workdir" ]] || _workdir="unknown"
+
+    # Packages — extract from apt/dnf/yum install lines in Containerfile.
+    local _packages="See image/Containerfile."
+    if [[ -f "$_cfile" ]]; then
+        _packages="$(python3 - "$_cfile" <<'PYEOF'
+import re, sys
+with open(sys.argv[1]) as f:
+    text = re.sub(r'\\\n', ' ', f.read())
+skip = {'apt','apt-get','dnf','yum','install','update','upgrade',
+        'reinstall','purge','remove','autoremove','clean'}
+pkgs = set()
+for line in text.splitlines():
+    if re.search(r'(apt-get|apt|dnf|yum)\s+install', line):
+        for tok in re.findall(r'\b([a-z][a-z0-9._+:-]{2,})\b', line):
+            if tok not in skip:
+                pkgs.add(tok)
+print('\n'.join(f'- `{p}`' for p in sorted(pkgs)) or 'See image/Containerfile.')
+PYEOF
+)"
+    fi
+
+    # Ports — EXPOSE lines from Containerfile.
+    local _ports="None exposed."
+    if [[ -f "$_cfile" ]]; then
+        local _expose
+        _expose="$(grep '^EXPOSE ' "$_cfile" | awk '{for(i=2;i<=NF;i++) printf "- `%s`\n",$i}' || true)"
+        [[ -n "$_expose" ]] && _ports="$_expose"
+    fi
+
+    # ENV vars — ENV lines from Containerfile.
+    local _envvars="See image/Containerfile."
+    if [[ -f "$_cfile" ]]; then
+        local _env_lines
+        _env_lines="$(grep '^ENV ' "$_cfile" | sed 's/^ENV /- /' || true)"
+        [[ -n "$_env_lines" ]] && _envvars="$_env_lines"
+    fi
+
+    # Mounts — WORKSPACE and CONTAINER_HOME from profile.env.
+    local _mounts="See profile.env."
+    if [[ -f "$_profile" ]]; then
+        local _ws _ch _ml=""
+        _ws="$(grep -m1 '^WORKSPACE=' "$_profile" | cut -d= -f2-)"
+        _ch="$(grep -m1 '^CONTAINER_HOME=' "$_profile" | cut -d= -f2-)"
+        [[ -n "$_ws" ]] && _ml="- Workspace: \`${_ws}\` → \`/workspace\`"
+        if [[ -n "$_ch" ]]; then
+            [[ -n "$_ml" ]] && _ml+=$'\n'
+            _ml+="- Persistent home: \`${_ch}\`"
+        fi
+        [[ -n "$_ml" ]] && _mounts="$_ml"
+    fi
+
     local _enabled _rejected
     _enabled="$(read_session_field "$_proj" "enabled_optional_features" 2>/dev/null | paste -sd ', ' - || true)"
     _rejected="$(read_session_field "$_proj" "rejected_optional_features" 2>/dev/null | paste -sd ', ' - || true)"
     [[ -n "$_enabled" ]] || _enabled="none"
     [[ -n "$_rejected" ]] || _rejected="none"
+
     cat > "$_spec" <<EOF
 # PODMAN_BUILDER — ${_name}
 
@@ -251,27 +306,27 @@ ${_runtime:-unknown}
 
 ## Base image
 
-${_base_image:-unknown}
+${_base_image}
 
 ## Required packages and tools
 
-Derived from image/Containerfile.
+${_packages}
 
 ## Workdir
 
-${_workdir:-unknown}
+${_workdir}
 
 ## Mounts and persistent state
 
-${_env_file_content:-No profile data available.}
+${_mounts}
 
 ## Ports
 
-Derived from profile.env EXTRA_RUN_ARGS and image/Containerfile.
+${_ports}
 
 ## Environment variables
 
-Derived from profile.env.
+${_envvars}
 
 ## Secrets policy
 

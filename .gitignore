@@ -9,6 +9,13 @@ lifecycle/.kaos-control.db-wal
 # Local kaos-control pipeline definitions — operational, not for remote
 lifecycle/devops/*.yaml
 
+# Local lifecycle configuration — operational instructions, not for remote
+lifecycle/config.yaml
+
+# Downloaded tool binaries — fetched by install.sh, not committed
+lib/hadolint
+lib/hadolint-*
+
 # Runtime project data — never commit user projects or live secrets
 projects/
 *.env

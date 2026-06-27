@@ -105,7 +105,7 @@ Options:
   -h, --help               Show this help and exit.
 
 Environment:
-  AI_PODMAN_JAILS_DIR      Base directory for all projects (default: $HOME/codex-jails).
+  AI_PODMAN_JAILS_DIR      Base directory for all projects (default: $HOME/ai-podman-jails).
   AI_PODMAN_BIN            Path to bin directory (default: AI_PODMAN_JAILS_DIR/bin).
   AI_PODMAN_AGENTS_DIR     Path to agents config directory
                            (default: AI_PODMAN_JAILS_DIR/config/agents.d).

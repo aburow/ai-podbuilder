@@ -17,6 +17,9 @@ _gate_helper() {
 set -uo pipefail
 source '${LIB_DIR}/common.sh'
 source '${LIB_DIR}/quality_gate.sh'
+# Override lib dir so the lib-local hadolint fallback also misses when
+# simulating a "no tool available" environment.
+_QUALITY_GATE_LIB_DIR='${_TMPDIR}'
 export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
 export SLUG='testslug'
 ${_script}

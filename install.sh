@@ -173,6 +173,36 @@ ensure_sourced() {
   info "Added source line to ${bashrc}"
 }
 
+# ---------- milestone 6b: hadolint binary ----------
+HADOLINT_REPO="hadolint/hadolint"
+
+fetch_hadolint() {
+  local arch
+  arch="$(uname -m)"
+  local had_arch
+  case "${arch}" in
+    x86_64)        had_arch="x86_64" ;;
+    aarch64|arm64) had_arch="arm64"  ;;
+    *)
+      info "hadolint: unsupported arch ${arch} — skipping"
+      return 0
+      ;;
+  esac
+
+  local asset="hadolint-Linux-${had_arch}"
+  local url="https://github.com/${HADOLINT_REPO}/releases/latest/download/${asset}"
+  local dest="${INSTALL_ROOT}/lib/hadolint-linux-${had_arch}"
+
+  info "Fetching hadolint (${had_arch})"
+  if ! curl -fsSL "${url}" -o "${dest}"; then
+    info "hadolint: download failed — skipping (static checks will be skipped)"
+    return 0
+  fi
+  chmod +x "${dest}"
+  ln -sf "hadolint-linux-${had_arch}" "${INSTALL_ROOT}/lib/hadolint"
+  info "hadolint installed: ${dest}"
+}
+
 # ---------- milestone 7: legacy-install migration ----------
 migrate_legacy() {
   local bashrc="${HOME}/.bashrc"
@@ -218,6 +248,7 @@ INSTALL_ROOT="${1:-${HOME}/ai-podman-jails}"
 check_prereqs
 fetch_release
 install_files
+fetch_hadolint
 write_env_file
 ensure_sourced
 migrate_legacy

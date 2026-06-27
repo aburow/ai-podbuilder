@@ -122,9 +122,9 @@ test_scaffold_under_correct_jails_dir() {
         printf '    Project not found under AI_PODMAN_JAILS_DIR/projects/\n' >&2
         _fail=1
     }
-    # Should NOT be under $HOME/codex-jails (which is the default without AI_PODMAN_JAILS_DIR set).
-    if [[ -d "${HOME}/codex-jails/projects/jailstest" ]]; then
-        printf '    WARN: project found under $HOME/codex-jails — possible isolation issue\n' >&2
+    # Should NOT be under $HOME/ai-podman-jails (which is the default without AI_PODMAN_JAILS_DIR set).
+    if [[ -d "${HOME}/ai-podman-jails/projects/jailstest" ]]; then
+        printf '    WARN: project found under $HOME/ai-podman-jails — possible isolation issue\n' >&2
     fi
     return $_fail
 }
