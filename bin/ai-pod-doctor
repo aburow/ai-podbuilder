@@ -54,4 +54,5 @@ _ic_setup_tmpdir
 detect_version
 fetch_tarball
 build_manifest
+compare_files
 _usage

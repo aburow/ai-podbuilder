@@ -49,3 +49,46 @@ build_manifest() {
     done < <(find "${_ic_tmpdir}/${INNER}/bin" "${_ic_tmpdir}/${INNER}/lib" \
                  -type f -print0 2>/dev/null)
 }
+
+# ---- M3: enumerate and compare ---------------------------------------------
+
+declare -A _ic_missing=()
+declare -A _ic_unexpected=()
+declare -A _ic_mismatch=()
+declare -A _ic_ok=()
+# _ic_mismatch values: "expected=<hash>  actual=<hash>"
+
+_ic_enumerate_installed() {
+    local f rel
+    while IFS= read -r -d '' f; do
+        rel="${f#"${AI_PODMAN_JAILS_DIR}/"}"
+        _ic_installed_files["${rel}"]=1
+    done < <(find -L "${AI_PODMAN_JAILS_DIR}/bin" "${AI_PODMAN_JAILS_DIR}/lib" \
+                 -type f -print0 2>/dev/null)
+}
+
+compare_files() {
+    declare -gA _ic_installed_files=()
+    _ic_enumerate_installed
+
+    local rel exp_hash act_hash
+    for rel in "${!_ic_manifest[@]}"; do
+        exp_hash="${_ic_manifest[${rel}]}"
+        if [[ -z "${_ic_installed_files[${rel}]+x}" ]]; then
+            _ic_missing["${rel}"]="${exp_hash}"
+        else
+            act_hash="$(sha256sum "${AI_PODMAN_JAILS_DIR}/${rel}" | awk '{print $1}')"
+            if [[ "${act_hash}" == "${exp_hash}" ]]; then
+                _ic_ok["${rel}"]="${exp_hash}"
+            else
+                _ic_mismatch["${rel}"]="expected=${exp_hash}  actual=${act_hash}"
+            fi
+        fi
+    done
+
+    for rel in "${!_ic_installed_files[@]}"; do
+        if [[ -z "${_ic_manifest[${rel}]+x}" ]]; then
+            _ic_unexpected["${rel}"]=1
+        fi
+    done
+}
