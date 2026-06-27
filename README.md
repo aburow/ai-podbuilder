@@ -148,8 +148,44 @@ artifacts you keep using after bootstrap is complete.
 
 More detail: [docs/security-model.md](docs/security-model.md)
 
+## Diagnostics
+
+### `ai-pod-doctor integrity-check`
+
+Verify that installed `bin/` and `lib/` files match the release baseline.
+
+**Prerequisites:** `AI_PODMAN_JAILS_DIR` must be set (the installer sets it
+automatically; you can also `export AI_PODMAN_JAILS_DIR=<path>` manually).
+
+```sh
+# Check integrity silently (prints nothing and exits 0 if all OK)
+ai-pod-doctor integrity-check
+
+# Show all checked files
+ai-pod-doctor integrity-check --verbose
+
+# Show a diff for any modified file
+ai-pod-doctor integrity-check --diff
+
+# Restore modified/missing files automatically (no prompt)
+ai-pod-doctor integrity-check --repair
+```
+
+**Exit codes:**
+
+| Code | Meaning |
+|------|---------|
+| 0 | All files match manifest, or repair completed successfully |
+| 1 | One or more discrepancies found (repair declined or not attempted) |
+| 2 | Manifest fetch or validation failure |
+| 3 | Version detection failure |
+| 4 | Unexpected error |
+
+Full reference: [docs/ai-pod-doctor.md](docs/ai-pod-doctor.md)
+
 ## Key Documentation
 
+- [docs/ai-pod-doctor.md](docs/ai-pod-doctor.md) — integrity-check command reference
 - [docs/ai-new.md](docs/ai-new.md) — bootstrap flow and generated scaffold
 - [docs/profiles.md](docs/profiles.md) — profile schema and examples
 - [docs/security-model.md](docs/security-model.md) — runtime isolation model
