@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
+# 2026 - Anthony Burow - https://github.com/aburow
+set -euo pipefail
+trap 'exit 4' ERR
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "${SCRIPT_DIR}/../lib/common.sh"
+# shellcheck source=../lib/integrity.sh
+source "${SCRIPT_DIR}/../lib/integrity.sh"
+
+resolve_base_dir
+
+_usage() {
+    cat >&2 <<'EOF'
+Usage: ai-pod-doctor [integrity-check] [OPTIONS]
+
+Verify installed system files against the release tarball.
+
+Options:
+  --verbose   Show all files (OK and exceptions)
+  --diff      Show unified diffs for modified files
+  --repair    Restore missing/modified files without prompting
+  -h, --help  Show this help
+
+Exit codes:
+  0  All files match (or repair succeeded)
+  1  Discrepancies found (or repair declined)
+  2  Tarball fetch failure
+  3  Version detection failure
+  4  Unexpected error
+EOF
+    exit 0
+}
+
+# ---- argument parsing -------------------------------------------------------
+
+SUBCMD=""
+
+for arg in "$@"; do
+    case "${arg}" in
+        integrity-check) SUBCMD="integrity-check" ;;
+        -h|--help)       _usage ;;
+        *) echo "Unknown option: ${arg}" >&2; exit 1 ;;
+    esac
+done
+
+[[ -z "${SUBCMD}" ]] && SUBCMD="integrity-check"
+
+# ---- integrity-check flow --------------------------------------------------
+
+_ic_setup_tmpdir
+detect_version
+_usage
