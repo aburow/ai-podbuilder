@@ -157,3 +157,26 @@ print_diffs() {
             "${AI_PODMAN_JAILS_DIR}/${rel}" || true
     done
 }
+
+# ---- M5: repair ------------------------------------------------------------
+
+repair_files() {
+    local rel src_mode
+    for rel in "${!_ic_missing[@]}" "${!_ic_mismatch[@]}"; do
+        cp "${_ic_tmpdir}/${INNER}/${rel}" "${AI_PODMAN_JAILS_DIR}/${rel}"
+        src_mode="$(stat -c '%a' "${_ic_tmpdir}/${INNER}/${rel}")"
+        chmod "${src_mode}" "${AI_PODMAN_JAILS_DIR}/${rel}"
+    done
+}
+
+prompt_repair() {
+    local count ans
+    count=$(( ${#_ic_missing[@]} + ${#_ic_mismatch[@]} ))
+    printf 'Restore %d file(s) from release v%s? [y/N] ' "${count}" "${VERSION}" >&2
+    read -r ans <&2 || ans=""
+    if [[ "${ans}" =~ ^[Yy]$ ]]; then
+        repair_files
+        return 0
+    fi
+    return 1
+}

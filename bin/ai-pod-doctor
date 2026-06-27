@@ -38,6 +38,7 @@ EOF
 
 OPT_VERBOSE=0
 OPT_DIFF=0
+OPT_REPAIR=0
 SUBCMD=""
 
 for arg in "$@"; do
@@ -45,6 +46,7 @@ for arg in "$@"; do
         integrity-check) SUBCMD="integrity-check" ;;
         --verbose)       OPT_VERBOSE=1 ;;
         --diff)          OPT_DIFF=1 ;;
+        --repair)        OPT_REPAIR=1 ;;
         -h|--help)       _usage ;;
         *) echo "Unknown option: ${arg}" >&2; exit 1 ;;
     esac
@@ -77,4 +79,16 @@ fi
 if [[ "${has_issues}" -eq 0 ]]; then
     exit 0
 fi
+
+# Repair path (only for missing/mismatch, not unexpected)
+repair_needed=$(( ${#_ic_missing[@]} + ${#_ic_mismatch[@]} ))
+if [[ "${repair_needed}" -gt 0 ]]; then
+    if [[ "${OPT_REPAIR}" -eq 1 ]]; then
+        repair_files
+        exit 0
+    else
+        prompt_repair && exit 0 || exit 1
+    fi
+fi
+
 exit 1
