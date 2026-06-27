@@ -83,9 +83,8 @@ test_illegal_chars_become_dash() {
     local out rc=0
     out="$(_slug_of_raw "my@proj#ect!")" || rc=$?
     assert_success $rc || _fail=1
-    assert_eq "my-proj-ect-" "$out" "illegal chars should be replaced with dashes" \
-        || { out="$(echo "$out" | tr -d '\n')"; assert_contains "my" "$out" || _fail=1; }
-    # Just verify the slug doesn't contain @ # !
+    assert_eq "my-proj-ect" "$out" "illegal chars replaced with dashes; trailing dash trimmed (R20.1)" || _fail=1
+    # Verify the slug doesn't contain @ # !
     [[ "$out" != *"@"* && "$out" != *"#"* && "$out" != *"!"* ]] || {
         printf '    Illegal chars not replaced: %s\n' "$out" >&2
         _fail=1
