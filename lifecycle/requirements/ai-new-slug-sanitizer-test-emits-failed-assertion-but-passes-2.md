@@ -1,7 +1,7 @@
 ---
 title: 'Fix slug-sanitizer test: remove masking fallback and correct expected value'
 type: requirement
-status: draft
+status: approved
 lineage: ai-new
 parent: lifecycle/defects/ai-new-slug-sanitizer-test-emits-failed-assertion-but-passes.md
 assignees:
