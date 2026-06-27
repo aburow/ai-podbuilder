@@ -1,7 +1,7 @@
 ---
 title: 'ai-pod-doctor: System File Integrity Verification Command'
 type: idea
-status: approved
+status: clarifying
 lineage: ai-pod-doctor-integrity-check
 created: "2026-06-27T12:55:40+10:00"
 priority: normal
