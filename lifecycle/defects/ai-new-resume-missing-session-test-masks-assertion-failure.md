@@ -1,7 +1,7 @@
 ---
 title: Resume missing-session test masks a failed assertion
 type: defect
-status: draft
+status: in-qa
 lineage: ai-new
 parent: lifecycle/tests/ai-new-13-tests.md
 labels: [defect]
