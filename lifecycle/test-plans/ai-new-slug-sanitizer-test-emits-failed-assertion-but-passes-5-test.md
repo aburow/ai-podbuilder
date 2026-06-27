@@ -1,7 +1,7 @@
 ---
 title: 'Fix slug-sanitizer test: remove masking fallback — Test Plan'
 type: plan-test
-status: planning
+status: approved
 lineage: ai-new-slug-sanitizer-test-emits-failed-assertion-but-passes
 parent: lifecycle/requirements/ai-new-slug-sanitizer-test-emits-failed-assertion-but-passes-2.md
 created: "2026-06-27T00:00:00+10:00"
