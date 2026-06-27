@@ -77,6 +77,7 @@ test_underscores_kept() {
     return $_fail
 }
 
+# R20.1 (ai-new-9.md): trim leading/trailing [._-] after char substitution → "my-proj-ect" not "my-proj-ect-"
 test_illegal_chars_become_dash() {
     local _fail=0
     local out rc=0
