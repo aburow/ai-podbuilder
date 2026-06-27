@@ -1,7 +1,7 @@
 ---
 title: 'ai-pod-doctor: System File Integrity Verification Command — Backend Plan'
 type: plan-backend
-status: in-development
+status: done
 lineage: ai-pod-doctor-integrity-check
 parent: lifecycle/requirements/ai-pod-doctor-integrity-check-2.md
 created: "2026-06-27T00:00:00+10:00"
