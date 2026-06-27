@@ -52,4 +52,6 @@ done
 
 _ic_setup_tmpdir
 detect_version
+fetch_tarball
+build_manifest
 _usage
