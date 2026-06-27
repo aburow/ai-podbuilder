@@ -104,8 +104,25 @@ test_shellcheck_install_sh() {
     shellcheck -S warning "${REPO_ROOT}/install.sh" 2>&1
 }
 
+# M6: follow source directives in ai-pod-doctor and integrity.sh (AC: exits 0 cleanly)
+test_shellcheck_integrity_with_source() {
+    if ! command -v shellcheck >/dev/null 2>&1; then
+        _SKIP_REASON="shellcheck not in PATH"
+        return 0
+    fi
+    local _fail=0
+    for f in "${REPO_ROOT}/bin/ai-pod-doctor" "${REPO_ROOT}/lib/integrity.sh"; do
+        if ! shellcheck -x -S warning "$f" 2>&1; then
+            printf '    shellcheck -x failure: %s\n' "$f" >&2
+            _fail=1
+        fi
+    done
+    return $_fail
+}
+
 _run_static "shellcheck: bin/ and lib/" test_shellcheck_bin_lib
 _run_static "shellcheck: install.sh" test_shellcheck_install_sh
+_run_static "shellcheck -x: ai-pod-doctor and integrity.sh" test_shellcheck_integrity_with_source
 _run_static "set -euo pipefail present in every bin/ script" test_pipefail_in_bin_scripts
 _run_static "no hardcoded /var/home/ in scripts" test_no_hardcoded_username_or_varhome
 
