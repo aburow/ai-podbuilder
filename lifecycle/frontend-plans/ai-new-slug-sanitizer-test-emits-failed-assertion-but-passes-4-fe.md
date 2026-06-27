@@ -95,9 +95,11 @@ runner's failure counter and the script's final exit code.
 
 - With expected value temporarily set to `BOGUS`, `bash tests/test_slug_sanitizer.sh`
   exits non-zero and the summary reports `1 failed` (AC3).
+  **Verified:** BOGUS substitution exits 1; `_fail=1` propagates through runner (AC3 ✓).
 - After reverting, the suite exits 0 and reports `13 passed  0 failed` (AC1).
+  **Verified:** exit 0, 13 passed 0 failed (AC1 ✓).
 - No change to the runner (`print_summary`, the outer `run_tests` loop, or
-  exit-code logic) is needed or made (R4).
+  exit-code logic) is needed or made (R4). **Verified: no runner changes (R4 ✓).**
 
 ---
 
