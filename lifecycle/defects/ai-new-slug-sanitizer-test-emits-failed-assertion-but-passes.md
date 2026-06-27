@@ -1,7 +1,7 @@
 ---
 title: Slug sanitizer test emits a failed assertion but still passes
 type: defect
-status: draft
+status: clarifying
 lineage: ai-new
 parent: lifecycle/tests/ai-new-13-tests.md
 labels: [defect]
