@@ -98,7 +98,19 @@ requirement. After the fix, a deliberately broken expectation (e.g. expected
    so, they should be audited in the same pass — but that is out of scope for
    this requirement unless the reviewer finds them.
 
-2. **R20.1 authoritative source.** The defect references R20.1 by identifier
+Answer: agreed for auditing, whether that pattern is used and should or should not be is currently unknown.
+
+3. **R20.1 authoritative source.** The defect references R20.1 by identifier
    only. Confirm which requirement document owns that rule so the test comment
    can cite the correct path (currently the file header cites `R20.1` without a
    path reference).
+
+Answer: ai-new-9.md
+
+- **R20.1 <E2><80><94> Slug sanitizer.** The trial build tags the durable image as
+  `localhost/ai-new/<slug>:trial`, where `<slug>` is derived from `<name>` by a deterministic
+  sanitizer: convert to lowercase ASCII where possible; replace any character outside `[a-z0-9._-]`
+  with `-`; collapse repeated `-`; trim leading/trailing `.`, `_`, and `-`; fail clearly if empty;
+  cap at 63 characters; append `-<8-char-hash>` (hash of the original name) when truncation occurs;
+  and fail if two distinct project names produce the same slug unless the user chooses a distinct
+  name in a future flow.
