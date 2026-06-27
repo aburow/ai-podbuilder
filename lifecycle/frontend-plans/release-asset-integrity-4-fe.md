@@ -1,7 +1,7 @@
 ---
 title: Publish and verify a SHA-256 checksum for the install.sh release asset — Frontend Plan
 type: plan-frontend
-status: draft
+status: done
 lineage: release-asset-integrity
 parent: lifecycle/requirements/release-asset-integrity-2.md
 created: "2026-06-26T00:00:00+10:00"
