@@ -92,3 +92,68 @@ compare_files() {
         fi
     done
 }
+
+# ---- M4: output modes -------------------------------------------------------
+
+print_exceptions() {
+    local rel found=0
+    for rel in "${!_ic_missing[@]}"; do
+        echo "MISSING   ${rel}"
+        found=1
+    done
+    for rel in "${!_ic_unexpected[@]}"; do
+        echo "UNEXPECTED ${rel}"
+        found=1
+    done
+    for rel in "${!_ic_mismatch[@]}"; do
+        echo "MODIFIED  ${rel}  ${_ic_mismatch[${rel}]}"
+        found=1
+    done
+    if [[ "${found}" -eq 0 ]]; then
+        echo "all files OK"
+        return 0
+    fi
+    return 1
+}
+
+print_verbose() {
+    local rel hash
+    declare -A _all=()
+    for rel in "${!_ic_ok[@]}"         ; do _all["${rel}"]=ok        ; done
+    for rel in "${!_ic_mismatch[@]}"   ; do _all["${rel}"]=mismatch  ; done
+    for rel in "${!_ic_missing[@]}"    ; do _all["${rel}"]=missing   ; done
+    for rel in "${!_ic_unexpected[@]}" ; do _all["${rel}"]=unexpected ; done
+
+    printf '%-12s\t%-40s\t%-64s\t%s\n' STATUS FILE EXPECTED ACTUAL
+    while IFS= read -r rel; do
+        case "${_all[${rel}]}" in
+            ok)
+                hash="${_ic_ok[${rel}]}"
+                printf '%-12s\t%-40s\t%-64s\t%s\n' OK "${rel}" "${hash}" "${hash}"
+                ;;
+            mismatch)
+                local exp act
+                exp="${_ic_mismatch[${rel}]#expected=}"; exp="${exp%%  *}"
+                act="${_ic_mismatch[${rel}]##*actual=}"
+                printf '%-12s\t%-40s\t%-64s\t%s\n' MODIFIED "${rel}" "${exp}" "${act}"
+                ;;
+            missing)
+                printf '%-12s\t%-40s\t%-64s\t%s\n' MISSING "${rel}" "${_ic_missing[${rel}]}" "-"
+                ;;
+            unexpected)
+                printf '%-12s\t%-40s\t%-64s\t%s\n' UNEXPECTED "${rel}" "-" "-"
+                ;;
+        esac
+    done < <(printf '%s\n' "${!_all[@]}" | sort)
+}
+
+print_diffs() {
+    local rel
+    for rel in "${!_ic_mismatch[@]}"; do
+        diff -u \
+            --label "a/${rel}" \
+            --label "b/${rel}" \
+            "${_ic_tmpdir}/${INNER}/${rel}" \
+            "${AI_PODMAN_JAILS_DIR}/${rel}" || true
+    done
+}

@@ -36,11 +36,15 @@ EOF
 
 # ---- argument parsing -------------------------------------------------------
 
+OPT_VERBOSE=0
+OPT_DIFF=0
 SUBCMD=""
 
 for arg in "$@"; do
     case "${arg}" in
         integrity-check) SUBCMD="integrity-check" ;;
+        --verbose)       OPT_VERBOSE=1 ;;
+        --diff)          OPT_DIFF=1 ;;
         -h|--help)       _usage ;;
         *) echo "Unknown option: ${arg}" >&2; exit 1 ;;
     esac
@@ -55,4 +59,22 @@ detect_version
 fetch_tarball
 build_manifest
 compare_files
-_usage
+
+# Output
+if [[ "${OPT_VERBOSE}" -eq 1 ]]; then
+    print_verbose
+fi
+if [[ "${OPT_DIFF}" -eq 1 ]]; then
+    print_diffs
+fi
+
+has_issues=$(( ${#_ic_missing[@]} + ${#_ic_mismatch[@]} + ${#_ic_unexpected[@]} ))
+
+if [[ "${OPT_VERBOSE}" -eq 0 && "${OPT_DIFF}" -eq 0 ]]; then
+    print_exceptions || true
+fi
+
+if [[ "${has_issues}" -eq 0 ]]; then
+    exit 0
+fi
+exit 1
