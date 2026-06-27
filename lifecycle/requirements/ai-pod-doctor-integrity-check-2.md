@@ -1,7 +1,7 @@
 ---
 title: 'ai-pod-doctor: System File Integrity Verification Command'
 type: requirement
-status: blocked
+status: draft
 lineage: ai-pod-doctor-integrity-check
 created: "2026-06-27T00:00:00+10:00"
 priority: normal
@@ -175,12 +175,14 @@ a `trap` on EXIT, regardless of how the command terminates.
     reported as unexpected (warning); a file in the manifest but absent from
     the installation is reported as missing (error, exit 1).
 
-## Open Questions
+## Answers
 
 1. **Version marker location:** Where exactly does the installer record the
    installed version? (A version file path, a `VERSION=` line in a script
    header, a directory name?) The auto-detection in R1 must anchor to a
    specific, stable location — needs confirmation before implementation.
+
+Answer: VERSION is in the VERSION file at the moment - it does not appear to be part of the install.sh script at the moment.
 
 2. **Manifest format:** Does the release tarball already contain a
    `sha256sums.txt` (or equivalent) covering `bin/` and `lib/` files, or
@@ -188,19 +190,24 @@ a `trap` on EXIT, regardless of how the command terminates.
    If the latter, R2 needs to describe the computation rather than manifest
    extraction.
 
+Answer: The command will have to calculate the from the tarball itself
+
 3. **Installation root:** Is the installation root always a fixed path (e.g.
    `~/.local/share/podman-plugin`) or is it configurable? The enumeration
    in R3 must know where to look.
+
+Answer: The location is set in an env var
 
 4. **Repair permissions:** Should the repair step preserve the installed
    file's existing permissions, or always apply the permissions from the
    tarball entry? (Relevant when an admin-owned install is repaired by a
    non-root user.)
 
+Answer: apply the permissions
+
 5. **Unexpected files:** Should files present in the installation but absent
    from the manifest be a warning (exit 0 if no other errors) or an error
    (exit 1)? The current spec says warning — confirm this is acceptable for
    the use case.
 
-SPDX-License-Identifier: GPL-3.0-only
-2026 - Anthony Burow - https://github.com/aburow
+Answer: Warning
