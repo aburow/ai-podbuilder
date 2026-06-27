@@ -1,7 +1,7 @@
 ---
 title: Release asset integrity — checksum and signature publishing
 type: idea
-status: clarifying
+status: done
 lineage: release-asset-integrity
 parent: lifecycle/requirements/release-installer-asset-missing-2.md
 ---
