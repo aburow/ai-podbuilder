@@ -200,6 +200,7 @@ fetch_hadolint() {
   fi
   chmod +x "${dest}"
   ln -sf "hadolint-linux-${had_arch}" "${INSTALL_ROOT}/lib/hadolint"
+  ln -sf "${INSTALL_ROOT}/lib/hadolint" "${INSTALL_ROOT}/bin/hadolint"
   info "hadolint installed: ${dest}"
 }
 
