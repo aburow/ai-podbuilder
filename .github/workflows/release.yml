@@ -4,8 +4,10 @@ name: Release
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - main
+    paths:
+      - VERSION
 
 jobs:
   release:
@@ -25,5 +27,4 @@ jobs:
       - name: Run release script
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_TAG: ${{ github.ref_name }}
         run: bash devops/release.sh
