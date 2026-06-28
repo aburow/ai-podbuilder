@@ -60,12 +60,19 @@ for pfile in "${profile_files[@]}"; do
     row="$(
         # shellcheck source=/dev/null
         source "$pfile"
+        _name="${PROFILE_NAME:-${PROJECT_NAME:-}}"
+        _image="${IMAGE_NAME:-}"
+        _ws="${WORKSPACE:-}"
         state="absent"
-        if podman container exists "${CONTAINER_NAME}" 2>/dev/null; then
-            status="$(podman inspect --format '{{.State.Status}}' "${CONTAINER_NAME}" 2>/dev/null)"
-            state="${status:-unknown}"
+        if [[ -n "${CONTAINER_NAME:-}" ]]; then
+            if podman container exists "${CONTAINER_NAME}" 2>/dev/null; then
+                status="$(podman inspect --format '{{.State.Status}}' "${CONTAINER_NAME}" 2>/dev/null)"
+                state="${status:-unknown}"
+            fi
+        else
+            state="unconfigured"
         fi
-        printf '%s\t%s\t%s\t%s' "${PROFILE_NAME}" "${IMAGE_NAME}" "${WORKSPACE}" "${state}"
+        printf '%s\t%s\t%s\t%s' "${_name}" "${_image}" "${_ws}" "${state}"
     )"
     rows+=("$row")
 done

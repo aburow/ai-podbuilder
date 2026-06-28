@@ -32,7 +32,7 @@ INNER=""
 declare -A _ic_manifest=()
 
 fetch_tarball() {
-    TARBALL_URL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
+    TARBALL_URL="https://github.com/${REPO}/archive/refs/tags/${VERSION}.tar.gz"
     if ! curl -fsSL "${TARBALL_URL}" -o "${_ic_tmpdir}/release.tgz"; then
         echo "ERROR: failed to fetch tarball from ${TARBALL_URL}" >&2
         exit 2
