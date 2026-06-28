@@ -40,7 +40,8 @@ fetch_tarball() {
 }
 
 build_manifest() {
-    INNER="$(tar tzf "${_ic_tmpdir}/release.tgz" | head -1 | cut -d/ -f1)"
+    # ponytail: awk consumes all tar output to avoid SIGPIPE under set -o pipefail.
+    INNER="$(tar tzf "${_ic_tmpdir}/release.tgz" | awk 'NR==1{sub(/\/.*/, ""); r=$0} END{print r}')"
     tar xzf "${_ic_tmpdir}/release.tgz" -C "${_ic_tmpdir}"
     while IFS= read -r -d '' f; do
         local rel
