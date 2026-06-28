@@ -49,6 +49,7 @@ LABEL ai-new.role=bootstrap
 
 RUN dnf install -y \
         bash \
+        bubblewrap \
         coreutils \
         curl \
         git \
@@ -61,6 +62,9 @@ RUN dnf install -y \
         util-linux \
         --setopt=install_weak_deps=False \
     && dnf clean all
+
+COPY hadolint /usr/local/bin/hadolint
+RUN chmod +x /usr/local/bin/hadolint
 EOF
 
         case "$_adapter" in
@@ -144,6 +148,14 @@ ensure_bootstrap_image() {
 
     local _build_context="${AI_PODMAN_JAILS_DIR}/config"
     mkdir -p "$_build_context"
+
+    # Stage hadolint into the build context so the Containerfile can COPY it.
+    local _hadolint_src="${AI_PODMAN_JAILS_DIR}/lib/hadolint"
+    if [[ -f "$_hadolint_src" ]]; then
+        cp "$_hadolint_src" "${_build_context}/hadolint"
+    else
+        _warn "hadolint not found at ${_hadolint_src} — bootstrap image will lack hadolint"
+    fi
 
     _info "Building bootstrap image with '${REG_AGENT_NAME}' installed …"
     podman build \
