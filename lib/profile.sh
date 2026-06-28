@@ -70,6 +70,31 @@ validate_profile_file() {
     validate_loaded_profile "$name" "$profile_file"
 }
 
+extra_volume_host_path() {
+    local spec="$1"
+    printf '%s\n' "${spec%%:*}"
+}
+
+host_path_is_optional_config_mount() {
+    local host_path="$1"
+    local home_dir="${HOME:-}"
+    [[ -n "$home_dir" ]] || return 1
+
+    case "$host_path" in
+        "${home_dir}/.codex"|\
+        "${home_dir}/.claude"|\
+        "${home_dir}/.openai"|\
+        "${home_dir}/.config/gh"|\
+        "${home_dir}/.config/github-copilot"|\
+        "${home_dir}/.config/gemini")
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 load_profile() {
     local name="$1"
     local project_profile="${AI_PODMAN_JAILS_DIR}/projects/${name}/profile.env"

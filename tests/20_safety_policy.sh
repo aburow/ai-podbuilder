@@ -13,6 +13,41 @@ _dry_run_esp32() {
         "${BIN_DIR}/ai-launch" esp32 shell 2>/dev/null
 }
 
+_render_optional_config_mount_args() {
+    local project_root="${_TMPDIR}/projects/optional-config"
+    mkdir -p "${project_root}/workspace" "${project_root}/state/home" "${_TMPDIR}/home/.codex"
+    cat > "${project_root}/profile.env" <<EOF
+PROFILE_NAME="optional-config"
+CONTAINER_NAME="optional-config"
+IMAGE_NAME="localhost/optional-config:latest"
+IMAGE_DIR="${project_root}/image"
+WORKSPACE="${project_root}/workspace"
+CONTAINER_HOME="${project_root}/state/home"
+BASHRC="${project_root}/workspace/.bashrc"
+WORKDIR="/workspace"
+BUILD_ARGS=""
+NETWORK_MODE="bridge"
+EXTRA_ENV=()
+EXTRA_VOLUMES=(
+  "-v" "${_TMPDIR}/home/.codex:/home/dev/.codex:rw"
+  "-v" "${_TMPDIR}/home/.claude:/home/dev/.claude:rw"
+  "-v" "${_TMPDIR}/home/.config/gh:/home/dev/.config/gh:rw"
+)
+EXTRA_DEVICES=()
+EXTRA_HOSTS=()
+EXTRA_RUN_ARGS=()
+EOF
+
+    HOME="${_TMPDIR}/home" AI_PODMAN_JAILS_DIR="$_TMPDIR" bash -lc "
+        source '${LIB_DIR}/common.sh'
+        source '${LIB_DIR}/profile.sh'
+        source '${LIB_DIR}/policy.sh'
+        load_profile optional-config
+        build_normal_run_args
+        printf '%s\n' \"\${_NORMAL_RUN_ARGS[@]}\"
+    " 2>/dev/null
+}
+
 # ── Required flags ────────────────────────────────────────────────────────────
 
 test_userns_keep_id_present() {
@@ -101,6 +136,15 @@ test_no_ssh_gnupg_config_mounts() {
     return $_fail
 }
 
+test_missing_optional_host_config_mounts_are_skipped() {
+    local _fail=0
+    local out; out="$(_render_optional_config_mount_args)"
+    assert_contains "${_TMPDIR}/home/.codex:/home/dev/.codex:rw" "$out" || _fail=1
+    assert_not_contains "${_TMPDIR}/home/.claude:/home/dev/.claude:rw" "$out" || _fail=1
+    assert_not_contains "${_TMPDIR}/home/.config/gh:/home/dev/.config/gh:rw" "$out" || _fail=1
+    return $_fail
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "normal mode: --userns=keep-id present"        test_userns_keep_id_present
 run_test "normal mode: --group-add keep-groups present" test_group_add_keep_groups_present
@@ -112,5 +156,6 @@ run_test "normal mode: no --privileged"                 test_no_privileged_in_no
 run_test "normal mode: no host \$HOME mount"            test_no_host_home_mount
 run_test "normal mode: no Docker/Podman socket"         test_no_docker_or_podman_socket
 run_test "normal mode: no .ssh/.gnupg/.config mounts"  test_no_ssh_gnupg_config_mounts
+run_test "normal mode: missing optional host config mounts are skipped" test_missing_optional_host_config_mounts_are_skipped
 
 print_summary "20_safety_policy"

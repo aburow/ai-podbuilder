@@ -72,6 +72,28 @@ secret_args() {
     fi
 }
 
+extra_volume_args() {
+    local i=0
+    local flag spec host_path
+    while [[ $i -lt ${#EXTRA_VOLUMES[@]} ]]; do
+        flag="${EXTRA_VOLUMES[$i]}"
+        spec="${EXTRA_VOLUMES[$((i + 1))]:-}"
+        if [[ "$flag" == "-v" || "$flag" == "--volume" ]]; then
+            host_path="$(extra_volume_host_path "$spec")"
+            if [[ -n "$host_path" && ! -e "$host_path" ]] && host_path_is_optional_config_mount "$host_path"; then
+                _warn "Optional host config path missing; skipping volume mount: ${host_path}"
+                i=$((i + 2))
+                continue
+            fi
+            printf '%s\n' "$flag" "$spec"
+            i=$((i + 2))
+            continue
+        fi
+        printf '%s\n' "$flag"
+        i=$((i + 1))
+    done
+}
+
 # Emits extra args from optional profile arrays.
 extra_args() {
     local item
@@ -81,9 +103,7 @@ extra_args() {
     for item in "${EXTRA_DEVICES[@]+"${EXTRA_DEVICES[@]}"}"; do
         printf '%s\n' "$item"
     done
-    for item in "${EXTRA_VOLUMES[@]+"${EXTRA_VOLUMES[@]}"}"; do
-        printf '%s\n' "$item"
-    done
+    extra_volume_args
     for item in "${EXTRA_ENV[@]+"${EXTRA_ENV[@]}"}"; do
         printf '%s\n' "$item"
     done
@@ -163,7 +183,7 @@ build_builder_run_args() {
 
     # Profile EXTRA_VOLUMES only (caches, not extra devices/env in builder).
     local item
-    for item in "${EXTRA_VOLUMES[@]+"${EXTRA_VOLUMES[@]}"}"; do
+    while IFS= read -r item; do
         _BUILDER_RUN_ARGS+=("$item")
-    done
+    done < <(extra_volume_args)
 }

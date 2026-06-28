@@ -180,6 +180,46 @@ EOF
     return $_fail
 }
 
+test_launchability_contract_allows_missing_optional_host_config_mounts() {
+    local _fail=0
+    local _proj
+    _proj="$(_make_project_base "optional-config")"
+    ln -s "${LIB_DIR}" "${_TMPDIR}/lib"
+    mkdir -p "${_TMPDIR}/home/.codex"
+    python3 - "${_proj}/profile.env" "${_TMPDIR}" <<'PYEOF'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+tmpdir = Path(sys.argv[2])
+text = path.read_text()
+text = text.replace(
+    'EXTRA_VOLUMES=()',
+    'EXTRA_VOLUMES=("-v" "{home}/home/.codex:/home/dev/.codex:rw" "-v" "{home}/home/.claude:/home/dev/.claude:rw" "-v" "{home}/home/.config/gh:/home/dev/.config/gh:rw")'.format(home=tmpdir)
+)
+path.write_text(text)
+PYEOF
+
+    local helper="${_TMPDIR}/launchability_optional_config.sh"
+    cat > "$helper" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+source '${LIB_DIR}/common.sh'
+source '${LIB_DIR}/session.sh'
+source '${LIB_DIR}/slug.sh'
+source '${LIB_DIR}/profile.sh'
+source '${LIB_DIR}/policy.sh'
+source '${LIB_DIR}/durable.sh'
+export AI_PODMAN_JAILS_DIR='${_TMPDIR}'
+export HOME='${_TMPDIR}/home'
+reconcile_durable_project '${_proj}'
+validate_launchability_contract '${_proj}'
+EOF
+    local rc=0
+    bash "$helper" >/dev/null 2>&1 || rc=$?
+    assert_success "$rc" "missing optional config mounts should not fail launchability validation" || _fail=1
+    return $_fail
+}
+
 test_quality_gate_fails_on_cross_project_contamination() {
     local _fail=0
     local _proj
@@ -219,6 +259,7 @@ EOF
 run_test "reconcile removes durable codex state when final runtime is none" test_reconcile_removes_durable_codex_when_final_runtime_none
 run_test "quality gate fails on invalid EXTRA_ENV contract"                 test_quality_gate_fails_on_invalid_extra_env_contract
 run_test "quality gate fails when enabled host path is missing"             test_quality_gate_fails_when_enabled_host_path_missing
+run_test "launchability allows missing optional host config mounts"         test_launchability_contract_allows_missing_optional_host_config_mounts
 run_test "quality gate fails on cross-project contamination"                test_quality_gate_fails_on_cross_project_contamination
 
 print_summary "test_ai_new_durable_contract"

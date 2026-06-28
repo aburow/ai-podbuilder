@@ -202,10 +202,14 @@ validate_extra_host_paths() {
         _flag="${EXTRA_VOLUMES[$_i]}"
         _spec="${EXTRA_VOLUMES[$((_i + 1))]:-}"
         if [[ "$_flag" == "-v" || "$_flag" == "--volume" ]]; then
-            _host="${_spec%%:*}"
+            _host="$(extra_volume_host_path "$_spec")"
             if [[ -n "$_host" && ! -e "$_host" ]]; then
-                _warn "Missing host path for EXTRA_VOLUMES entry: ${_host}"
-                _fail=1
+                if host_path_is_optional_config_mount "$_host"; then
+                    _warn "Optional host config path missing for EXTRA_VOLUMES entry; skipping mount at launch: ${_host}"
+                else
+                    _warn "Missing host path for EXTRA_VOLUMES entry: ${_host}"
+                    _fail=1
+                fi
             fi
             _i=$((_i + 2))
         else
