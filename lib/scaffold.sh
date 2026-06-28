@@ -165,7 +165,8 @@ scaffold_layout() {
         "${_root}/image" \
         "${_root}/launchers" \
         "${_root}/bootstrap" \
-        "${_root}/bootstrap/home"; do
+        "${_root}/bootstrap/home" \
+        "${_root}/state/home"; do
         mkdir -p "$_d"
     done
     # Seed image build context with the framework bashrc so the Containerfile
@@ -174,4 +175,17 @@ scaffold_layout() {
     if [[ -f "$_src" ]]; then
         cp "$_src" "${_root}/image/bashrc.default"
     fi
+    # Seed the durable container home with project-local copies of agent and
+    # tool config dirs. Each project gets its own isolated copy rather than
+    # mounting from the host $HOME, so credentials and settings don't bleed
+    # between projects.
+    local _cfg _parent
+    for _cfg in .codex .claude .gemini .config/gh; do
+        if [[ -d "${HOME}/${_cfg}" ]]; then
+            _parent="$(dirname "${_root}/state/home/${_cfg}")"
+            mkdir -p "$_parent"
+            cp -a "${HOME}/${_cfg}" "${_parent}/"
+            _info "Seeded state/home/${_cfg} from host"
+        fi
+    done
 }

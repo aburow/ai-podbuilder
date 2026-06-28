@@ -119,7 +119,8 @@ build_normal_run_args() {
 
     # Core safety flags (R5.1).
     _NORMAL_RUN_ARGS+=("-it" "--userns=keep-id" "--group-add" "keep-groups"
-                       "--security-opt" "no-new-privileges")
+                       "--security-opt" "no-new-privileges"
+                       "--hostname" "${CONTAINER_HOSTNAME:-${CONTAINER_NAME:-ai-podbuilder}}")
 
     # SELinux (R5.6).
     while IFS= read -r arg; do

@@ -35,6 +35,7 @@ launch_bootstrap() {
         --interactive
         --tty
         --name "$_container_name"
+        --hostname "ai-new-${_slug}"
         --userns=keep-id
         --volume "${_proj}:/project:z"
         --env "HOME=/project/bootstrap/home"

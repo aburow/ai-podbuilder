@@ -25,61 +25,82 @@ ambiguities, and produce a concrete result.
 
 ### Minimum R5.2 coverage checklist
 
-Cover **all** of the following (R5.2).  Adapt order and depth to what the user
-has already told you; combine related questions when sensible.  Ask follow-up
+Cover **all** of the following.  Adapt order and depth to what the user has
+already told you; combine related questions when sensible.  Ask follow-up
 questions whenever an answer is ambiguous or implies further choices.
 
-1. **Project purpose** — What will this container be used for?  What problem does it solve?
-   - Follow-up: Is this for development, CI/CD, serving, research, or something else?
+1. **Purpose & role** — What will this container be used for, and what kind of
+   environment is it (dev workspace, build agent, service, research sandbox, etc.)?
+   - If the answer involves coding or code review, ask: *"Is there an existing
+     repo I can review to infer the right stack?"*  If yes, read it and derive
+     the language stack, package managers, build systems, and tooling directly
+     from the repo — do not ask separately about them.
 
-2. **Preferred agent runtime** — Which AI agent runtime will work inside this container
-   (e.g. codex, gemini, none)?
+2. **Agent runtime** — Which AI agent runtime should run inside the container?
+   Options: `codex`, `claude`, `gemini`, `other`, or `none`.
 
-3. **Role / profile** — Developer workspace, build agent, service, data-science sandbox, etc.?
+3. **Language & runtime stack** — Which languages/runtimes and versions are
+   needed (e.g. Python 3.11, Node 20, Go 1.22)?
+   - Do **not** ask about tooling — infer it from the stack using the language
+     tooling table in the Containerfile guidelines below.
 
-4. **Language / runtime stack** — Languages, interpreters, compilers needed.
-   - Follow-up: Specific versions required (e.g. Python 3.11, Node 20, Go 1.22)?
+4. **Base image & OS packages** — Default to `fedora:latest` unless the project
+   has a strong reason for another base (e.g. Ubuntu-only packages, Alpine
+   size constraints).  Only ask if the user volunteers a preference or the
+   stack implies a specific base.
 
-5. **OS packages** — System-level packages required (RPM/deb names; target base image).
-   - Follow-up: Is the base `fedora:latest`, `ubuntu:24.04`, or something else?
+5. **Extra host mounts** *(gate first — default is nothing)*
+   The framework already mounts the project workspace at `/workspace` and the
+   durable container home at `state/home/`.  Agent config dirs (`.codex`,
+   `.claude`, `.gemini`, `.config/gh`) are **pre-seeded** into `state/home/`
+   at project creation — do **not** add them to `EXTRA_VOLUMES`.  Ask:
+   *"Do you need to mount any existing host directory into the container
+   (e.g. an existing repo, a shared dataset, a config directory)?"*
+   - If **no**: leave `EXTRA_VOLUMES=()`. Do not ask further.
+   - If **yes**: ask for each mount — host path, container path, and
+     read/write intent — then emit the correct alternating format:
+     ```bash
+     EXTRA_VOLUMES=(
+       "-v" "${HOME}/repos/myproject:/workspace/myproject:rw"
+       "-v" "${HOME}/.ssh:/home/dev/.ssh:ro"
+     )
+     ```
+     **Every pair must be: flag (`-v`) then spec (`HOST:CTR[:opts]`).
+     Never place a bare `HOST:CTR` string in the array — it will fail
+     profile validation immediately.**
 
-6. **Developer tools** — Editors, linters, debuggers, formatters, profilers?
+6. **Persistent state** *(gate first — default is nothing)*
+   The container home directory is already persisted by the framework.  Ask:
+   *"Does the project need storage that survives container restarts beyond the
+   home directory — for example a database data directory, a build cache, or
+   an npm/pip cache?"*
+   - If **no**: leave `EXTRA_VOLUMES=()` (or whatever is already set). Do not ask further.
+   - If **yes**: prefer a host bind-mount over a named volume unless the user
+     explicitly needs a named volume.  Emit entries in the same alternating
+     format as Q5:
+     ```bash
+     EXTRA_VOLUMES=(
+       "-v" "${AI_PODMAN_JAILS_DIR}/projects/<name>/state/pgdata:/var/lib/postgresql/data:rw"
+     )
+     ```
 
-7. **Package managers** — npm, pip, pipx, cargo, go, gem, maven, etc.?
+7. **Ports** — Which ports need to be exposed and what service each carries?
 
-8. **Build systems** — Make, CMake, Gradle, Bazel, meson, ninja, etc.?
+8. **Network & host resources** — Bridge or host network?  Any GPU (CUDA/ROCm),
+   audio, USB, or display (X11/Wayland) forwarding needed?
 
-9. **Source / project layout** — How is source organised inside the container?
-   What path is the primary working directory?
-
-10. **Workspace mount strategy** — Which host directories need to be bind-mounted?
-    Read-only or read-write?  What container path do they appear at?
-
-11. **Persistent-state needs** — Databases, caches, build artefacts that must survive
-    container restarts?  Named volume or host path?
-
-12. **Exposed ports** — Ports to expose, and what service they carry.
-
-13. **Environment variables** — Non-secret configuration values the container needs.
-    Ask for names and example values.
-
-14. **Secrets** — API keys, tokens, passwords, certificates?
-    See the secret-steering rules below for how to handle each one.
-
-15. **Network assumptions** — Host network, bridge, restricted network?
-    Any specific external hostnames or IPs the container must reach?
-
-16. **Host-resource needs** — GPU (CUDA/ROCm), audio, USB devices, X11/Wayland display?
-
-17. **Rootless compatibility** — Must run rootless under Podman without `--privileged`?
-    Any `CAP_*` requirements?
-
-18. **Podman / Docker / both** — Target only Podman rootless, Docker, or both?
-
-19. **Helper scripts** — Should the scaffold include helper scripts (build, clean, run)?
-
-20. **README / onboarding docs** — Should the scaffold include a README with next steps?
-    Any specific onboarding information to document?
+If the user **volunteers** env vars or secrets at any point during the interview,
+capture them using the secret-steering rules below and emit the correct format —
+but do **not** ask about them proactively.  Leave `EXTRA_ENV=()` unless the user
+raises them.  If env vars are needed, the alternating format is mandatory:
+```bash
+EXTRA_ENV=(
+  "-e" "GOTOOLCHAIN=auto"
+  "-e" "NODE_ENV=development"
+)
+```
+**Never place a bare `KEY=VALUE` string in `EXTRA_ENV` — profile validation
+will reject it immediately.**
 
 ### Follow-up guidance
 
@@ -167,6 +188,7 @@ Generate **all** of the following under `/project/`:
   ```
   PROFILE_NAME="<slug>"
   CONTAINER_NAME="<slug>"
+  CONTAINER_HOSTNAME="<hostname>"   # omit to default to CONTAINER_NAME
   IMAGE_NAME="localhost/<slug>:latest"
   IMAGE_DIR="${AI_PODMAN_JAILS_DIR}/projects/<name>/image"
   WORKSPACE="${AI_PODMAN_JAILS_DIR}/projects/<name>/workspace"
@@ -175,22 +197,34 @@ Generate **all** of the following under `/project/`:
   WORKDIR="/workspace"
   BUILD_ARGS=""
   NETWORK_MODE="bridge"
-  # EXTRA_ENV: alternating -e/--env flag then KEY=VALUE. Empty if unused.
-  EXTRA_ENV=(
-    "-e" "KEY=value"
-  )
-  # EXTRA_VOLUMES: alternating -v/--volume flag then HOST:CTR[:opts]. Empty if unused.
-  EXTRA_VOLUMES=(
-    "-v" "${HOME}/.example:/container/path:rw"
-  )
+  # EXTRA_ENV — alternating flag + value. EMPTY when no extra env vars needed.
+  EXTRA_ENV=()
+  # EXTRA_ENV populated example (TWO entries shown — the pattern for N entries):
+  # EXTRA_ENV=(
+  #   "-e" "GOTOOLCHAIN=auto"
+  #   "-e" "NODE_ENV=development"
+  # )
+  # ⛔ WRONG — bare values fail validation immediately:
+  # EXTRA_ENV=("GOTOOLCHAIN=auto")
+
+  # EXTRA_VOLUMES — alternating flag + spec. EMPTY when no extra mounts needed.
+  EXTRA_VOLUMES=()
+  # EXTRA_VOLUMES populated example:
+  # EXTRA_VOLUMES=(
+  #   "-v" "${HOME}/repos/myproject:/workspace/myproject:rw"
+  #   "-v" "${HOME}/.ssh:/home/dev/.ssh:ro"
+  # )
+  # ⛔ WRONG — bare specs fail validation immediately:
+  # EXTRA_VOLUMES=("${HOME}/repos/myproject:/workspace/myproject:rw")
+
   EXTRA_DEVICES=()
   EXTRA_HOSTS=()
   EXTRA_RUN_ARGS=()
   ```
-  **CRITICAL**: `EXTRA_ENV` and `EXTRA_VOLUMES` use alternating flag + value pairs.
-  Never place bare `KEY=VALUE` or `HOST:CTR` strings directly in the array — the
-  framework validator will reject them. An empty project uses `EXTRA_ENV=()`;
-  a project with extra env vars uses `("-e" "FOO=bar" "-e" "BAZ=qux")`.
+  The validator in `lib/profile.sh` rejects any array entry that is not a
+  recognised flag (`-e`/`--env` for EXTRA_ENV; `-v`/`--volume` for
+  EXTRA_VOLUMES) followed by a value.  Bare strings always cause an immediate
+  launch failure.  When in doubt, leave the array empty.
 
 - The framework will register `/project/profile.env` into
   `${AI_PODMAN_JAILS_DIR}/profiles/<slug>.env` on the host after bootstrap exit and
@@ -231,6 +265,53 @@ Generate **all** of the following under `/project/`:
   covers these. Per-project shell additions belong in `/workspace/.bashrc`
   (project-level, persisted in the workspace mount) or `~/.bashrc.d/*.sh`
   (user-level, persisted in the container home mount).
+
+- **Always install the standard QoL baseline.** Every generated Containerfile
+  must include the following tools regardless of project type.  Install them in
+  the same package-manager layer as the project's own system packages to avoid
+  adding extra layers.  Some tools are not in the distro package manager and
+  require their own install method — use the correct approach for the base image:
+
+  | Tool | Fedora (`dnf`) | Ubuntu/Debian (`apt`) | Notes |
+  |------|---------------|----------------------|-------|
+  | `git` | `git` | `git` | |
+  | `gh` | `gh` (copr: `github-cli/gh`) | GitHub CLI apt repo | |
+  | `nano` | `nano` | `nano` | |
+  | `neovim` | `neovim` | `neovim` | |
+  | `ripgrep` | `ripgrep` | `ripgrep` | |
+  | `fzf` | `fzf` | `fzf` | |
+  | `lazygit` | GitHub releases binary | GitHub releases binary | no distro package |
+  | `pnpm` | `npm install -g pnpm` or standalone installer | same | install after Node |
+  | `uv` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` | same | Astral installer |
+
+  For `lazygit`: download the latest release tarball from
+  `https://github.com/jesseduffield/lazygit/releases` and install the binary to
+  `/usr/local/bin/lazygit` in a single `RUN` step.  Use `curl` + `tar` — both
+  are available on all base images.  Remember: `RUN` is `/bin/sh`, so no bash
+  arrays or `[[`.
+
+  Omit tools the user explicitly rejects; note each rejection in `PODMAN_BUILDER.md`
+  under **Explicitly rejected features**.
+
+- **Infer language tooling automatically.** Do not ask the user about linters,
+  formatters, or build tools — include the standard set for every detected
+  language.  Install them in the same package layer as the language runtime.
+
+  | Language | Package managers | Linters / formatters | Build tools |
+  |----------|-----------------|----------------------|-------------|
+  | Python | pip, pipx, uv | ruff, black, mypy, pylint | make |
+  | Node / JS | npm, pnpm | eslint, prettier | make |
+  | TypeScript | npm, pnpm | eslint, prettier, tsc | make |
+  | Go | go (stdlib) | golangci-lint, gofmt (built-in) | make |
+  | Rust | cargo (built-in) | rustfmt + clippy (built-in via `rustup component add`) | make |
+  | Ruby | gem, bundler | rubocop | make, rake |
+  | Java | maven or gradle | checkstyle, spotbugs | maven or gradle |
+  | Shell / Bash | — | shellcheck | make |
+  | C / C++ | — | clang-format, cppcheck | make, cmake, ninja |
+
+  For any language not listed, include its de-facto formatter and its primary
+  linter as separate RUN-layer packages.  Always include `make` and `shellcheck`
+  regardless of the primary language.
 
 ### ⚠ POSIX shell requirement — RUN steps execute under /bin/sh
 
