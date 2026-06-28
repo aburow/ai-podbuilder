@@ -25,6 +25,11 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q jq curl
 
+      - name: Configure git identity
+        run: |
+          git config user.email "release-bot@github.com"
+          git config user.name "Release Bot"
+
       - name: Run release script
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
