@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# SPDX-License-Identifier: GPL-3.0-only
-# 2026 - Anthony Burow - https://github.com/aburow
-set -euo pipefail
-# Legacy wrapper: attaches an extra terminal to the profile given as $1,
-# defaulting to esp32 for backwards compatibility.
-exec "$(dirname "${BASH_SOURCE[0]}")/ai-terminal" "${1:-esp32}"

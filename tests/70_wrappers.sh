@@ -28,19 +28,15 @@ test_legacy_project_wrappers_removed() {
     return $_fail
 }
 
-test_extra_terminal_delegates_to_ai_terminal() {
-    # extra-terminal defaults to esp32; ai-terminal exits non-zero when not running.
-    local _fail=0
-    local out rc=0
-    out="$(AI_PODMAN_JAILS_DIR="$_TMPDIR" PATH="${STUBS_DIR}:${PATH}" \
-        "${BIN_DIR}/extra-terminal" 2>&1)" || rc=$?
-    assert_failure $rc "extra-terminal → ai-terminal → non-zero (not running)" || _fail=1
-    assert_contains "esp32" "$out" "references esp32 by default" || _fail=1
-    return $_fail
+test_extra_terminal_removed() {
+    [[ ! -e "${BIN_DIR}/extra-terminal" ]] || {
+        printf '    extra-terminal still exists in bin/\n' >&2
+        return 1
+    }
 }
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 run_test "legacy project wrappers removed"                  test_legacy_project_wrappers_removed
-run_test "extra-terminal → ai-terminal esp32"               test_extra_terminal_delegates_to_ai_terminal
+run_test "extra-terminal removed from bin/"                 test_extra_terminal_removed
 
 print_summary "70_wrappers"
