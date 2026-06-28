@@ -300,12 +300,16 @@ _build_launch_argv() {
 
     case "$RESOLVED_AGENT" in
         codex)
-            # Codex: --model, --reasoning-effort, --approval-policy, then prompt positionally.
+            # Codex: -m/--model; approval via --ask-for-approval <value> or the bypass flag.
+            # full-auto maps to --dangerously-bypass-approvals-and-sandbox (already containerised).
             _LAUNCH_ARGV=("$RESOLVED_COMMAND")
-            if [[ -n "$AGENT_MODEL"    ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
-            if [[ -n "$AGENT_EFFORT"   ]]; then _LAUNCH_ARGV+=(--reasoning-effort "$AGENT_EFFORT"); fi
-            if [[ -n "$AGENT_APPROVAL" ]]; then _LAUNCH_ARGV+=(--approval-policy "$AGENT_APPROVAL"); fi
-            if [[ -n "$_prompt_text"   ]]; then _LAUNCH_ARGV+=("$_prompt_text"); fi
+            if [[ -n "$AGENT_MODEL" ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
+            if [[ "$AGENT_APPROVAL" == "full-auto" ]]; then
+                _LAUNCH_ARGV+=(--dangerously-bypass-approvals-and-sandbox)
+            elif [[ -n "$AGENT_APPROVAL" ]]; then
+                _LAUNCH_ARGV+=(--ask-for-approval "$AGENT_APPROVAL")
+            fi
+            if [[ -n "$_prompt_text" ]]; then _LAUNCH_ARGV+=("$_prompt_text"); fi
             ;;
         claude)
             # Claude Code: --model, --dangerously-skip-permissions (when approval=skip-permissions),
