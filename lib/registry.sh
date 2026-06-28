@@ -9,6 +9,7 @@ _REGISTRY_KNOWN_KEYS=(
     AGENT_NAME AGENT_COMMAND AGENT_CONFIG_DIRS AGENT_ENV_VARS
     AGENT_PROMPT_MODE AGENT_INSTALL_ADAPTER AGENT_INSTALL_PACKAGE
     AGENT_INSTALL_VERSION AGENT_AUTH_CHECK_ARGV AGENT_REGISTRY_VERSION
+    AGENT_MODEL AGENT_EFFORT AGENT_APPROVAL
 )
 
 # Valid install adapters (v1).
@@ -52,6 +53,9 @@ parse_registry_file() {
     export REG_AGENT_INSTALL_VERSION=""
     export REG_AGENT_AUTH_CHECK_ARGV=""
     export REG_AGENT_REGISTRY_VERSION=""
+    export REG_AGENT_MODEL=""
+    export REG_AGENT_EFFORT=""
+    export REG_AGENT_APPROVAL=""
 
     local _line _key _val
     while IFS= read -r _line || [[ -n "$_line" ]]; do
@@ -86,6 +90,9 @@ parse_registry_file() {
             AGENT_INSTALL_VERSION)  REG_AGENT_INSTALL_VERSION="$_val" ;;
             AGENT_AUTH_CHECK_ARGV)  REG_AGENT_AUTH_CHECK_ARGV="$_val" ;;
             AGENT_REGISTRY_VERSION) REG_AGENT_REGISTRY_VERSION="$_val" ;;
+            AGENT_MODEL)            REG_AGENT_MODEL="$_val" ;;
+            AGENT_EFFORT)           REG_AGENT_EFFORT="$_val" ;;
+            AGENT_APPROVAL)         REG_AGENT_APPROVAL="$_val" ;;
         esac
     done < "$_path"
 }

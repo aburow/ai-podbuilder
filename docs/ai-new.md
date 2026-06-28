@@ -209,7 +209,7 @@ $AI_PODMAN_JAILS_DIR/                         # Default: ~/codex-jails/
 │   └── registry.sh                       # Registry parser and adapter logic
 └── config/
     └── agents.d/                         # Runtime registry files
-        ├── codex.env
+        ├── claude.env
         ├── codex.env
         └── gemini.env
 ```
@@ -312,8 +312,8 @@ literal string and is never executed.
 | Key | Description |
 |-----|-------------|
 | `AGENT_NAME` | Display name for the runtime |
-| `AGENT_COMMAND` | Binary name (e.g. `codex`, `codex`) |
-| `AGENT_CONFIG_DIRS` | Colon-separated list of config dir names relative to `$HOME` (e.g. `".codex"`) |
+| `AGENT_COMMAND` | Binary name (e.g. `codex`, `claude`, `gemini`) |
+| `AGENT_CONFIG_DIRS` | Colon-separated list of config dir names relative to `$HOME` (e.g. `".codex:.claude"`) |
 | `AGENT_ENV_VARS` | Colon-separated API key variable names (e.g. `"OPENAI_API_KEY"`) |
 | `AGENT_PROMPT_MODE` | Whether the runtime supports an interactive login/auth flow (`yes` / `no`) |
 | `AGENT_INSTALL_ADAPTER` | Install method from the v1 fixed set (see below) |
@@ -326,6 +326,9 @@ literal string and is never executed.
 | `AGENT_INSTALL_PACKAGE` | Package identifier for the install adapter |
 | `AGENT_INSTALL_VERSION` | Pinned version for the install adapter |
 | `AGENT_REGISTRY_VERSION` | Display metadata; the SHA-256 hash is the authoritative drift detector |
+| `AGENT_MODEL` | Model name passed to the agent CLI at launch (e.g. `gpt-5.4`, `claude-sonnet-4-6`) |
+| `AGENT_EFFORT` | Reasoning effort level passed to the agent CLI (e.g. `medium`). Agent-specific; ignored when the CLI has no equivalent flag. |
+| `AGENT_APPROVAL` | Permission/approval policy passed at launch. Agent-specific values: `full-auto` (codex), `skip-permissions` (claude). |
 
 **Multi-value fields** use colon-separated quoted strings:
 
@@ -355,18 +358,30 @@ non-zero.
 
 ### Shipped defaults
 
-| `--agent` value | Install adapter | Package |
-|-----------------|-----------------|---------|
-| `codex` | `npm-global` | `@openai/codex` |
-| `codex` | `npm-global` | `@openai/codex` |
-| `gemini` | `manual` | — (see [Gemini note](#gemini-note) below) |
+| `--agent` value | Install adapter | Package | Model | Effort | Approval |
+|-----------------|-----------------|---------|-------|--------|----------|
+| `codex` | `npm-global` | `@openai/codex` | `gpt-5.4` | `medium` | `full-auto` |
+| `claude` | `npm-global` | `@anthropic-ai/claude-code` | `claude-sonnet-4-6` | — | `skip-permissions` |
+| `gemini` | `npm-global` | `@google/gemini-cli` | — | — | — |
 
-#### Gemini note
+Each shipped agent targets a **mid-tier model** (not mini/haiku, not the top-tier
+flagship) at **medium effort** to balance quality against cost and latency during
+the bootstrap session. The `full-auto` / `skip-permissions` approval policies
+reduce permission interruptions inside the sandboxed bootstrap container, where
+all actions are confined to the project directory.
 
-`gemini` ships as a `manual` runtime in v1. If the `gemini` command is present
-and authenticates, it may be used. If the command is missing, `/start-here.sh`
-reports setup instructions and exits non-zero; no automatic installation is
-attempted. This is binding for v1 (see [Section 17](#17-deferred-features-post-v1)).
+#### Per-agent launch flags
+
+`start-here.sh` translates registry fields to CLI flags per agent:
+
+| Agent | Model flag | Effort flag | Approval flag |
+|-------|-----------|-------------|---------------|
+| `codex` | `--model <AGENT_MODEL>` | `--reasoning-effort <AGENT_EFFORT>` | `--approval-policy <AGENT_APPROVAL>` |
+| `claude` | `--model <AGENT_MODEL>` | — | `--dangerously-skip-permissions` when `AGENT_APPROVAL=skip-permissions` |
+| `gemini` | `--model <AGENT_MODEL>` | — | — |
+| generic | `--model <AGENT_MODEL>` | — | — |
+
+Empty registry fields are omitted from the launch argv.
 
 ### Registry pinning
 

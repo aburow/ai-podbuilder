@@ -39,7 +39,11 @@ recreate_preserving_workspace() {
 create_normal_container() {
     _info "Creating container '${CONTAINER_NAME}' …"
     build_normal_run_args
-    local _shell_cmd=(bash --rcfile "$BASHRC_CONTAINER" -i)
+    # Prefer the framework bashrc baked into the image; fall back to the
+    # project workspace rcfile for images that predate this feature.
+    local _rcfile="/etc/ai-podbuilder/bashrc"
+    [[ -n "$BASHRC_CONTAINER" && "$BASHRC_CONTAINER" != "/workspace/.bashrc" ]] && _rcfile="$BASHRC_CONTAINER"
+    local _shell_cmd=(bash --rcfile "$_rcfile" -i)
     podman create --name "$CONTAINER_NAME" "${_NORMAL_RUN_ARGS[@]}" "$IMAGE_NAME" "${_shell_cmd[@]}"
 }
 

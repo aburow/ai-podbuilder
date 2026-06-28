@@ -11,7 +11,7 @@ test_codex_uses_positional_interactive_prompt() {
     local src
     src="$(cat "${REPO_ROOT}/lib/start-here.sh")"
     assert_contains "codex)" "$src" || return 1
-    assert_contains '_LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")' "$src" || return 1
+    assert_contains '_LAUNCH_ARGV+=("$_prompt_text")' "$src" || return 1
 }
 
 test_codex_uses_no_removed_flags() {

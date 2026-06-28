@@ -432,6 +432,17 @@ validate_launchability_contract() {
         _warn "Launchability validation failed: profile.env missing"
         return 1
     }
+    # Detect name mismatch: PROFILE_NAME must match the project directory basename.
+    # A mismatch means the agent renamed the scaffold mid-session without the host
+    # directory following. Emit a clear corrective command.
+    local _dir_name _profile_name
+    _dir_name="$(basename "$_proj")"
+    _profile_name="$(grep -m1 '^PROFILE_NAME=' "$_profile_file" | cut -d= -f2- | tr -d '"' || true)"
+    if [[ -n "$_profile_name" && "$_profile_name" != "$_dir_name" ]]; then
+        _warn "Launchability validation failed: PROFILE_NAME '${_profile_name}' in profile.env does not match project directory '${_dir_name}'. The agent may have renamed the scaffold mid-session. To fix: mv '${_proj}' '$(dirname "$_proj")/${_profile_name}'"
+        return 1
+    fi
+
     if ! ( validate_profile_file "$_profile_file" ) >/dev/null 2>&1; then
         _warn "Launchability validation failed: profile.env contract is invalid"
         return 1

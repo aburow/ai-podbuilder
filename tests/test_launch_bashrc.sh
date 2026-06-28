@@ -42,8 +42,8 @@ test_normal_container_uses_workspace_rcfile() {
     " 2>&1)" || rc=$?
 
     assert_success "$rc" "normal container create should succeed with stub podman" || _fail=1
-    assert_contains "bash --rcfile /workspace/.bashrc -i" "$out" \
-        "normal shell must start with the project rcfile" || _fail=1
+    assert_contains "bash --rcfile /etc/ai-podbuilder/bashrc -i" "$out" \
+        "normal shell must start with the framework bashrc baked into the image" || _fail=1
     return "$_fail"
 }
 

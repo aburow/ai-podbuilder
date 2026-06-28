@@ -98,6 +98,9 @@ export AGENT_INSTALL_ADAPTER=""
 export AGENT_INSTALL_PACKAGE=""
 export AGENT_INSTALL_VERSION=""
 export AGENT_AUTH_CHECK_ARGV=""
+export AGENT_MODEL=""
+export AGENT_EFFORT=""
+export AGENT_APPROVAL=""
 
 _parse_agent_env() {
     local _path="$1"
@@ -134,6 +137,9 @@ _parse_agent_env() {
             AGENT_INSTALL_PACKAGE)  AGENT_INSTALL_PACKAGE="$_val" ;;
             AGENT_INSTALL_VERSION)  AGENT_INSTALL_VERSION="$_val" ;;
             AGENT_AUTH_CHECK_ARGV)  AGENT_AUTH_CHECK_ARGV="$_val" ;;
+            AGENT_MODEL)            AGENT_MODEL="$_val" ;;
+            AGENT_EFFORT)           AGENT_EFFORT="$_val" ;;
+            AGENT_APPROVAL)         AGENT_APPROVAL="$_val" ;;
         esac
     done < "$_path"
 }
@@ -294,31 +300,32 @@ _build_launch_argv() {
 
     case "$RESOLVED_AGENT" in
         codex)
-            if [[ -n "$_prompt_text" ]]; then
-                # Current Codex CLI accepts an initial prompt positionally and
-                # remains in the interactive TUI. Legacy --full-auto/-q flags
-                # were removed from the CLI.
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")
-            else
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
-            fi
+            # Codex: --model, --reasoning-effort, --approval-policy, then prompt positionally.
+            _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            if [[ -n "$AGENT_MODEL"    ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
+            if [[ -n "$AGENT_EFFORT"   ]]; then _LAUNCH_ARGV+=(--reasoning-effort "$AGENT_EFFORT"); fi
+            if [[ -n "$AGENT_APPROVAL" ]]; then _LAUNCH_ARGV+=(--approval-policy "$AGENT_APPROVAL"); fi
+            if [[ -n "$_prompt_text"   ]]; then _LAUNCH_ARGV+=("$_prompt_text"); fi
+            ;;
+        claude)
+            # Claude Code: --model, --dangerously-skip-permissions (when approval=skip-permissions),
+            # then prompt via -p for non-interactive seed; drops into interactive session.
+            _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            if [[ -n "$AGENT_MODEL"                          ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
+            if [[ "$AGENT_APPROVAL" == "skip-permissions"    ]]; then _LAUNCH_ARGV+=(--dangerously-skip-permissions); fi
+            if [[ -n "$_prompt_text"                         ]]; then _LAUNCH_ARGV+=(-p "$_prompt_text"); fi
             ;;
         gemini)
-            if [[ -n "$_prompt_text" ]]; then
-                # Gemini's explicit interactive-prompt mode executes the
-                # bootstrap prompt and keeps the terminal session open.
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND" --prompt-interactive "$_prompt_text")
-            else
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
-            fi
+            # Gemini: --prompt-interactive seeds the first message and stays interactive.
+            _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            if [[ -n "$AGENT_MODEL"  ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
+            if [[ -n "$_prompt_text" ]]; then _LAUNCH_ARGV+=(--prompt-interactive "$_prompt_text"); fi
             ;;
         *)
-            # Generic: pass prompt as first positional arg if it accepts one.
-            if [[ -n "$_prompt_text" ]]; then
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND" "$_prompt_text")
-            else
-                _LAUNCH_ARGV=("$RESOLVED_COMMAND")
-            fi
+            # Generic: pass model if set, then prompt as first positional arg.
+            _LAUNCH_ARGV=("$RESOLVED_COMMAND")
+            if [[ -n "$AGENT_MODEL"  ]]; then _LAUNCH_ARGV+=(--model "$AGENT_MODEL"); fi
+            if [[ -n "$_prompt_text" ]]; then _LAUNCH_ARGV+=("$_prompt_text"); fi
             ;;
     esac
 }

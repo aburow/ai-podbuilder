@@ -32,6 +32,12 @@ RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
                --create-home "${USERNAME}"
 USER ${USERNAME}
 
+# ── Framework shell defaults ──────────────────────────────────────────────────
+# bashrc.default is provided by the ai-podbuilder framework and seeded into
+# image/ at scaffold time.  It supplies aliases, PS1, and ~/.bashrc.d/ loading.
+RUN mkdir -p /etc/ai-podbuilder
+COPY bashrc.default /etc/ai-podbuilder/bashrc
+
 # ── Working directory ──────────────────────────────────────────────────────────
 WORKDIR {{CONTAINER_WORKDIR}}
 

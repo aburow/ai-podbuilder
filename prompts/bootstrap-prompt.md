@@ -152,6 +152,12 @@ Generate **all** of the following under `/project/`:
 
 ### Profile / launcher conventions (R6.4, AC11)
 
+- **Do not change the project name or slug.** The host directory was created by
+  `ai-new <name>` before this session started. `PROFILE_NAME`, `CONTAINER_NAME`,
+  `PROJECT_NAME`, and `PROJECT_SLUG` in `profile.env` must match the slug derived
+  from that original `<name>`. Changing any of these mid-session creates a
+  directory mismatch on the host that the user must fix manually. If a different
+  name is genuinely needed, tell the user to abort and run `ai-new <new-name>`.
 - Derive all paths from `$HOME` and `$AI_PODMAN_JAILS_DIR` — **never hardcode usernames
   or `/var/home/` paths**.
 - `profile.env` shape follows `ai-agent-podman-sandbox` conventions.  Use the
@@ -169,12 +175,23 @@ Generate **all** of the following under `/project/`:
   WORKDIR="/workspace"
   BUILD_ARGS=""
   NETWORK_MODE="bridge"
-  EXTRA_ENV=()
-  EXTRA_VOLUMES=()
+  # EXTRA_ENV: alternating -e/--env flag then KEY=VALUE. Empty if unused.
+  EXTRA_ENV=(
+    "-e" "KEY=value"
+  )
+  # EXTRA_VOLUMES: alternating -v/--volume flag then HOST:CTR[:opts]. Empty if unused.
+  EXTRA_VOLUMES=(
+    "-v" "${HOME}/.example:/container/path:rw"
+  )
   EXTRA_DEVICES=()
   EXTRA_HOSTS=()
   EXTRA_RUN_ARGS=()
   ```
+  **CRITICAL**: `EXTRA_ENV` and `EXTRA_VOLUMES` use alternating flag + value pairs.
+  Never place bare `KEY=VALUE` or `HOST:CTR` strings directly in the array — the
+  framework validator will reject them. An empty project uses `EXTRA_ENV=()`;
+  a project with extra env vars uses `("-e" "FOO=bar" "-e" "BAZ=qux")`.
+
 - The framework will register `/project/profile.env` into
   `${AI_PODMAN_JAILS_DIR}/profiles/<slug>.env` on the host after bootstrap exit and
   quality-gate transitions so `ai-build`, `ai-launch`, and `ai-list` can work
@@ -202,6 +219,18 @@ Generate **all** of the following under `/project/`:
   values the user has approved to bake.
 - Use `WORKDIR` to set the default working directory.
 - Use `LABEL ai-agent-podman-sandbox.project=<slug>` for identification.
+- **Always include the framework shell defaults.** The framework provides a
+  `bashrc.default` file in the `image/` build context. Include this block in
+  every generated Containerfile — it supplies aliases, a consistent PS1, and
+  `~/.bashrc.d/` loading for user addins:
+  ```dockerfile
+  RUN mkdir -p /etc/ai-podbuilder
+  COPY bashrc.default /etc/ai-podbuilder/bashrc
+  ```
+  Do **not** write your own PS1, aliases, or color setup — the framework file
+  covers these. Per-project shell additions belong in `/workspace/.bashrc`
+  (project-level, persisted in the workspace mount) or `~/.bashrc.d/*.sh`
+  (user-level, persisted in the container home mount).
 
 ### ⚠ POSIX shell requirement — RUN steps execute under /bin/sh
 

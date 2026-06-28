@@ -168,4 +168,10 @@ scaffold_layout() {
         "${_root}/bootstrap/home"; do
         mkdir -p "$_d"
     done
+    # Seed image build context with the framework bashrc so the Containerfile
+    # can COPY it without depending on a network fetch.
+    local _src="${AI_PODMAN_JAILS_DIR}/config/bashrc.default"
+    if [[ -f "$_src" ]]; then
+        cp "$_src" "${_root}/image/bashrc.default"
+    fi
 }

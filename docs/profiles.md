@@ -42,11 +42,33 @@ parent of the `bin/` directory if not set in the environment.
 | `NETWORK_MODE` | string | Podman network mode (default: `slirp4netns`). |
 | `ENV_FILE` | string | Path to a secrets env file (mode `600`). See [secrets-and-ssh.md](secrets-and-ssh.md). |
 | `POST_BUILD_CHECK` | string | Shell command run inside the image after `ai-build` to verify installed tools. |
-| `EXTRA_ENV` | array | Extra `podman run -e` flags. Example: `("-e" "FOO=bar")`. |
-| `EXTRA_VOLUMES` | array | Extra `-v` flags. Example: `("-v" "$HOME/cache:/cache:Z")`. |
+| `EXTRA_ENV` | array | Extra `podman run -e` flags. **Alternating flag + value pairs** — see format note below. |
+| `EXTRA_VOLUMES` | array | Extra `-v` flags. **Alternating flag + value pairs** — see format note below. |
 | `EXTRA_DEVICES` | array | Extra `--device` flags. Example: `("--device=/dev/ttyUSB0")`. |
 | `EXTRA_HOSTS` | array | Extra `--add-host` values. Example: `("myhost:192.168.1.10")`. |
 | `EXTRA_RUN_ARGS` | array | Arbitrary extra `podman run`/`podman create` arguments. |
+
+### `EXTRA_ENV` and `EXTRA_VOLUMES` format
+
+Both arrays use **alternating flag + value pairs**. The flag (`-e`/`--env` or
+`-v`/`--volume`) must appear as a separate element before each value. The
+profile validator rejects bare `KEY=VALUE` or `HOST:CTR` strings.
+
+```bash
+# Correct
+EXTRA_ENV=(
+  "-e" "GOTOOLCHAIN=auto"
+  "-e" "PNPM_HOME=/home/developer/.local/share/pnpm"
+)
+EXTRA_VOLUMES=(
+  "-v" "${HOME}/.codex:/home/developer/.codex:rw"
+  "-v" "${HOME}/.claude:/home/developer/.claude:rw"
+)
+
+# Wrong — validator will reject these
+EXTRA_ENV=("GOTOOLCHAIN=auto")           # missing -e flag
+EXTRA_VOLUMES=("${HOME}/.codex:/…:rw")  # missing -v flag
+```
 
 ---
 

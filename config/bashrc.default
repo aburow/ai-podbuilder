@@ -1,0 +1,31 @@
+# ai-podbuilder default container shell environment.
+# Managed by the framework — place addins in ~/.bashrc.d/ instead of editing this file.
+# SPDX-License-Identifier: GPL-3.0-only
+
+# safer shell defaults
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+export CLICOLOR=1
+export LS_COLORS="${LS_COLORS:-}"
+
+# prompt: user@ai-podbuilder:/path $
+PS1='\[\e[1;32m\]\u@ai-podbuilder\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
+
+# quality of life
+set -o vi 2>/dev/null || true
+
+# load per-user and per-app addins from ~/.bashrc.d/
+if [[ -d "${HOME}/.bashrc.d" ]]; then
+    for _f in "${HOME}/.bashrc.d/"*.sh; do
+        [[ -f "$_f" ]] && . "$_f"
+    done
+    unset _f
+fi
+
+# load project-specific bash additions (workspace/.bashrc)
+[[ -f /workspace/.bashrc ]] && . /workspace/.bashrc

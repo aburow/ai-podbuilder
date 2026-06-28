@@ -92,7 +92,7 @@ WAS_UPDATE=0
 
 install_files() {
   local managed item
-  managed=(bin lib config templates prompts)
+  managed=(bin lib config templates prompts VERSION)
 
   # Stage final layout in $STAGE/out
   mkdir -p "${STAGE}/out"

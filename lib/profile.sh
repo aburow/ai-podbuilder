@@ -83,7 +83,15 @@ load_profile() {
         _info "Loaded legacy profile $(basename "${legacy_profile}") from profiles/; the canonical location is projects/${name}/profile.env. profiles/ is an optional compatibility area."
         profile_file="$legacy_profile"
     else
-        _die "Profile not found for '${name}': tried ${project_profile} and ${legacy_profile}"
+        local hint="" d
+        local projects_dir="${AI_PODMAN_JAILS_DIR}/projects"
+        if [[ -d "$projects_dir" ]]; then
+            while IFS= read -r -d '' d; do
+                [[ -f "${d}/profile.env" ]] && hint="${hint} $(basename "$d")"
+            done < <(find "$projects_dir" -maxdepth 1 -mindepth 1 -type d -name "${name}*" -print0)
+        fi
+        [[ -n "$hint" ]] && hint=" (did you mean:${hint}?)"
+        _die "Profile not found for '${name}': tried ${project_profile} and ${legacy_profile}${hint}"
     fi
 
     # shellcheck source=/dev/null
