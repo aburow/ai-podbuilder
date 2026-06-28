@@ -63,6 +63,8 @@ _ic_enumerate_installed() {
     local f rel
     while IFS= read -r -d '' f; do
         rel="${f#"${AI_PODMAN_JAILS_DIR}/"}"
+        # hadolint binaries are downloaded at install time, not shipped in the release.
+        [[ "$rel" == lib/hadolint* ]] && continue
         _ic_installed_files["${rel}"]=1
     done < <(find -L "${AI_PODMAN_JAILS_DIR}/bin" "${AI_PODMAN_JAILS_DIR}/lib" \
                  -type f -print0 2>/dev/null)
